@@ -13,7 +13,7 @@ public class Main {
 	public static void main(String[] args) 
 	{
 		// TODO Auto-generated method stub
-		String fileName = "C:/Users/naordalal/Desktop/shipment_0.txt";
+		String fileName = "C:/Users/naordalal/Desktop/SO_2003_customer_OPEN_SO_clean.txt";
 		 try {
 			for (String line : Files.readAllLines(Paths.get(fileName),Charset.forName("IBM862")))
 			 {
