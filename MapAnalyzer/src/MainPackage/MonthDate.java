@@ -8,8 +8,8 @@ public class MonthDate extends Date
 	private static final long serialVersionUID = 1L;
 	
 	public MonthDate(Date date) 
-	{
-		super(date.getTime());
+	{	
+		super(Globals.setFirstDayOfMonth(date).getTime());
 	}
 	
 	@Override

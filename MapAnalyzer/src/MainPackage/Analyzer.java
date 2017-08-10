@@ -4,9 +4,16 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
+
+import MainPackage.Globals.FormType;
 
 public class Analyzer 
 {
@@ -24,6 +31,10 @@ public class Analyzer
 		analyzeWO(globals.WOFilePath);
 		analyzeCustomerOrders(globals.customerOrdersFilePath);
 		analyzeShipments(globals.shipmentsFilePath);
+		
+		updateProductQuantities(db.getAllPO(), db.getAllProductsPOQuantityPerDate(), FormType.PO);
+		updateProductQuantities(db.getAllWO(), db.getAllProductsWOQuantityPerDate(), FormType.WO);
+		updateProductQuantities(db.getAllShipments(), db.getAllProductsShipmentQuantityPerDate(), FormType.SHIPMENT);
 	}
 	
 	private void analyzeWO(String filePath) throws IOException 
@@ -108,6 +119,81 @@ public class Analyzer
 						, columns.get(quantityColumn), columns.get(shipmentDateColumn), columns.get(descriptionColumn));
 			}
 		}
+	}
+	
+	public void updateProductQuantities(List<? extends Form> forms ,  Map<String, List<QuantityPerDate>> productsQuantityPerDate , FormType type)
+	{
+		Map<MonthDate,List<Form>> newFormsPerDate = new HashMap<>();
+		
+		for (Form form : forms) 
+		{
+			MonthDate monthDate = new MonthDate(form.getDate());
+			if(newFormsPerDate.containsKey(monthDate))
+				newFormsPerDate.get(monthDate).add(form);
+			else
+			{
+				List<Form> formOfMonth = new ArrayList<Form>();
+				formOfMonth.add(form);
+				newFormsPerDate.put(monthDate , formOfMonth);
+			}
+		}
+
+		
+		Map<String , List<QuantityPerDate>> newProductsQuantityPerDate = new HashMap<>();
+		
+		Iterator<Entry<MonthDate, List<Form>>> it = newFormsPerDate.entrySet().iterator();
+	    while (it.hasNext()) 
+	    {
+	        Map.Entry<MonthDate,List<Form>> entry = (Map.Entry<MonthDate,List<Form>>)it.next();
+	        for (Form form : entry.getValue()) 
+	        {
+	        	QuantityPerDate quantityPerDate = new QuantityPerDate(entry.getKey(), new Integer(form.getQuantity()));
+	        	if(newProductsQuantityPerDate.containsKey(form.getCatalogNumber()))
+	        	{
+	        		List<QuantityPerDate> quantityPerDateList = newProductsQuantityPerDate.get(form.getCatalogNumber());
+	        		List<MonthDate> datesList = quantityPerDateList.stream().map(el -> el.getDate()).collect(Collectors.toList());
+	        		
+	        		int indexOfQuantity = datesList.indexOf(quantityPerDate.getDate());
+	        		if(indexOfQuantity != -1)
+	        			quantityPerDateList.get(indexOfQuantity).addQuantity(quantityPerDate.getQuantity());
+	        		else
+	        			quantityPerDateList.add(quantityPerDate);
+	        			
+	        		
+	        	}
+	        	else
+	        	{
+	        		List<QuantityPerDate> quantityPerDateList = new ArrayList<>();
+	        		quantityPerDateList.add(quantityPerDate);
+	        		newProductsQuantityPerDate.put(form.getCatalogNumber(), quantityPerDateList);
+	        	}
+			}
+	    }
+	    
+	    Iterator<Entry<String, List<QuantityPerDate>>> productsQuantityIterator = newProductsQuantityPerDate.entrySet().iterator();
+	    while (productsQuantityIterator.hasNext()) 
+	    {
+	        Map.Entry<String,List<QuantityPerDate>> entry = (Map.Entry<String,List<QuantityPerDate>>)productsQuantityIterator.next();
+	        if(!productsQuantityPerDate.containsKey(entry.getKey()))
+	        	entry.getValue().stream().forEach(date -> db.addNewProductFormQuantityPerDate(entry.getKey() , date , type));
+	        else
+	        {
+	        	List<QuantityPerDate> currentQuantityPerDateList = productsQuantityPerDate.get(entry.getKey());
+	        	List<QuantityPerDate> changedQuantityPerDateList = entry.getValue().stream().filter(el -> !currentQuantityPerDateList.contains(el)).collect(Collectors.toList());
+	        	
+	        	for (QuantityPerDate quantityPerDate : changedQuantityPerDateList) 
+	        	{
+	        		List<MonthDate> currentDateList = currentQuantityPerDateList.stream().map(el -> el.getDate()).collect(Collectors.toList());
+					if(currentDateList.contains(quantityPerDate.getDate()))
+						db.updateNewProductFormQuantityPerDate(entry.getKey() , quantityPerDate , type);
+					else
+						db.addNewProductFormQuantityPerDate(entry.getKey() , quantityPerDate , type);
+				}
+	        }
+	    }
+	    
+		
+		
 	}
 
 }

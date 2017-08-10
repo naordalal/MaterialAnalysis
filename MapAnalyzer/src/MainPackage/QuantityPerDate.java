@@ -41,7 +41,7 @@ public class QuantityPerDate
 		if(!(obj instanceof QuantityPerDate))
 			return false;
 		
-		return ((QuantityPerDate)obj).date.equals(date);
+		return ((QuantityPerDate)obj).date.equals(date) && ((QuantityPerDate)obj).quantity == quantity;
 	}
 
 }

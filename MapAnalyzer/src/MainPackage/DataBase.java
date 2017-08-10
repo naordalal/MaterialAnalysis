@@ -3,18 +3,18 @@ package MainPackage;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-
 import javax.swing.JOptionPane;
 
 import org.sqlite.SQLiteConfig;
+
+import MainPackage.Globals.FormType;
 
 
 public class DataBase 
@@ -164,76 +164,279 @@ public class DataBase
 			return false;
 		}
 	}
-	
-	public void updateProductShipments()
+
+	public void addNewProductFormQuantityPerDate(String product, QuantityPerDate quantityPerDate , FormType type) 
 	{
-		List<Shipment> shipments = getAllShipments();
-		Map<MonthDate,List<Shipment>> newShipmentsPerDate = new HashMap<>();
-		
-		for (Shipment shipment : shipments) 
+		switch (type) 
 		{
-			MonthDate monthDate = new MonthDate(shipment.getShipmentDate());
-			if(newShipmentsPerDate.containsKey(monthDate))
-				newShipmentsPerDate.get(monthDate).add(shipment);
-			else
-			{
-				List<Shipment> shipmentOfMonth = new ArrayList<Shipment>();
-				shipmentOfMonth.add(shipment);
-				newShipmentsPerDate.put(monthDate , shipmentOfMonth);
-			}
+			case SHIPMENT:
+				addNewProductShipmentQuantityPerDate(product, quantityPerDate);
+				break;
+			case PO:
+				break;
+			case WO:
+				break;
+			default:
+				break;
 		}
+		
+	}
 
+	public void updateNewProductFormQuantityPerDate(String product, QuantityPerDate quantityPerDate , FormType type) {
+		switch (type) 
+		{
+			case SHIPMENT:
+				updateProductShipmentQuantityPerDate(product, quantityPerDate);
+				break;
+			case PO:
+				break;
+			case WO:
+				break;
+			default:
+				break;
+		}
 		
-		Map<String , List<QuantityPerDate>> newProductsQuantityPerDate = new HashMap<>();
+	}
+
+	private void updateProductShipmentQuantityPerDate(String product, QuantityPerDate quantityPerDate) 
+	{
+		try
+		{
+			
+			connect();
+			stmt = c.prepareStatement("UPDATE productShipments SET quantity = ? where CN = ? AND date = ?");
+			stmt.setString(1, Integer.toString(quantityPerDate.getQuantity()));
+			stmt.setString(2, product);
+			stmt.setString(3, Globals.dateWithoutHourToString(quantityPerDate.getDate()));
+			stmt.executeUpdate();
+			
+			c.commit();
+			
+			closeConnection();
 		
-		Iterator<Entry<MonthDate, List<Shipment>>> it = newShipmentsPerDate.entrySet().iterator();
-	    while (it.hasNext()) 
-	    {
-	        Map.Entry<MonthDate,List<Shipment>> entry = (Map.Entry<MonthDate,List<Shipment>>)it.next();
-	        for (Shipment shipment : entry.getValue()) 
-	        {
-	        	QuantityPerDate quantityPerDate = new QuantityPerDate(entry.getKey(), new Integer(shipment.getQuantity()));
-	        	if(newProductsQuantityPerDate.containsKey(shipment.getCatalogNumber()))
-	        	{
-	        		List<QuantityPerDate> quantityPerDateList = newProductsQuantityPerDate.get(shipment.getCatalogNumber());
-	        		int indexOfQuantity = quantityPerDateList.indexOf(quantityPerDate);
-	        		if(indexOfQuantity != -1)
-	        			quantityPerDateList.get(indexOfQuantity).addQuantity(quantityPerDate.getQuantity());
-	        		else
-	        			quantityPerDateList.add(quantityPerDate);
-	        			
-	        		
-	        	}
-	        	else
-	        	{
-	        		List<QuantityPerDate> quantityPerDateList = new ArrayList<>();
-	        		quantityPerDateList.add(quantityPerDate);
-	        		newProductsQuantityPerDate.put(shipment.getCatalogNumber(), quantityPerDateList);
-	        	}
+		}
+		catch(Exception e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
 			}
-	    }
-	    
-	    Map<String , List<QuantityPerDate>> productsQuantityPerDate = getAllProductsQuantityPerDate();
-	    
-	    
-		
+			
+			e.printStackTrace();
+			
+			closeConnection();
+		}
 		
 	}
 
-	private Map<String, List<QuantityPerDate>> getAllProductsQuantityPerDate() 
+	private void addNewProductShipmentQuantityPerDate(String product , QuantityPerDate quantityPerDate) 
 	{
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	private Map<MonthDate, List<Shipment>> getAllShipmentsPerDate() 
-	{
-		return null;
-	}
-
-	private List<Shipment> getAllShipments() 
-	{
-		return null;
+		try
+		{
+			
+			connect();
+			stmt = c.prepareStatement("INSERT INTO productShipments (CN , quantity , date) VALUES (?,?,?)");
+			stmt.setString(1, product);
+			stmt.setString(2, Integer.toString(quantityPerDate.getQuantity()));
+			stmt.setString(3, Globals.dateWithoutHourToString(quantityPerDate.getDate()));
+			stmt.executeUpdate();
+			
+			c.commit();
+			
+			closeConnection();
 		
+		}
+		catch(Exception e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			
+			e.printStackTrace();
+			
+			closeConnection();
+		}
+		
+	}
+
+	public Map<String, List<QuantityPerDate>> getAllProductsFormQuantityPerDate(FormType type)
+	{
+		Map<String, List<QuantityPerDate>> productFormQuantityPerDate = new HashMap<>();
+		String tableName;
+		
+		switch (type) 
+		{
+			case SHIPMENT:
+				tableName = "productShipments";
+				break;
+			case PO:
+				tableName = "productCustomerOrders";
+				break;
+			case WO:
+				tableName = "productWorkOrder";
+				break;
+			default:
+				return new HashMap<>();
+		}
+		
+		try{
+			
+			connect();
+			stmt = c.prepareStatement("SELECT * FROM ?");		
+			stmt.setString(1, tableName);
+			ResultSet rs = stmt.executeQuery();
+			
+			while(rs.next())
+			{
+				String catalogNumber = rs.getString("CN");
+				String quantity = rs.getString("quantity");
+				MonthDate shipmentDate = new MonthDate(Globals.parseDate(rs.getString("date")));
+				
+				QuantityPerDate quantityPerDate = new QuantityPerDate(shipmentDate, Integer.parseInt(quantity));
+				
+				if(productFormQuantityPerDate.containsKey(catalogNumber))
+					productFormQuantityPerDate.get(catalogNumber).add(quantityPerDate);
+				else
+				{
+					List<QuantityPerDate> quantityPerDates = new ArrayList<>();
+					quantityPerDates.add(quantityPerDate);
+					productFormQuantityPerDate.put(catalogNumber, quantityPerDates);
+				}
+				
+			}
+			
+			closeConnection();
+			return productFormQuantityPerDate;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return new HashMap<>();
+		}
+	}
+	
+	public Map<String, List<QuantityPerDate>> getAllProductsShipmentQuantityPerDate() 
+	{
+		return getAllProductsFormQuantityPerDate(FormType.SHIPMENT);
+	}
+
+	public List<Shipment> getAllShipments() 
+	{
+		List<Shipment> shipments = new ArrayList<>();
+		try{
+			
+			connect();
+			stmt = c.prepareStatement("SELECT * FROM Shipments");		
+			ResultSet rs = stmt.executeQuery();
+			
+			while(rs.next())
+			{
+				String shipmentId = rs.getString("shipmentId");
+				String customer = rs.getString("customer");
+				String catalogNumber = rs.getString("CN");
+				String description = rs.getString("description");
+				String quantity = rs.getString("quantity");
+				String shipmentDate = rs.getString("shipmentDate");
+				
+				Shipment shipment = new Shipment(customer, shipmentId, catalogNumber, quantity, Globals.parseDate(shipmentDate), description);
+				shipments.add(shipment);
+			}
+			
+			closeConnection();
+			return shipments;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return new ArrayList<Shipment>();
+		}
+		
+	}
+
+	public List<CustomerOrder> getAllPO() 
+	{
+		List<CustomerOrder> customerOrders = new ArrayList<>();
+		try{
+			
+			connect();
+			stmt = c.prepareStatement("SELECT * FROM CustomerOrders");		
+			ResultSet rs = stmt.executeQuery();
+			
+			while(rs.next())
+			{
+				String customer = rs.getString("customer");
+				String orderNumber = rs.getString("orderNumber");
+				String catalogNumber = rs.getString("CN");
+				String description = rs.getString("description");
+				String quantity = rs.getString("quantity");
+				String price = rs.getString("price");
+				String orderDate = rs.getString("orderDate");
+				Date guaranteedDate = Globals.parseDate(rs.getString("guaranteedDate"));
+				
+				CustomerOrder customerOrder = new CustomerOrder(customer, orderNumber, catalogNumber, description, quantity, price, orderDate, guaranteedDate);
+				customerOrders.add(customerOrder);
+			}
+			
+			closeConnection();
+			return customerOrders;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return new ArrayList<CustomerOrder>();
+		}
+	}
+
+	public Map<String, List<QuantityPerDate>> getAllProductsPOQuantityPerDate() 
+	{
+		return getAllProductsFormQuantityPerDate(FormType.PO);
+	}
+
+	public List<WorkOrder> getAllWO() 
+	{
+		List<WorkOrder> workOrders = new ArrayList<>();
+		try{
+			
+			connect();
+			stmt = c.prepareStatement("SELECT * FROM WorkOrder");		
+			ResultSet rs = stmt.executeQuery();
+			
+			while(rs.next())
+			{
+				String customer = rs.getString("customer");
+				String woNumber = rs.getString("WOId");
+				String catalogNumber = rs.getString("CN");
+				String description = rs.getString("description");
+				String quantity = rs.getString("quantity");
+				Date orderDate = Globals.parseDate(rs.getString("date"));
+				
+				WorkOrder customerOrder = new WorkOrder(woNumber, catalogNumber, quantity, customer, orderDate, description);
+				workOrders.add(customerOrder);
+			}
+			
+			closeConnection();
+			return workOrders;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return new ArrayList<WorkOrder>();
+		}
+	}
+
+	public Map<String, List<QuantityPerDate>> getAllProductsWOQuantityPerDate() 
+	{
+		return getAllProductsFormQuantityPerDate(FormType.WO);
 	}
 }

@@ -3,7 +3,6 @@ package MainPackage;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -34,6 +33,9 @@ public class Globals
 	public final String shipmentIdColumn = "מס משלוח";
 	public final String shipmentDateColumn = "תאריך משלוח";
 	
+	public enum FormType {
+	    SHIPMENT,WO,PO
+	}
 	
 	
 	public static String dateWithoutHourToString(Date date) 
@@ -54,7 +56,7 @@ public class Globals
 		return s;
 	}
 	
-	public Date parseDate(String date)
+	public static Date parseDate(String date)
 	{
 		DateFormat sourceFormat = new SimpleDateFormat("dd/MM/yy");
 		DateFormat outsourceFormat = new SimpleDateFormat("dd/MM/yyyy");
@@ -101,6 +103,21 @@ public class Globals
 		c.set(Calendar.MILLISECOND, 0);
 		
 		return c.get(Calendar.YEAR);
+	}
+
+	public static Date setFirstDayOfMonth(Date date) 
+	{
+		Calendar c = Calendar.getInstance();
+		c.setTime(date);
+		c.set(Calendar.HOUR_OF_DAY, 0);
+		c.set(Calendar.MINUTE, 0);
+		c.set(Calendar.SECOND, 0);
+		c.set(Calendar.MILLISECOND, 0);
+		c.set(Calendar.DAY_OF_MONTH, 1);
+		
+		date = c.getTime();
+		
+		return date;
 	}
 	
 	
