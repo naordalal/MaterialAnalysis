@@ -12,7 +12,6 @@ public class Main {
 
 	public static void main(String[] args) 
 	{
-		// TODO Auto-generated method stub
 		String fileName = "C:/Users/naordalal/Desktop/shipment_0.txt";
 		 try {
 			for (String line : Files.readAllLines(Paths.get(fileName),Charset.forName("IBM862")))
@@ -22,9 +21,16 @@ public class Main {
 				 x.stream().forEach(s -> System.out.print(s + "|"));
 			 }
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		 
+		 //TODO
+		 /*Analyzer analyzer = new Analyzer();
+		 try {
+			analyzer.analyze();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}*/
 	}
 
 }
