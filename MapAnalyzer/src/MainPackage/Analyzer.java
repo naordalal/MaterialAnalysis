@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -28,6 +29,9 @@ public class Analyzer
 	
 	public void analyze() throws IOException
 	{
+		db.removeHistoryOfForm(FormType.PO, globals.monthsToIgnore);
+		db.removeHistoryOfForm(FormType.WO, globals.monthsToIgnore);
+		
 		analyzeWO(globals.WOFilePath);
 		analyzeCustomerOrders(globals.customerOrdersFilePath);
 		analyzeShipments(globals.shipmentsFilePath);
@@ -36,11 +40,11 @@ public class Analyzer
 		updateProductQuantities(db.getAllWO(), db.getAllProductsWOQuantityPerDate(), FormType.WO);
 		updateProductQuantities(db.getAllShipments(), db.getAllProductsShipmentQuantityPerDate(), FormType.SHIPMENT);
 	}
-	
+
 	private void analyzeWO(String filePath) throws IOException 
 	{
 		int woNumberColumn = -1 , catalogNumberColumn = -1 , quantityColumn = -1 , customerColumn = -1 , dateColumn = -1 , descriptionColumn = -1;
-		for (String line : Files.readAllLines(Paths.get(filePath),Charset.forName("IBM862")))
+		for (String line : Files.readAllLines(Paths.get(filePath),Charset.forName(globals.charsetName)))
 		{
 			List<String> columns = Arrays.asList(line.split("\\|")).stream().map(s -> s.trim()).filter(s->!s.equals("")).collect(Collectors.toList());
 			if(woNumberColumn == -1) 
@@ -57,8 +61,10 @@ public class Analyzer
 				descriptionColumn = columns.indexOf(globals.descriptionColumn);
 			else
 			{
-				db.addWO(columns.get(woNumberColumn), columns.get(catalogNumberColumn), columns.get(quantityColumn)
-						, columns.get(customerColumn), columns.get(dateColumn), columns.get(descriptionColumn));
+				Date date = Globals.parseDate(columns.get(dateColumn));
+				if(Globals.addMonths(Globals.getTodayDate(), -globals.monthsToIgnore).before(date))
+					db.addWO(columns.get(woNumberColumn), columns.get(catalogNumberColumn), columns.get(quantityColumn)
+							, columns.get(customerColumn), columns.get(dateColumn), columns.get(descriptionColumn));
 			}
 		}	
 	}
@@ -67,14 +73,14 @@ public class Analyzer
 	{
 		int customerColumn = -1 , orderNumberColumn = -1 , catalogNumberColumn = -1 , descriptionColumn = -1 , quantityColumn = -1 , priceColumn = -1,
 				orderDateColumn = - 1 , guaranteedDateColumn = -1;
-		for (String line : Files.readAllLines(Paths.get(filePath),Charset.forName("IBM862")))
+		for (String line : Files.readAllLines(Paths.get(filePath),Charset.forName(globals.charsetName)))
 		{
 			List<String> columns = Arrays.asList(line.split("\\|")).stream().map(s -> s.trim()).filter(s->!s.equals("")).collect(Collectors.toList());
 			if(customerColumn == -1) 
 				customerColumn = columns.indexOf(globals.customerIdColumn);
 			if(orderNumberColumn == -1) 
 				orderNumberColumn = columns.indexOf(globals.orderNumberColumn);
-			if(catalogNumberColumn == -1) 
+			if(catalogNumberColumn == -1)
 				catalogNumberColumn = columns.indexOf(globals.catalogNumberColumn);
 			if(descriptionColumn == -1) 
 				descriptionColumn = columns.indexOf(globals.descriptionColumn);
@@ -88,9 +94,11 @@ public class Analyzer
 				guaranteedDateColumn = columns.indexOf(globals.guaranteedDateColumn);
 			else
 			{
-				db.addCustomerOrder(columns.get(customerColumn), columns.get(orderNumberColumn), columns.get(catalogNumberColumn)
-						, columns.get(descriptionColumn), columns.get(quantityColumn), columns.get(priceColumn) 
-						, columns.get(orderDateColumn) , columns.get(guaranteedDateColumn));
+				Date date = Globals.parseDate(columns.get(orderDateColumn));
+				if(Globals.addMonths(Globals.getTodayDate(), -globals.monthsToIgnore).before(date))
+					db.addCustomerOrder(columns.get(customerColumn), columns.get(orderNumberColumn), columns.get(catalogNumberColumn)
+							, columns.get(descriptionColumn), columns.get(quantityColumn), columns.get(priceColumn) 
+							, columns.get(orderDateColumn) , columns.get(guaranteedDateColumn));
 			}
 		}
 	}
@@ -98,7 +106,7 @@ public class Analyzer
 	private void analyzeShipments(String filePath) throws IOException 
 	{
 		int customerColumn = -1 , orderIdColumn = -1 , orderCustomerIdColumn = -1 , catalogNumberColumn = -1 , quantityColumn = -1 , shipmentDateColumn = -1 , descriptionColumn = -1;
-		for (String line : Files.readAllLines(Paths.get(filePath),Charset.forName("IBM862")))
+		for (String line : Files.readAllLines(Paths.get(filePath),Charset.forName(globals.charsetName)))
 		{
 			List<String> columns = Arrays.asList(line.split("\\|")).stream().map(s -> s.trim()).filter(s->!s.equals("")).collect(Collectors.toList());
 			if(customerColumn == -1) 
@@ -117,8 +125,10 @@ public class Analyzer
 				descriptionColumn = columns.indexOf(globals.descriptionColumn);
 			else
 			{
-				db.addShipment(columns.get(customerColumn), columns.get(orderIdColumn), columns.get(orderCustomerIdColumn) ,columns.get(catalogNumberColumn)
-						, columns.get(quantityColumn), columns.get(shipmentDateColumn), columns.get(descriptionColumn));
+				Date date = Globals.parseDate(columns.get(shipmentDateColumn));
+				if(Globals.addDays(Globals.getTodayDate(), -2).before(date))
+					db.addShipment(columns.get(customerColumn), columns.get(orderIdColumn), columns.get(orderCustomerIdColumn) ,columns.get(catalogNumberColumn)
+							, columns.get(quantityColumn), columns.get(shipmentDateColumn), columns.get(descriptionColumn));
 			}
 		}
 	}

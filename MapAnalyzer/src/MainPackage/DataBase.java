@@ -166,6 +166,72 @@ public class DataBase
 		}
 	}
 
+	public void removeHistoryOfForm(FormType type , int months)
+	{
+		
+		switch (type) 
+		{
+			case PO:
+				removeHistoryOfPO(months);
+				break;
+			case WO:
+				removeHistoryOfWO(months);
+				break;
+			default:
+				return;
+		}
+		
+		
+	}
+	
+	private void removeHistoryOfWO(int months) 
+	{
+		try
+		{
+			connect();
+			stmt = c.prepareStatement("DELETE FROM WorkOrder Where date(date) >= ?");
+			stmt.setString(1, Globals.dateToSqlFormatString(Globals.addMonths(Globals.getTodayDate() , -months)));
+			
+			c.commit();
+			
+			closeConnection();
+			
+		}
+		catch(SQLException e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			closeConnection();
+		}
+	}
+
+	private void removeHistoryOfPO(int months) 
+	{
+		try
+		{
+			connect();
+			stmt = c.prepareStatement("DELETE FROM CustomerOrders Where date(orderDate) >= ?");
+			stmt.setString(1, Globals.dateToSqlFormatString(Globals.addMonths(Globals.getTodayDate() , -months)));
+			
+			c.commit();
+			
+			closeConnection();
+			
+		}
+		catch(SQLException e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			closeConnection();
+		}
+	}
+
 	public void addNewProductFormQuantityPerDate(String product, QuantityPerDate quantityPerDate , FormType type) 
 	{
 		String tableName;
@@ -193,7 +259,7 @@ public class DataBase
 			stmt.setString(1, tableName);
 			stmt.setString(2, product);
 			stmt.setString(3, Integer.toString(quantityPerDate.getQuantity()));
-			stmt.setString(4, Globals.dateWithoutHourToString(quantityPerDate.getDate()));
+			stmt.setString(4, Globals.dateToSqlFormatString(quantityPerDate.getDate()));
 			stmt.executeUpdate();
 			
 			c.commit();
@@ -244,7 +310,7 @@ public class DataBase
 			stmt.setString(1, tableName);
 			stmt.setString(2, Integer.toString(quantityPerDate.getQuantity()));
 			stmt.setString(3, product);
-			stmt.setString(4, Globals.dateWithoutHourToString(quantityPerDate.getDate()));
+			stmt.setString(4, Globals.dateToSqlFormatString(quantityPerDate.getDate()));
 			stmt.executeUpdate();
 			
 			c.commit();

@@ -34,6 +34,9 @@ public class Globals
 	public final String orderCustomerIdColumn = "סימוכין";
 	public final String shipmentDateColumn = "תאריך משלוח";
 	
+	public final int monthsToIgnore = 6;
+	public final String charsetName = "IBM862";
+	
 	public enum FormType {
 	    SHIPMENT,WO,PO
 	}
@@ -53,6 +56,24 @@ public class Globals
 		int day = c.get(Calendar.DAY_OF_MONTH);
 
 		String s = String.format("%02d", day) + "/" + String.format("%02d", month) + "/" + year;
+		
+		return s;
+	}
+	
+	public static String dateToSqlFormatString(Date date) 
+	{
+		Calendar c = Calendar.getInstance();
+		c.setTime(date);
+		c.set(Calendar.HOUR_OF_DAY, 0);
+		c.set(Calendar.MINUTE, 0);
+		c.set(Calendar.SECOND, 0);
+		c.set(Calendar.MILLISECOND, 0);
+		
+		int year = c.get(Calendar.YEAR);
+		int month = c.get(Calendar.MONTH);
+		int day = c.get(Calendar.DAY_OF_MONTH);
+
+		String s = year + "-" + String.format("%02d", month) + "-" + String.format("%02d", day);
 		
 		return s;
 	}
@@ -119,6 +140,41 @@ public class Globals
 		date = c.getTime();
 		
 		return date;
+	}
+	
+	public static Date getTodayDate()
+	{
+		Calendar c = Calendar.getInstance();
+		c.setTime(new Date());
+		c.set(Calendar.HOUR_OF_DAY, 0);
+		c.set(Calendar.MINUTE, 0);
+		c.set(Calendar.SECOND, 0);
+		c.set(Calendar.MILLISECOND, 0);
+		return c.getTime();
+	}
+	
+	public static Date addDays(Date date ,int days)
+	{
+		Calendar c2 = Calendar.getInstance();
+		c2.setTime(date);
+		c2.set(Calendar.HOUR_OF_DAY, 0);
+		c2.set(Calendar.MINUTE, 0);
+		c2.set(Calendar.SECOND, 0);
+		c2.set(Calendar.MILLISECOND, 0);
+		c2.add(Calendar.DAY_OF_MONTH, days);
+		return c2.getTime();
+	}
+	
+	public static Date addMonths(Date date ,int months)
+	{
+		Calendar c2 = Calendar.getInstance();
+		c2.setTime(date);
+		c2.set(Calendar.HOUR_OF_DAY, 0);
+		c2.set(Calendar.MINUTE, 0);
+		c2.set(Calendar.SECOND, 0);
+		c2.set(Calendar.MILLISECOND, 0);
+		c2.add(Calendar.MONTH, months);
+		return c2.getTime();
 	}
 	
 	
