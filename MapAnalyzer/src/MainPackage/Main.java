@@ -12,7 +12,7 @@ public class Main {
 
 	public static void main(String[] args) 
 	{
-		String fileName = "C:/Users/naordalal/Desktop/shipment_0.txt";
+		String fileName = "C:/Users/naordalal/Desktop/SO_ALL_customer_ALL_SO_clean.txt";
 		 try {
 			for (String line : Files.readAllLines(Paths.get(fileName),Charset.forName("IBM862")))
 			 {

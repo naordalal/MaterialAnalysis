@@ -128,19 +128,20 @@ public class DataBase
 	}
 	
 	
-	public boolean addShipment(String customer , String shipmentId , String catalogNumber , String quantity , String shipmentDate , String description) 
+	public boolean addShipment(String customer , String orderId , String orderCustomerId , String catalogNumber , String quantity , String shipmentDate , String description) 
 	{
 		try
 		{
 			
 			connect();
-			stmt = c.prepareStatement("INSERT INTO Shipments (shipmentId , customer , CN , description , quantity , shipmentDate) VALUES (?,?,?,?,?,?)");
-			stmt.setString(1, shipmentId);
-			stmt.setString(2, customer);
-			stmt.setString(3, catalogNumber);
-			stmt.setString(4, description);
-			stmt.setString(5, quantity);
-			stmt.setString(6, shipmentDate);
+			stmt = c.prepareStatement("INSERT INTO Shipments (orderId , orderCustomerId , customer , CN , description , quantity , shipmentDate) VALUES (?,?,?,?,?,?,?)");
+			stmt.setString(1, orderId);
+			stmt.setString(2, orderCustomerId);
+			stmt.setString(3, customer);
+			stmt.setString(4, catalogNumber);
+			stmt.setString(5, description);
+			stmt.setString(6, quantity);
+			stmt.setString(7, shipmentDate);
 			stmt.executeUpdate();
 			
 			c.commit();
@@ -336,14 +337,15 @@ public class DataBase
 			
 			while(rs.next())
 			{
-				String shipmentId = rs.getString("shipmentId");
+				String orderId = rs.getString("orderId");
+				String orderCustomerId = rs.getString("orderCustomerId");
 				String customer = rs.getString("customer");
 				String catalogNumber = rs.getString("CN");
 				String description = rs.getString("description");
 				String quantity = rs.getString("quantity");
 				String shipmentDate = rs.getString("shipmentDate");
 				
-				Shipment shipment = new Shipment(customer, shipmentId, catalogNumber, quantity, Globals.parseDate(shipmentDate), description);
+				Shipment shipment = new Shipment(customer, orderId, orderCustomerId , catalogNumber, quantity, Globals.parseDate(shipmentDate), description);
 				shipments.add(shipment);
 			}
 			

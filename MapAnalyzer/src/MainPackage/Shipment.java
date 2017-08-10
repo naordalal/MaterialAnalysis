@@ -5,15 +5,17 @@ import java.util.Date;
 public class Shipment extends Form
 {
 	private String customer;
-	private String shipmentId;
+	private String orderId;
 	private String description;
+	private String orderCustomerId;
 	
-	public Shipment(String customer , String shipmentId , String catalogNumber , String quantity , Date shipmentDate , String description) 
+	public Shipment(String customer , String orderId , String orderCustomerId , String catalogNumber , String quantity , Date shipmentDate , String description) 
 	{
 		super(catalogNumber,quantity,shipmentDate);
 		
 		this.customer = customer;
-		this.shipmentId = shipmentId;
+		this.orderId = orderId;
+		this.orderCustomerId = orderCustomerId;
 		this.description = description;		
 	}
 	
@@ -26,13 +28,13 @@ public class Shipment extends Form
 		this.customer = customer;
 	}
 	
-	public String getShipmentId() 
+	public String getorderId() 
 	{
-		return shipmentId;
+		return orderId;
 	}
-	public void setShipmentId(String shipmentId) 
+	public void setorderId(String orderId) 
 	{
-		this.shipmentId = shipmentId;
+		this.orderId = orderId;
 	}
 	
 	
@@ -43,5 +45,15 @@ public class Shipment extends Form
 	public void setDescription(String description) 
 	{
 		this.description = description;
+	}
+
+	public String getOrderCustomerId() 
+	{
+		return orderCustomerId;
+	}
+
+	public void setOrderCustomerId(String orderCustomerId) 
+	{
+		this.orderCustomerId = orderCustomerId;
 	}
 }

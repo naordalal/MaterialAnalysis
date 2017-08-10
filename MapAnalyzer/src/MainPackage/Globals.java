@@ -30,7 +30,8 @@ public class Globals
 	public final String quantityOrderColumn = "כמות מוזמנת";
 	public final String guaranteedDateColumn = "תאריך מובטח";
 	
-	public final String shipmentIdColumn = "מס משלוח";
+	public final String orderIdColumn = "מס הז";
+	public final String orderCustomerIdColumn = "סימוכין";
 	public final String shipmentDateColumn = "תאריך משלוח";
 	
 	public enum FormType {

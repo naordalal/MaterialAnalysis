@@ -97,14 +97,16 @@ public class Analyzer
 	
 	private void analyzeShipments(String filePath) throws IOException 
 	{
-		int customerColumn = -1 , shipmentIdColumn = -1 , catalogNumberColumn = -1 , quantityColumn = -1 , shipmentDateColumn = -1 , descriptionColumn = -1;
+		int customerColumn = -1 , orderIdColumn = -1 , orderCustomerIdColumn = -1 , catalogNumberColumn = -1 , quantityColumn = -1 , shipmentDateColumn = -1 , descriptionColumn = -1;
 		for (String line : Files.readAllLines(Paths.get(filePath),Charset.forName("IBM862")))
 		{
 			List<String> columns = Arrays.asList(line.split("\\|")).stream().map(s -> s.trim()).filter(s->!s.equals("")).collect(Collectors.toList());
 			if(customerColumn == -1) 
 				customerColumn = columns.indexOf(globals.customerIdColumn);
-			if(shipmentIdColumn == -1) 
-				shipmentIdColumn = columns.indexOf(globals.shipmentIdColumn);
+			if(orderIdColumn == -1) 
+				orderIdColumn = columns.indexOf(globals.orderIdColumn);
+			if(orderCustomerIdColumn == -1) 
+				orderCustomerIdColumn = columns.indexOf(globals.orderCustomerIdColumn);
 			if(catalogNumberColumn == -1) 
 				catalogNumberColumn = columns.indexOf(globals.catalogNumberColumn);
 			if(quantityColumn == -1) 
@@ -115,7 +117,7 @@ public class Analyzer
 				descriptionColumn = columns.indexOf(globals.descriptionColumn);
 			else
 			{
-				db.addShipment(columns.get(customerColumn), columns.get(shipmentIdColumn), columns.get(catalogNumberColumn)
+				db.addShipment(columns.get(customerColumn), columns.get(orderIdColumn), columns.get(orderCustomerIdColumn) ,columns.get(catalogNumberColumn)
 						, columns.get(quantityColumn), columns.get(shipmentDateColumn), columns.get(descriptionColumn));
 			}
 		}
