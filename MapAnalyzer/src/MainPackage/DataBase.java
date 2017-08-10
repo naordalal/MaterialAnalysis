@@ -168,47 +168,32 @@ public class DataBase
 
 	public void addNewProductFormQuantityPerDate(String product, QuantityPerDate quantityPerDate , FormType type) 
 	{
+		String tableName;
+		
 		switch (type) 
 		{
 			case SHIPMENT:
-				addNewProductShipmentQuantityPerDate(product, quantityPerDate);
+				tableName = "productShipments";
 				break;
 			case PO:
+				tableName = "productCustomerOrders";
 				break;
 			case WO:
+				tableName = "productWorkOrder";
 				break;
 			default:
-				break;
+				return;
 		}
 		
-	}
-
-	public void updateNewProductFormQuantityPerDate(String product, QuantityPerDate quantityPerDate , FormType type) {
-		switch (type) 
-		{
-			case SHIPMENT:
-				updateProductShipmentQuantityPerDate(product, quantityPerDate);
-				break;
-			case PO:
-				break;
-			case WO:
-				break;
-			default:
-				break;
-		}
-		
-	}
-
-	private void updateProductShipmentQuantityPerDate(String product, QuantityPerDate quantityPerDate) 
-	{
 		try
 		{
 			
 			connect();
-			stmt = c.prepareStatement("UPDATE productShipments SET quantity = ? where CN = ? AND date = ?");
-			stmt.setString(1, Integer.toString(quantityPerDate.getQuantity()));
+			stmt = c.prepareStatement("INSERT INTO ? (CN , quantity , date) VALUES (?,?,?)");
+			stmt.setString(1, tableName);
 			stmt.setString(2, product);
-			stmt.setString(3, Globals.dateWithoutHourToString(quantityPerDate.getDate()));
+			stmt.setString(3, Integer.toString(quantityPerDate.getQuantity()));
+			stmt.setString(4, Globals.dateWithoutHourToString(quantityPerDate.getDate()));
 			stmt.executeUpdate();
 			
 			c.commit();
@@ -229,18 +214,37 @@ public class DataBase
 			closeConnection();
 		}
 		
+		
 	}
 
-	private void addNewProductShipmentQuantityPerDate(String product , QuantityPerDate quantityPerDate) 
+	public void updateNewProductFormQuantityPerDate(String product, QuantityPerDate quantityPerDate , FormType type) 
 	{
+		String tableName;
+		
+		switch (type) 
+		{
+			case SHIPMENT:
+				tableName = "productShipments";
+				break;
+			case PO:
+				tableName = "productCustomerOrders";
+				break;
+			case WO:
+				tableName = "productWorkOrder";
+				break;
+			default:
+				return;
+		}
+		
 		try
 		{
 			
 			connect();
-			stmt = c.prepareStatement("INSERT INTO productShipments (CN , quantity , date) VALUES (?,?,?)");
-			stmt.setString(1, product);
+			stmt = c.prepareStatement("UPDATE ? SET quantity = ? where CN = ? AND date = ?");
+			stmt.setString(1, tableName);
 			stmt.setString(2, Integer.toString(quantityPerDate.getQuantity()));
-			stmt.setString(3, Globals.dateWithoutHourToString(quantityPerDate.getDate()));
+			stmt.setString(3, product);
+			stmt.setString(4, Globals.dateWithoutHourToString(quantityPerDate.getDate()));
 			stmt.executeUpdate();
 			
 			c.commit();
