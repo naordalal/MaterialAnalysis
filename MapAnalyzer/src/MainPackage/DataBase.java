@@ -189,7 +189,7 @@ public class DataBase
 		try
 		{
 			connect();
-			stmt = c.prepareStatement("DELETE FROM WorkOrder Where date(date) >= ?");
+			stmt = c.prepareStatement("DELETE FROM WorkOrder Where date(date) > ?");
 			stmt.setString(1, Globals.dateToSqlFormatString(Globals.addMonths(Globals.getTodayDate() , -months)));
 			
 			c.commit();
