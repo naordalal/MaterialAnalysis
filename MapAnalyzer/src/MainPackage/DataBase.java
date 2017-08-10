@@ -4,7 +4,13 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.swing.JOptionPane;
 
@@ -32,7 +38,7 @@ public class DataBase
 			}
 	}
 	
-	public void closeConnection()
+	private void closeConnection()
 	{
 		try {
 			if(stmt != null && !c.isClosed())
@@ -51,13 +57,13 @@ public class DataBase
 		{
 			
 			connect();
-			stmt = c.prepareStatement("INSERT INTO WorkOrder (WOId , CN , quantity , customer , date , description) VALUES (?,?,?,?,?,?)");
+			stmt = c.prepareStatement("INSERT INTO WorkOrder (WOId , customer , CN , description ,quantity , date ) VALUES (?,?,?,?,?,?)");
 			stmt.setString(1, woNumber);
-			stmt.setString(2, catalogNumber);
-			stmt.setString(3, quantity);
-			stmt.setString(4, customer);
-			stmt.setString(5, date);
-			stmt.setString(5, description);
+			stmt.setString(2, customer);
+			stmt.setString(3, catalogNumber);
+			stmt.setString(4, description);
+			stmt.setString(5, quantity);
+			stmt.setString(6, date);
 			stmt.executeUpdate();
 			
 			c.commit();
@@ -88,14 +94,14 @@ public class DataBase
 		{
 			
 			connect();
-			stmt = c.prepareStatement("INSERT INTO CustomerOrders (customer , orderNumber , CN , quantity , price , description , orderDate , guaranteedDate) VALUES (?,?,?,?,?,?,?,?)");
-			stmt.setString(1, customer);
-			stmt.setString(2, orderNumber);
-			stmt.setString(3, catalogNumber);
-			stmt.setString(4, quantity);
-			stmt.setString(5, price);
-			stmt.setString(6, description);
-			stmt.setString(7, orderDate);
+			stmt = c.prepareStatement("INSERT INTO CustomerOrders (orderNumber , customer , orderDate , CN , description ,quantity , price , guaranteedDate) VALUES (?,?,?,?,?,?,?,?)");
+			stmt.setString(1, orderNumber);
+			stmt.setString(2, customer);
+			stmt.setString(3, orderDate);
+			stmt.setString(4, catalogNumber);
+			stmt.setString(5, description);
+			stmt.setString(6, quantity);
+			stmt.setString(7, price);
 			stmt.setString(8, guaranteedDate);
 			stmt.executeUpdate();
 			
@@ -122,19 +128,19 @@ public class DataBase
 	}
 	
 	
-	public boolean addShipment(String customer , String orderNumber , String catalogNumber , String quantity , String shipmentDate , String description) 
+	public boolean addShipment(String customer , String shipmentId , String catalogNumber , String quantity , String shipmentDate , String description) 
 	{
 		try
 		{
 			
 			connect();
-			stmt = c.prepareStatement("INSERT INTO Shipments (customer , orderNumber , CN , quantity , shipmentDate , description) VALUES (?,?,?,?,?,?)");
-			stmt.setString(1, customer);
-			stmt.setString(2, orderNumber);
+			stmt = c.prepareStatement("INSERT INTO Shipments (shipmentId , customer , CN , description , quantity , shipmentDate) VALUES (?,?,?,?,?,?)");
+			stmt.setString(1, shipmentId);
+			stmt.setString(2, customer);
 			stmt.setString(3, catalogNumber);
-			stmt.setString(4, quantity);
-			stmt.setString(5, shipmentDate);
-			stmt.setString(6, description);
+			stmt.setString(4, description);
+			stmt.setString(5, quantity);
+			stmt.setString(6, shipmentDate);
 			stmt.executeUpdate();
 			
 			c.commit();
@@ -157,5 +163,77 @@ public class DataBase
 			closeConnection();
 			return false;
 		}
+	}
+	
+	public void updateProductShipments()
+	{
+		List<Shipment> shipments = getAllShipments();
+		Map<MonthDate,List<Shipment>> newShipmentsPerDate = new HashMap<>();
+		
+		for (Shipment shipment : shipments) 
+		{
+			MonthDate monthDate = new MonthDate(shipment.getShipmentDate());
+			if(newShipmentsPerDate.containsKey(monthDate))
+				newShipmentsPerDate.get(monthDate).add(shipment);
+			else
+			{
+				List<Shipment> shipmentOfMonth = new ArrayList<Shipment>();
+				shipmentOfMonth.add(shipment);
+				newShipmentsPerDate.put(monthDate , shipmentOfMonth);
+			}
+		}
+
+		
+		Map<String , List<QuantityPerDate>> newProductsQuantityPerDate = new HashMap<>();
+		
+		Iterator<Entry<MonthDate, List<Shipment>>> it = newShipmentsPerDate.entrySet().iterator();
+	    while (it.hasNext()) 
+	    {
+	        Map.Entry<MonthDate,List<Shipment>> entry = (Map.Entry<MonthDate,List<Shipment>>)it.next();
+	        for (Shipment shipment : entry.getValue()) 
+	        {
+	        	QuantityPerDate quantityPerDate = new QuantityPerDate(entry.getKey(), new Integer(shipment.getQuantity()));
+	        	if(newProductsQuantityPerDate.containsKey(shipment.getCatalogNumber()))
+	        	{
+	        		List<QuantityPerDate> quantityPerDateList = newProductsQuantityPerDate.get(shipment.getCatalogNumber());
+	        		int indexOfQuantity = quantityPerDateList.indexOf(quantityPerDate);
+	        		if(indexOfQuantity != -1)
+	        			quantityPerDateList.get(indexOfQuantity).addQuantity(quantityPerDate.getQuantity());
+	        		else
+	        			quantityPerDateList.add(quantityPerDate);
+	        			
+	        		
+	        	}
+	        	else
+	        	{
+	        		List<QuantityPerDate> quantityPerDateList = new ArrayList<>();
+	        		quantityPerDateList.add(quantityPerDate);
+	        		newProductsQuantityPerDate.put(shipment.getCatalogNumber(), quantityPerDateList);
+	        	}
+			}
+	    }
+	    
+	    Map<String , List<QuantityPerDate>> productsQuantityPerDate = getAllProductsQuantityPerDate();
+	    
+	    
+		
+		
+	}
+
+	private Map<String, List<QuantityPerDate>> getAllProductsQuantityPerDate() 
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	private Map<MonthDate, List<Shipment>> getAllShipmentsPerDate() 
+	{
+		return null;
+	}
+
+	private List<Shipment> getAllShipments() 
+	{
+		return null;
+		
 	}
 }
