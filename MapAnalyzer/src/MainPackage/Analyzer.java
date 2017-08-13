@@ -171,7 +171,6 @@ public class Analyzer
 	        		else
 	        			quantityPerDateList.add(quantityPerDate);
 	        			
-	        		
 	        	}
 	        	else
 	        	{
