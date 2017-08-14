@@ -35,7 +35,6 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import mainPackage.Excel;
 import mainPackage.Globals;
 import mainPackage.Pair;
-import mainPackage.SendEmail;
 import mainPackage.noValidEmailException;
 
 public class FollowUpSender extends Sender

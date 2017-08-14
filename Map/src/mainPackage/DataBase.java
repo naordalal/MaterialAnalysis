@@ -8,11 +8,19 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JOptionPane;
 
 import org.sqlite.SQLiteConfig;
+
+import AnalyzerTools.MonthDate;
+import AnalyzerTools.QuantityPerDate;
+import Forms.Forecast;
+import mainPackage.Globals;
+import mainPackage.Globals.FormType;
 
 public class DataBase {
 
@@ -848,4 +856,387 @@ public class DataBase {
 			return "";
 		}
 	}
+	
+	
+	public boolean addFC(String customer , String catalogNumber , String quantity , String initDate , String requireDate , String description , String notes) 
+	{
+		try
+		{
+			
+			connect();
+			stmt = c.prepareStatement("INSERT INTO Forecast (customer , CN , description ,quantity , initDate , requireDate , notes) VALUES (?,?,?,?,?,?,?)");
+			stmt.setString(1, customer);
+			stmt.setString(2, catalogNumber);
+			stmt.setString(3, description);
+			stmt.setString(4, quantity);
+			stmt.setString(5, Globals.parseDateToSqlFormatString(initDate));
+			stmt.setString(6, Globals.parseDateToSqlFormatString(requireDate));
+			stmt.setString(7, notes);
+			stmt.executeUpdate();
+			
+			c.commit();
+			
+			closeConnection();
+			
+			return true;
+		
+		}
+		catch(Exception e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			
+			e.printStackTrace();
+			
+			closeConnection();
+			return false;
+		}
+	}
+	
+	public void removeFC(String catalogNumber)
+	{
+		try
+		{
+			connect();
+			stmt = c.prepareStatement("DELETE FROM Forecast Where CN = ?");
+			stmt.setString(1, catalogNumber);
+			stmt.executeUpdate();
+			
+			c.commit();
+			
+			closeConnection();
+			
+		}
+		catch(SQLException e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			closeConnection();
+		}
+		
+	}
+	
+	public void addNewProductFormQuantityPerDate(String product, QuantityPerDate quantityPerDate , FormType type) 
+	{
+		String tableName;
+		
+		switch (type) 
+		{
+			case SHIPMENT:
+				tableName = "productShipments";
+				break;
+			case PO:
+				tableName = "productCustomerOrders";
+				break;
+			case WO:
+				tableName = "productWorkOrder";
+				break;
+			case FC:
+				tableName = "productForecast";
+				break;
+			default:
+				return;
+		}
+		
+		try
+		{
+			
+			connect();
+			stmt = c.prepareStatement("INSERT INTO ? (CN , quantity , date) VALUES (?,?,?)");
+			stmt.setString(1, tableName);
+			stmt.setString(2, product);
+			stmt.setString(3, Integer.toString(quantityPerDate.getQuantity()));
+			stmt.setString(4, Globals.dateToSqlFormatString(quantityPerDate.getDate()));
+			stmt.executeUpdate();
+			
+			c.commit();
+			
+			closeConnection();
+		
+		}
+		catch(Exception e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			
+			e.printStackTrace();
+			
+			closeConnection();
+		}
+		
+		
+	}
+	
+	public void updateNewProductFormQuantityPerDate(String product, QuantityPerDate quantityPerDate , FormType type) 
+	{
+		String tableName;
+		
+		switch (type) 
+		{
+			case SHIPMENT:
+				tableName = "productShipments";
+				break;
+			case PO:
+				tableName = "productCustomerOrders";
+				break;
+			case WO:
+				tableName = "productWorkOrder";
+				break;
+			case FC:
+				tableName = "productForecast";
+				break;
+			default:
+				return;
+		}
+		
+		try
+		{
+			
+			connect();
+			stmt = c.prepareStatement("UPDATE ? SET quantity = ? where CN = ? AND date = ?");
+			stmt.setString(1, tableName);
+			stmt.setString(2, Integer.toString(quantityPerDate.getQuantity()));
+			stmt.setString(3, product);
+			stmt.setString(4, Globals.dateToSqlFormatString(quantityPerDate.getDate()));
+			stmt.executeUpdate();
+			
+			c.commit();
+			
+			closeConnection();
+		
+		}
+		catch(Exception e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			
+			e.printStackTrace();
+			
+			closeConnection();
+		}
+		
+	}
+	
+	public List<Forecast> getAllFC() 
+	{
+		List<Forecast> forecasts = new ArrayList<>();
+		try{
+			
+			connect();
+			stmt = c.prepareStatement("SELECT * FROM Forecast");		
+			ResultSet rs = stmt.executeQuery();
+			
+			while(rs.next())
+			{
+				String customer = rs.getString("customer");
+				String catalogNumber = rs.getString("CN");
+				String description = rs.getString("description");
+				String quantity = rs.getString("quantity");
+				java.util.Date initDate = Globals.parseDateFromSqlFormat(rs.getString("initDate"));
+				java.util.Date requireDate = Globals.parseDateFromSqlFormat(rs.getString("requireDate"));
+				String notes = rs.getString("notes");
+						
+				Forecast forecast = new Forecast(customer, catalogNumber, quantity, initDate, requireDate, description, notes);
+				forecasts.add(forecast);
+			}
+			
+			closeConnection();
+			return forecasts;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return new ArrayList<Forecast>();
+		}
+	}
+	
+	public Map<String, List<QuantityPerDate>> getAllProductsFCQuantityPerDate() 
+	{
+		Map<String, List<QuantityPerDate>> productFormQuantityPerDate = new HashMap<>();
+		
+		try{
+			
+			connect();
+			stmt = c.prepareStatement("SELECT * FROM productForecast");		
+			ResultSet rs = stmt.executeQuery();
+			
+			while(rs.next())
+			{
+				String catalogNumber = rs.getString("CN");
+				String quantity = rs.getString("quantity");
+				MonthDate requireDate = new MonthDate(Globals.parseDateFromSqlFormat(rs.getString("date")));
+				
+				QuantityPerDate quantityPerDate = new QuantityPerDate(requireDate, Integer.parseInt(quantity));
+				
+				if(productFormQuantityPerDate.containsKey(catalogNumber))
+					productFormQuantityPerDate.get(catalogNumber).add(quantityPerDate);
+				else
+				{
+					List<QuantityPerDate> quantityPerDates = new ArrayList<>();
+					quantityPerDates.add(quantityPerDate);
+					productFormQuantityPerDate.put(catalogNumber, quantityPerDates);
+				}
+				
+			}
+			
+			closeConnection();
+			return productFormQuantityPerDate;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return new HashMap<>();
+		}
+	}
+	
+	public Map<String, List<QuantityPerDate>> getInitProductsFCQuantityPerDate() 
+	{
+		Map<String, List<QuantityPerDate>> productFormQuantityPerDate = new HashMap<>();
+		
+		try{
+			
+			connect();
+			stmt = c.prepareStatement("SELECT * FROM InitProductForecast");		
+			ResultSet rs = stmt.executeQuery();
+			
+			while(rs.next())
+			{
+				String catalogNumber = rs.getString("CN");
+				String quantity = rs.getString("quantity");
+				MonthDate requireDate = new MonthDate(Globals.parseDateFromSqlFormat(rs.getString("requireDate")));
+				
+				QuantityPerDate quantityPerDate = new QuantityPerDate(requireDate, Integer.parseInt(quantity));
+				
+				if(productFormQuantityPerDate.containsKey(catalogNumber))
+					productFormQuantityPerDate.get(catalogNumber).add(quantityPerDate);
+				else
+				{
+					List<QuantityPerDate> quantityPerDates = new ArrayList<>();
+					quantityPerDates.add(quantityPerDate);
+					productFormQuantityPerDate.put(catalogNumber, quantityPerDates);
+				}
+				
+			}
+			
+			closeConnection();
+			return productFormQuantityPerDate;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return new HashMap<>();
+		}
+	}
+	public Map<String, java.util.Date> getInitProductsFCDates() 
+	{
+		Map<String, java.util.Date> productFormQuantityPerDate = new HashMap<>();
+		
+		try{
+			
+			connect();
+			stmt = c.prepareStatement("SELECT * FROM InitProductForecast");		
+			ResultSet rs = stmt.executeQuery();
+			
+			while(rs.next())
+			{
+				String catalogNumber = rs.getString("CN");
+				java.util.Date initDate = Globals.parseDateFromSqlFormat(rs.getString("initDate"));
+				
+				productFormQuantityPerDate.put(catalogNumber, initDate);
+			}
+			
+			closeConnection();
+			return productFormQuantityPerDate;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return new HashMap<>();
+		}
+	}
+	public void cleanProductQuantityPerDate(String catalogNumber, FormType type) 
+	{
+		String tableName1 , tableName2;
+		
+		switch (type) 
+		{
+			case SHIPMENT:
+				tableName1 = "productShipments";
+				tableName2 = "InitProductShipments";
+				break;
+			case PO:
+				tableName1 = "productCustomerOrders";
+				tableName2 = "InitProductCustomerOrders";
+				break;
+			case WO:
+				tableName1 = "productWorkOrder";
+				tableName2 = "InitProductWorkOrder";
+				break;
+			case FC:
+				tableName1 = "productForecast";
+				tableName2 = "InitProductForecast";
+				break;
+			default:
+				return;
+		}
+		
+		try
+		{
+			connect();
+			stmt = c.prepareStatement("DELETE FROM ? Where CN = ?");
+			stmt.setString(1, tableName1);
+			stmt.setString(2, catalogNumber);
+			stmt.executeUpdate();
+			
+			stmt = c.prepareStatement("DELETE FROM ? Where CN = ?");
+			stmt.setString(1, tableName2);
+			stmt.setString(2, catalogNumber);
+			stmt.executeUpdate();
+			
+			stmt = c.prepareStatement("INSERT INTO ? (CN , initDate) VALUES(?,?)");
+			stmt.setString(1, tableName2);
+			stmt.setString(2, catalogNumber);
+			stmt.setString(3, Globals.dateToSqlFormatString(Globals.getTodayDate()));
+			stmt.executeUpdate();
+			
+			c.commit();
+			
+			closeConnection();
+			
+		}
+		catch(SQLException e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			closeConnection();
+		}
+		
+		
+		
+	}
+	
+	
 }

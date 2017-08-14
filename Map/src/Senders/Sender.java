@@ -19,7 +19,6 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import mainPackage.Globals;
-import mainPackage.SendEmail;
 import mainPackage.noValidEmailException;
 
 public abstract class Sender<T>

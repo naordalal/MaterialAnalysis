@@ -33,7 +33,6 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import mainPackage.Excel;
 import mainPackage.Globals;
 import mainPackage.Pair;
-import mainPackage.SendEmail;
 import mainPackage.SimMrpGlobals;
 import mainPackage.noValidEmailException;
 
@@ -1123,9 +1122,9 @@ public class SimMrpSender extends Sender {
 	    	
 	    	Date expediteDate;
 	    	if(supplierName.trim().matches(".*[a-zA-Z].*") && !noOrder)
-	    		expediteDate = new Date(Math.max(globals.addDays(globals.parseDate(untilDate.get(expediteDateMap.get(pair))) , -shippingDays).getTime() , globals.getTodayDate().getTime()));
+	    		expediteDate = new Date(Math.max(globals.addDays(Globals.parseDate(untilDate.get(expediteDateMap.get(pair))) , -shippingDays).getTime() , Globals.getTodayDate().getTime()));
 	    	else
-	    		expediteDate = globals.parseDate(untilDate.get(expediteDateMap.get(pair)));
+	    		expediteDate = Globals.parseDate(untilDate.get(expediteDateMap.get(pair)));
 	    		
 			Cell newCell = newRow.createCell(newColumnNumber);
 			LocalDateTime ldt = LocalDateTime.ofInstant(expediteDate.toInstant(), ZoneId.systemDefault());

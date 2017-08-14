@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import Forms.Form;
 import MainPackage.Globals.FormType;
 
 public class Analyzer 
@@ -133,7 +134,7 @@ public class Analyzer
 		}
 	}
 	
-	public void updateProductQuantities(List<? extends Form> forms ,  Map<String, List<QuantityPerDate>> productsQuantityPerDate 
+	private void updateProductQuantities(List<? extends Form> forms ,  Map<String, List<QuantityPerDate>> productsQuantityPerDate 
 			, Map<String , List<QuantityPerDate>> initProductsQuantityPerDate, Map<String , Date> productsInitDates ,  FormType type)
 	{
 		Map<MonthDate,List<Form>> newFormsPerDate = new HashMap<>();
@@ -205,8 +206,6 @@ public class Analyzer
 	        }
 	    }
 	    
-		
-		
 	}
 
 }

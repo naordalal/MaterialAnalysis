@@ -1,30 +1,21 @@
-package MainPackage;
+package Forms;
 
 import java.util.Date;
 
-public class WorkOrder extends Form
+public class Forecast extends Form
 {
-
-	private String woNumber;
+	
 	private String customer;
 	private String description;
+	private String notes;
 
-	public WorkOrder(String woNumber , String catalogNumber , String quantity , String customer , Date date , String description)
+	public Forecast(String customer , String catalogNumber , String quantity , Date initDate , Date requireDate , String description , String notes) 
 	{
-		super(catalogNumber, quantity, date , date);
-		this.woNumber = woNumber;
+		super(catalogNumber, quantity, initDate, requireDate);
+		
 		this.customer = customer;
 		this.description = description;
-	}
-
-	public String getWoNumber() 
-	{
-		return woNumber;
-	}
-
-	public void setWoNumber(String woNumber) 
-	{
-		this.woNumber = woNumber;
+		this.notes = notes;
 	}
 
 	public String getCustomer() 
@@ -45,6 +36,16 @@ public class WorkOrder extends Form
 	public void setDescription(String description) 
 	{
 		this.description = description;
+	}
+
+	public String getNotes() 
+	{
+		return notes;
+	}
+
+	public void setNotes(String notes) 
+	{
+		this.notes = notes;
 	}
 
 }

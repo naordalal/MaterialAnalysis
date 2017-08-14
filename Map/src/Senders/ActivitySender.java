@@ -21,7 +21,6 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import mainPackage.Activity;
 import mainPackage.Globals;
-import mainPackage.SendEmail;
 import mainPackage.noValidEmailException;
 
 public class ActivitySender extends Sender<List<String>>

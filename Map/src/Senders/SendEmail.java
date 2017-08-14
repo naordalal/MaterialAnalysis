@@ -1,4 +1,4 @@
-package mainPackage;
+package Senders;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
@@ -15,6 +15,8 @@ import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.parser.ParserDelegator;
 
 import com.google.common.base.CharMatcher;
+
+import mainPackage.noValidEmailException;
 
 import javax.activation.*;
 

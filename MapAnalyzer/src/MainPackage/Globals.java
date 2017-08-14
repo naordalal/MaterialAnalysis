@@ -38,7 +38,7 @@ public class Globals
 	public final String charsetName = "IBM862";
 	
 	public enum FormType {
-	    SHIPMENT,WO,PO
+	    SHIPMENT,WO,PO,FC
 	}
 	
 	

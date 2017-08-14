@@ -42,6 +42,11 @@ public class Globals {
 		DESC
 	};
 	
+	public enum FormType 
+	{
+	    SHIPMENT,WO,PO,FC
+	};
+	
 	//public static String con = "C:\\Users\\naordalal\\Desktop\\DB.db";
 	public static final String con = "O:\\Purchasing\\PO_FollowUp\\Material Analysis\\DB.db";
 	public static final String ALGO = "AES";
@@ -361,7 +366,7 @@ public class Globals {
 		return year == expediteYear && month == expediteMonth && day == expediteDay;
 	}
 	
-	public Date parseDate(String date)
+	public static Date parseDate(String date)
 	{
 		DateFormat sourceFormat = new SimpleDateFormat("dd/MM/yy");
 		DateFormat outsourceFormat = new SimpleDateFormat("dd/MM/yyyy");
@@ -386,6 +391,29 @@ public class Globals {
 		return parseDate;
 	}
 	
+	public static String dateToSqlFormatString(Date date) 
+	{
+		Calendar c = Calendar.getInstance();
+		c.setTime(date);
+		c.set(Calendar.HOUR_OF_DAY, 0);
+		c.set(Calendar.MINUTE, 0);
+		c.set(Calendar.SECOND, 0);
+		c.set(Calendar.MILLISECOND, 0);
+		
+		int year = c.get(Calendar.YEAR);
+		int month = c.get(Calendar.MONTH);
+		int day = c.get(Calendar.DAY_OF_MONTH);
+
+		String s = year + "-" + String.format("%02d", month) + "-" + String.format("%02d", day);
+		
+		return s;
+	}
+	
+	public static String parseDateToSqlFormatString(String date) 
+	{
+		return dateToSqlFormatString(parseDate(date));
+	}
+	
 	public Date addDays(Date date ,int days)
 	{
 		Calendar c2 = Calendar.getInstance();
@@ -398,7 +426,7 @@ public class Globals {
 		return c2.getTime();
 	}
 	
-	public Date getTodayDate()
+	public static Date getTodayDate()
 	{
 		Calendar c2 = Calendar.getInstance();
 		c2.setTime(new Date());
@@ -422,4 +450,87 @@ public class Globals {
 		CreationHelper createHelper = workbook.getCreationHelper();
 		return createHelper.createDataFormat().getFormat("dd/MM/yyyy");
 	}
+	
+	public static int getMonth(Date date) 
+	{
+		Calendar c = Calendar.getInstance();
+		c.setTime(date);
+		c.set(Calendar.HOUR_OF_DAY, 0);
+		c.set(Calendar.MINUTE, 0);
+		c.set(Calendar.SECOND, 0);
+		c.set(Calendar.MILLISECOND, 0);
+		
+		return c.get(Calendar.MONTH);
+	}
+
+	public static int getYear(Date date) 
+	{
+		Calendar c = Calendar.getInstance();
+		c.setTime(date);
+		c.set(Calendar.HOUR_OF_DAY, 0);
+		c.set(Calendar.MINUTE, 0);
+		c.set(Calendar.SECOND, 0);
+		c.set(Calendar.MILLISECOND, 0);
+		
+		return c.get(Calendar.YEAR);
+	}
+	
+	public static Date setFirstDayOfMonth(Date date) 
+	{
+		Calendar c = Calendar.getInstance();
+		c.setTime(date);
+		c.set(Calendar.HOUR_OF_DAY, 0);
+		c.set(Calendar.MINUTE, 0);
+		c.set(Calendar.SECOND, 0);
+		c.set(Calendar.MILLISECOND, 0);
+		c.set(Calendar.DAY_OF_MONTH, 1);
+		
+		date = c.getTime();
+		
+		return date;
+	}
+	
+	public static String dateWithoutHourToString(Date date) 
+	{
+		Calendar c = Calendar.getInstance();
+		c.setTime(date);
+		c.set(Calendar.HOUR_OF_DAY, 0);
+		c.set(Calendar.MINUTE, 0);
+		c.set(Calendar.SECOND, 0);
+		c.set(Calendar.MILLISECOND, 0);
+		
+		int year = c.get(Calendar.YEAR);
+		int month = c.get(Calendar.MONTH);
+		int day = c.get(Calendar.DAY_OF_MONTH);
+
+		String s = String.format("%02d", day) + "/" + String.format("%02d", month) + "/" + year;
+		
+		return s;
+	}
+	
+	public static Date parseDateFromSqlFormat(String date) 
+	{
+		DateFormat sourceFormat = new SimpleDateFormat("yyyy-MM-dd");
+		DateFormat outsourceFormat = new SimpleDateFormat("dd/MM/yyyy");
+		Date parseDate;
+		Calendar c = Calendar.getInstance();
+		try {
+			parseDate = sourceFormat.parse(date);
+			String toExp = outsourceFormat.format(parseDate);
+			parseDate = outsourceFormat.parse(toExp);
+			c.setTime(parseDate);
+			c.set(Calendar.HOUR_OF_DAY, 0);
+			c.set(Calendar.MINUTE, 0);
+			c.set(Calendar.SECOND, 0);
+			c.set(Calendar.MILLISECOND, 0);
+			parseDate = c.getTime();
+		} catch (ParseException e) {
+
+			e.printStackTrace();
+			return null;
+		}
+		
+		return parseDate;
+	}
+	
 }
