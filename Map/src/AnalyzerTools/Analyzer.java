@@ -29,11 +29,25 @@ public class Analyzer
 	public void addNewFC(String customer , String catalogNumber , String quantity , String initDate , String requireDate , String description , String notes)
 	{
 		db.addFC(customer, catalogNumber, quantity, initDate, requireDate, description , notes);
+		updateProductQuantities(catalogNumber);
 	}
 	
-	public void removeFC(String catalogNumber)
+	public void updateFC(int id , String customer , String catalogNumber , String quantity , String initDate , String requireDate , String description , String notes)
 	{
-		db.removeFC(catalogNumber);
+		db.updateFC(id,customer, catalogNumber, quantity, initDate, requireDate, description , notes);
+		int remainder = Integer.parseInt(getForecast(id).getQuantity()) - Integer.parseInt(quantity);
+		if(remainder != 0)
+			updateProductQuantities(catalogNumber);
+	}
+	
+	public void removeFC(int id)
+	{
+		db.removeFC(id);
+	}
+	
+	public Forecast getForecast(int id)
+	{
+		return db.getForecast(id);
 	}
 	
 	public void cleanProductQuantityPerDate(String catalogNumber)
@@ -44,9 +58,9 @@ public class Analyzer
 		db.cleanProductQuantityPerDate(catalogNumber , FormType.FC);
 	}
 	
-	public void updateProductQuantities()
+	public void updateProductQuantities(String catalogNumber)
 	{
-		updateProductQuantities(db.getAllFC(), db.getAllProductsFCQuantityPerDate(),db.getInitProductsFCQuantityPerDate(),db.getInitProductsFCDates() , FormType.FC);
+		updateProductQuantities(db.getAllFC(catalogNumber), db.getAllProductsFCQuantityPerDate(catalogNumber),db.getInitProductsFCQuantityPerDate(catalogNumber),db.getInitProductsFCDates(catalogNumber) , FormType.FC);
 	}
 
 	private void updateProductQuantities(List<? extends Form> forms ,  Map<String, List<QuantityPerDate>> productsQuantityPerDate 

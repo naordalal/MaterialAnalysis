@@ -896,13 +896,52 @@ public class DataBase {
 		}
 	}
 	
-	public void removeFC(String catalogNumber)
+	public boolean updateFC(int id , String customer , String catalogNumber , String quantity , String initDate , String requireDate , String description , String notes) 
+	{
+		try
+		{
+			
+			connect();
+			stmt = c.prepareStatement("UPDATE Forecast SET customer = ? , CN = ? , description = ? ,quantity = ? , initDate = ? , requireDate = ? , notes = ? where ID = ?");
+			stmt.setString(1, customer);
+			stmt.setString(2, catalogNumber);
+			stmt.setString(3, description);
+			stmt.setString(4, quantity);
+			stmt.setString(5, Globals.parseDateToSqlFormatString(initDate));
+			stmt.setString(6, Globals.parseDateToSqlFormatString(requireDate));
+			stmt.setString(7, notes);
+			stmt.setInt(8, id);
+			stmt.executeUpdate();
+			
+			c.commit();
+			
+			closeConnection();
+			
+			return true;
+		
+		}
+		catch(Exception e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			
+			e.printStackTrace();
+			
+			closeConnection();
+			return false;
+		}
+	}
+	
+	public void removeFC(int id)
 	{
 		try
 		{
 			connect();
-			stmt = c.prepareStatement("DELETE FROM Forecast Where CN = ?");
-			stmt.setString(1, catalogNumber);
+			stmt = c.prepareStatement("DELETE FROM Forecast Where ID = ?");
+			stmt.setInt(1, id);
 			stmt.executeUpdate();
 			
 			c.commit();
@@ -1029,26 +1068,29 @@ public class DataBase {
 		
 	}
 	
-	public List<Forecast> getAllFC() 
+	public List<Forecast> getAllFC(String catalogNumber) 
 	{
 		List<Forecast> forecasts = new ArrayList<>();
 		try{
 			
 			connect();
-			stmt = c.prepareStatement("SELECT * FROM Forecast");		
+			stmt = (catalogNumber == null) ? c.prepareStatement("SELECT * FROM Forecast") : c.prepareStatement("SELECT * FROM Forecast where CN = ?");
+			if(catalogNumber != null)
+				stmt.setString(1, catalogNumber); 	
 			ResultSet rs = stmt.executeQuery();
 			
 			while(rs.next())
 			{
+				int id = rs.getInt("ID");
 				String customer = rs.getString("customer");
-				String catalogNumber = rs.getString("CN");
+				catalogNumber = (catalogNumber == null) ? rs.getString("CN") : catalogNumber;
 				String description = rs.getString("description");
 				String quantity = rs.getString("quantity");
 				java.util.Date initDate = Globals.parseDateFromSqlFormat(rs.getString("initDate"));
 				java.util.Date requireDate = Globals.parseDateFromSqlFormat(rs.getString("requireDate"));
 				String notes = rs.getString("notes");
 						
-				Forecast forecast = new Forecast(customer, catalogNumber, quantity, initDate, requireDate, description, notes);
+				Forecast forecast = new Forecast(id,customer, catalogNumber, quantity, initDate, requireDate, description, notes);
 				forecasts.add(forecast);
 			}
 			
@@ -1064,19 +1106,21 @@ public class DataBase {
 		}
 	}
 	
-	public Map<String, List<QuantityPerDate>> getAllProductsFCQuantityPerDate() 
+	public Map<String, List<QuantityPerDate>> getAllProductsFCQuantityPerDate(String catalogNumber) 
 	{
 		Map<String, List<QuantityPerDate>> productFormQuantityPerDate = new HashMap<>();
 		
 		try{
 			
 			connect();
-			stmt = c.prepareStatement("SELECT * FROM productForecast");		
+			stmt = (catalogNumber == null) ? c.prepareStatement("SELECT * FROM productForecast") : c.prepareStatement("SELECT * FROM productForecast where CN = ?");
+			if(catalogNumber != null)
+				stmt.setString(1, catalogNumber); 	
 			ResultSet rs = stmt.executeQuery();
 			
 			while(rs.next())
 			{
-				String catalogNumber = rs.getString("CN");
+				catalogNumber = (catalogNumber == null) ? rs.getString("CN") : catalogNumber;
 				String quantity = rs.getString("quantity");
 				MonthDate requireDate = new MonthDate(Globals.parseDateFromSqlFormat(rs.getString("date")));
 				
@@ -1105,19 +1149,21 @@ public class DataBase {
 		}
 	}
 	
-	public Map<String, List<QuantityPerDate>> getInitProductsFCQuantityPerDate() 
+	public Map<String, List<QuantityPerDate>> getInitProductsFCQuantityPerDate(String catalogNumber) 
 	{
 		Map<String, List<QuantityPerDate>> productFormQuantityPerDate = new HashMap<>();
 		
 		try{
 			
 			connect();
-			stmt = c.prepareStatement("SELECT * FROM InitProductForecast");		
+			stmt = (catalogNumber == null) ? c.prepareStatement("SELECT * FROM InitProductForecast") : c.prepareStatement("SELECT * FROM InitProductForecast where CN = ?");
+			if(catalogNumber != null)
+				stmt.setString(1, catalogNumber);
 			ResultSet rs = stmt.executeQuery();
 			
 			while(rs.next())
 			{
-				String catalogNumber = rs.getString("CN");
+				catalogNumber = (catalogNumber == null) ? rs.getString("CN") : catalogNumber;
 				String quantity = rs.getString("quantity");
 				MonthDate requireDate = new MonthDate(Globals.parseDateFromSqlFormat(rs.getString("requireDate")));
 				
@@ -1145,19 +1191,21 @@ public class DataBase {
 			return new HashMap<>();
 		}
 	}
-	public Map<String, java.util.Date> getInitProductsFCDates() 
+	public Map<String, java.util.Date> getInitProductsFCDates(String catalogNumber) 
 	{
 		Map<String, java.util.Date> productFormQuantityPerDate = new HashMap<>();
 		
 		try{
 			
 			connect();
-			stmt = c.prepareStatement("SELECT * FROM InitProductForecast");		
+			stmt = (catalogNumber == null) ? c.prepareStatement("SELECT * FROM InitProductForecast") : c.prepareStatement("SELECT * FROM InitProductForecast where CN = ?");
+			if(catalogNumber != null)
+				stmt.setString(1, catalogNumber);
 			ResultSet rs = stmt.executeQuery();
 			
 			while(rs.next())
 			{
-				String catalogNumber = rs.getString("CN");
+				catalogNumber = (catalogNumber == null) ? rs.getString("CN") : catalogNumber;
 				java.util.Date initDate = Globals.parseDateFromSqlFormat(rs.getString("initDate"));
 				
 				productFormQuantityPerDate.put(catalogNumber, initDate);
@@ -1236,6 +1284,40 @@ public class DataBase {
 		
 		
 		
+	}
+	public Forecast getForecast(int id) 
+	{
+		Forecast forecast = null;
+		try{
+			
+			connect();
+			stmt = c.prepareStatement("SELECT * FROM Forecast where ID = ?");	
+			stmt.setInt(1, id);
+			ResultSet rs = stmt.executeQuery();
+			
+			while(rs.next())
+			{
+				String customer = rs.getString("customer");
+				String catalogNumber = rs.getString("CN");
+				String description = rs.getString("description");
+				String quantity = rs.getString("quantity");
+				java.util.Date initDate = Globals.parseDateFromSqlFormat(rs.getString("initDate"));
+				java.util.Date requireDate = Globals.parseDateFromSqlFormat(rs.getString("requireDate"));
+				String notes = rs.getString("notes");
+						
+				forecast =  new Forecast(id,customer, catalogNumber, quantity, initDate, requireDate, description, notes);
+			}
+			
+			closeConnection();
+			return forecast;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return null;
+		}
 	}
 	
 	
