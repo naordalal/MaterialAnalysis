@@ -426,6 +426,18 @@ public class Globals {
 		return c2.getTime();
 	}
 	
+	public static Date addMonths(Date date ,int months)
+	{
+		Calendar c2 = Calendar.getInstance();
+		c2.setTime(date);
+		c2.set(Calendar.HOUR_OF_DAY, 0);
+		c2.set(Calendar.MINUTE, 0);
+		c2.set(Calendar.SECOND, 0);
+		c2.set(Calendar.MILLISECOND, 0);
+		c2.add(Calendar.MONTH, months);
+		return c2.getTime();
+	}
+	
 	public static Date getTodayDate()
 	{
 		Calendar c2 = Calendar.getInstance();

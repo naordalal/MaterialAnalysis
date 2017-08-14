@@ -9,20 +9,22 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import Forms.CustomerOrder;
 import Forms.Forecast;
 import Forms.Form;
+import Forms.Shipment;
+import Forms.WorkOrder;
 import mainPackage.DataBase;
 import mainPackage.Globals;
 import mainPackage.Globals.FormType;
 
 public class Analyzer 
 {
-	private Globals globals;
 	private DataBase db;
 
 	public Analyzer() 
 	{
-		globals = new Globals();
+		new Globals();
 		db = new DataBase();
 	}
 	
@@ -135,5 +137,44 @@ public class Analyzer
 	        }
 	    }
 	    
+	}
+	
+	public List<Map<MonthDate,ProductColumn>> calculateMap()
+	{
+		
+		List<Map<MonthDate,ProductColumn>> map = new ArrayList<>();
+		
+		Map<String, List<QuantityPerDate>> shipmentsQuantities = db.getAllProductsShipmentQuantityPerDate();
+		Map<String, List<QuantityPerDate>> customerOrdersQuantities = db.getAllProductsPOQuantityPerDate();
+		Map<String, List<QuantityPerDate>> workOrdersQuantities = db.getAllProductsWOQuantityPerDate();
+		Map<String, List<QuantityPerDate>> forecastsQuantities = db.getAllProductsWOQuantityPerDate();
+		
+		MonthDate maximumDate = db.getMaximumForecastDate();
+		List<MonthDate> monthToCalculate = createDates(new MonthDate(Globals.getTodayDate()) , maximumDate);
+		
+		for (MonthDate monthDate : monthToCalculate) 
+		{
+			
+		}
+		
+		
+		
+		return map;
+		
+	}
+
+	private List<MonthDate> createDates(MonthDate fromDate, MonthDate toDate) 
+	{
+		List<MonthDate> dates = new ArrayList<>();
+		MonthDate currentDate = fromDate;
+		
+		while(!currentDate.equals(toDate))
+		{
+			dates.add(currentDate);
+			currentDate = new MonthDate(Globals.addMonths(currentDate, 1));
+		}
+		
+		dates.add(toDate);
+		return dates;
 	}
 }
