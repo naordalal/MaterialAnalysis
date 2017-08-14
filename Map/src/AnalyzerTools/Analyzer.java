@@ -150,7 +150,7 @@ public class Analyzer
 		Map<String, List<QuantityPerDate>> forecastsQuantities = db.getAllProductsWOQuantityPerDate();
 		
 		MonthDate maximumDate = db.getMaximumForecastDate();
-		List<MonthDate> monthToCalculate = createDates(new MonthDate(Globals.getTodayDate()) , maximumDate);
+		List<MonthDate> monthToCalculate = createDates(new MonthDate(Globals.addMonths(Globals.getTodayDate() , -6)) , maximumDate);
 		
 		for (MonthDate monthDate : monthToCalculate) 
 		{
