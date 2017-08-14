@@ -11,7 +11,7 @@ public class WorkOrder extends Form
 
 	public WorkOrder(String woNumber , String catalogNumber , String quantity , String customer , Date date , String description)
 	{
-		super(catalogNumber, quantity, date);
+		super(catalogNumber, quantity, date , date);
 		this.woNumber = woNumber;
 		this.customer = customer;
 		this.description = description;

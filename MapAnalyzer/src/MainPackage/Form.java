@@ -6,13 +6,14 @@ public class Form
 {
 	private String catalogNumber;
 	private String quantity;
-	private Date date;
+	private Date requestDate , createDate;
 	
-	public Form(String catalogNumber , String quantity , Date date) 
+	public Form(String catalogNumber , String quantity , Date createDate , Date requestDate) 
 	{
 		this.catalogNumber = catalogNumber;
 		this.quantity = quantity;
-		this.date = date;
+		this.createDate = createDate;
+		this.requestDate = requestDate;
 	}
 	
 	public String getCatalogNumber() 
@@ -33,12 +34,22 @@ public class Form
 		this.quantity = quantity;
 	}
 	
-	public Date getDate() 
+	public Date getRequestDate() 
 	{
-		return date;
+		return requestDate;
 	}
-	public void setDate(Date date) 
+	public void setRequstDate(Date requestDate) 
 	{
-		this.date = date;
+		this.requestDate = requestDate;
+	}
+
+	public Date getCreateDate() 
+	{
+		return createDate;
+	}
+
+	public void setCreateDate(Date createDate) 
+	{
+		this.createDate = createDate;
 	}
 }

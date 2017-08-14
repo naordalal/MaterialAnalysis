@@ -176,6 +176,36 @@ public class Globals
 		c2.add(Calendar.MONTH, months);
 		return c2.getTime();
 	}
+
+	public static String parseDateToSqlFormatString(String date) 
+	{
+		return dateToSqlFormatString(parseDate(date));
+	}
+
+	public static Date parseDateFromSqlFormat(String date) 
+	{
+		DateFormat sourceFormat = new SimpleDateFormat("yyyy-MM-dd");
+		DateFormat outsourceFormat = new SimpleDateFormat("dd/MM/yyyy");
+		Date parseDate;
+		Calendar c = Calendar.getInstance();
+		try {
+			parseDate = sourceFormat.parse(date);
+			String toExp = outsourceFormat.format(parseDate);
+			parseDate = outsourceFormat.parse(toExp);
+			c.setTime(parseDate);
+			c.set(Calendar.HOUR_OF_DAY, 0);
+			c.set(Calendar.MINUTE, 0);
+			c.set(Calendar.SECOND, 0);
+			c.set(Calendar.MILLISECOND, 0);
+			parseDate = c.getTime();
+		} catch (ParseException e) {
+
+			e.printStackTrace();
+			return null;
+		}
+		
+		return parseDate;
+	}
 	
 	
 }

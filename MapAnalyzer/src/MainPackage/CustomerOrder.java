@@ -9,17 +9,15 @@ public class CustomerOrder extends Form{
 	private String orderNumber;
 	private String description;
 	private String price;
-	private String orderDate;
 
-	public CustomerOrder(String customer , String orderNumber , String catalogNumber , String description , String quantity , String price , String orderDate , Date guaranteedDate) 
+	public CustomerOrder(String customer , String orderNumber , String catalogNumber , String description , String quantity , String price , Date orderDate , Date guaranteedDate) 
 	{
-		super(catalogNumber, quantity, guaranteedDate);
+		super(catalogNumber, quantity,orderDate, guaranteedDate);
 		
 		this.customer = customer;
 		this.orderNumber = orderNumber;
 		this.description = description;
 		this.price = price;
-		this.orderDate = orderDate;
 	}
 
 	public String getCustomer() 
@@ -60,16 +58,6 @@ public class CustomerOrder extends Form{
 	public void setPrice(String price) 
 	{
 		this.price = price;
-	}
-
-	public String getOrderDate() 
-	{
-		return orderDate;
-	}
-
-	public void setOrderDate(String orderDate) 
-	{
-		this.orderDate = orderDate;
 	}
 
 }

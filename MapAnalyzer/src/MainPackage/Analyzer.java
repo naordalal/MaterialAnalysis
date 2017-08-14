@@ -36,9 +36,9 @@ public class Analyzer
 		analyzeCustomerOrders(globals.customerOrdersFilePath);
 		analyzeShipments(globals.shipmentsFilePath);
 		
-		updateProductQuantities(db.getAllPO(), db.getAllProductsPOQuantityPerDate(), FormType.PO);
-		updateProductQuantities(db.getAllWO(), db.getAllProductsWOQuantityPerDate(), FormType.WO);
-		updateProductQuantities(db.getAllShipments(), db.getAllProductsShipmentQuantityPerDate(), FormType.SHIPMENT);
+		updateProductQuantities(db.getAllPO(), db.getAllProductsPOQuantityPerDate(), db.getInitProductsPOQuantityPerDate() , db.getInitProductsPODates(),  FormType.PO);
+		updateProductQuantities(db.getAllWO(), db.getAllProductsWOQuantityPerDate(),db.getInitProductsWOQuantityPerDate(),db.getInitProductsWODates() , FormType.WO);
+		updateProductQuantities(db.getAllShipments(), db.getAllProductsShipmentQuantityPerDate(),db.getInitProductsShipmentQuantityPerDate(),db.getInitProductsShipmentsDates() , FormType.SHIPMENT);
 	}
 
 	private void analyzeWO(String filePath) throws IOException 
@@ -133,13 +133,17 @@ public class Analyzer
 		}
 	}
 	
-	public void updateProductQuantities(List<? extends Form> forms ,  Map<String, List<QuantityPerDate>> productsQuantityPerDate , FormType type)
+	public void updateProductQuantities(List<? extends Form> forms ,  Map<String, List<QuantityPerDate>> productsQuantityPerDate 
+			, Map<String , List<QuantityPerDate>> initProductsQuantityPerDate, Map<String , Date> productsInitDates ,  FormType type)
 	{
 		Map<MonthDate,List<Form>> newFormsPerDate = new HashMap<>();
 		
 		for (Form form : forms) 
 		{
-			MonthDate monthDate = new MonthDate(form.getDate());
+			if(productsInitDates.containsKey(form.getCatalogNumber()))
+				if(form.getCreateDate().before(productsInitDates.get(form.getCatalogNumber())))
+					continue;
+			MonthDate monthDate = new MonthDate(form.getRequestDate());
 			if(newFormsPerDate.containsKey(monthDate))
 				newFormsPerDate.get(monthDate).add(form);
 			else
@@ -151,8 +155,6 @@ public class Analyzer
 		}
 
 		
-		Map<String , List<QuantityPerDate>> newProductsQuantityPerDate = new HashMap<>();
-		
 		Iterator<Entry<MonthDate, List<Form>>> it = newFormsPerDate.entrySet().iterator();
 	    while (it.hasNext()) 
 	    {
@@ -160,9 +162,9 @@ public class Analyzer
 	        for (Form form : entry.getValue()) 
 	        {
 	        	QuantityPerDate quantityPerDate = new QuantityPerDate(entry.getKey(), new Integer(form.getQuantity()));
-	        	if(newProductsQuantityPerDate.containsKey(form.getCatalogNumber()))
+	        	if(initProductsQuantityPerDate.containsKey(form.getCatalogNumber()))
 	        	{
-	        		List<QuantityPerDate> quantityPerDateList = newProductsQuantityPerDate.get(form.getCatalogNumber());
+	        		List<QuantityPerDate> quantityPerDateList = initProductsQuantityPerDate.get(form.getCatalogNumber());
 	        		List<MonthDate> datesList = quantityPerDateList.stream().map(el -> el.getDate()).collect(Collectors.toList());
 	        		
 	        		int indexOfQuantity = datesList.indexOf(quantityPerDate.getDate());
@@ -176,12 +178,12 @@ public class Analyzer
 	        	{
 	        		List<QuantityPerDate> quantityPerDateList = new ArrayList<>();
 	        		quantityPerDateList.add(quantityPerDate);
-	        		newProductsQuantityPerDate.put(form.getCatalogNumber(), quantityPerDateList);
+	        		initProductsQuantityPerDate.put(form.getCatalogNumber(), quantityPerDateList);
 	        	}
 			}
 	    }
 	    
-	    Iterator<Entry<String, List<QuantityPerDate>>> productsQuantityIterator = newProductsQuantityPerDate.entrySet().iterator();
+	    Iterator<Entry<String, List<QuantityPerDate>>> productsQuantityIterator = initProductsQuantityPerDate.entrySet().iterator();
 	    while (productsQuantityIterator.hasNext()) 
 	    {
 	        Map.Entry<String,List<QuantityPerDate>> entry = (Map.Entry<String,List<QuantityPerDate>>)productsQuantityIterator.next();
