@@ -80,4 +80,15 @@ public class ProductColumn
 	public void setOpenCustomerOrder(int openCustomerOrder) {
 		this.openCustomerOrder = openCustomerOrder;
 	}
+
+	public void addProductColumn(ProductColumn productColumn) 
+	{
+		this.forecast += productColumn.forecast;
+		this.materialAvailability += productColumn.materialAvailability;
+		this.workOrder += productColumn.workOrder;
+		this.workOrderAfterSupplied += productColumn.workOrderAfterSupplied;
+		this.customerOrders += productColumn.customerOrders;
+		this.supplied += productColumn.supplied;
+		this.openCustomerOrder += productColumn.openCustomerOrder;
+	}
 }

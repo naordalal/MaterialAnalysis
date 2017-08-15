@@ -9,8 +9,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import Forms.CustomerOrder;
 import Forms.Forecast;
 import Forms.Form;
+import Forms.Shipment;
+import Forms.WorkOrder;
 import mainPackage.DataBase;
 import mainPackage.Globals;
 import mainPackage.Globals.FormType;
@@ -48,6 +51,43 @@ public class Analyzer
 	public Forecast getForecast(int id)
 	{
 		return db.getForecast(id);
+	}
+	
+	public List<Forecast> getAllForecastOnMonth(String catalogNumber , MonthDate date)
+	{
+		List<Forecast> allForecastOnMonth = new ArrayList<Forecast>();
+		List<String> familyCatalogNumber = db.getAllPatriarchsCatalogNumber(catalogNumber);
+		familyCatalogNumber.stream().forEach(cn -> allForecastOnMonth.addAll(db.getAllFCOnMonth(cn , date)));
+		return allForecastOnMonth;
+	}
+	
+	public List<Shipment> getAllShipmentsOnMonth(String catalogNumber , MonthDate date)
+	{
+		List<Shipment> allShipmentsOnMonth = new ArrayList<Shipment>();
+		List<String> familyCatalogNumber = db.getAllPatriarchsCatalogNumber(catalogNumber);
+		familyCatalogNumber.stream().forEach(cn -> allShipmentsOnMonth.addAll(db.getAllShipmentsOnMonth(cn , date)));
+		return allShipmentsOnMonth;
+	}
+	
+	public List<WorkOrder> getAllWorkOrderOnMonth(String catalogNumber , MonthDate date)
+	{
+		List<WorkOrder> allWorkOrdersOnMonth = new ArrayList<WorkOrder>();
+		List<String> familyCatalogNumber = db.getAllPatriarchsCatalogNumber(catalogNumber);
+		familyCatalogNumber.stream().forEach(cn -> allWorkOrdersOnMonth.addAll(db.getAllWOOnMonth(cn , date)));
+		return allWorkOrdersOnMonth;
+	}
+	
+	public List<CustomerOrder> getAllCustomerOrdersOnMonth(String catalogNumber , MonthDate date)
+	{
+		List<CustomerOrder> allCustomerOrdersOnMonth = new ArrayList<CustomerOrder>();
+		List<String> familyCatalogNumber = db.getAllPatriarchsCatalogNumber(catalogNumber);
+		familyCatalogNumber.stream().forEach(cn -> allCustomerOrdersOnMonth.addAll(db.getAllPOOnMonth(cn , date)));
+		return allCustomerOrdersOnMonth;
+	}
+	
+	public void updateAlias(String catalogNumber , String alias)
+	{
+		db.updateAlias(catalogNumber, alias);
 	}
 	
 	public void cleanProductQuantityPerDate(String catalogNumber)
@@ -163,6 +203,8 @@ public class Analyzer
 		
 		for (String catalogNumber : catalogNumbers.keySet()) 
 		{
+			String descendantCatalogNumber = db.getDescendantCatalogNumber(catalogNumber);
+			
 			for (MonthDate monthDate : monthToCalculate) 
 			{
 				QuantityPerDate supplied = db.getProductShipmentQuantityOnDate(catalogNumber , monthDate);
@@ -200,15 +242,21 @@ public class Analyzer
 				workOrderAfterSupplied = workOrder.getQuantity() - supplied.getQuantity() + previousWorkOrderAfterSupplied;
 				openCustomerOrder = customerOrders.getQuantity() - supplied.getQuantity() + previousOpenCustomerOrder;
 				
-				ProductColumn productColumn = new ProductColumn(catalogNumber, catalogNumbers.get(catalogNumber), forecast.getQuantity(), materialAvailability, workOrder.getQuantity()
+				ProductColumn productColumn = new ProductColumn(descendantCatalogNumber, catalogNumbers.get(descendantCatalogNumber), forecast.getQuantity(), materialAvailability, workOrder.getQuantity()
 						, workOrderAfterSupplied, customerOrders.getQuantity(), supplied.getQuantity(), openCustomerOrder);
 				
 				if(map.containsKey(monthDate))
-					map.get(monthDate).put(catalogNumber, productColumn);
+				{
+					if(map.get(monthDate).containsKey(descendantCatalogNumber))
+						map.get(monthDate).get(descendantCatalogNumber).addProductColumn(productColumn);
+					else
+						map.get(monthDate).put(descendantCatalogNumber, productColumn);
+				}
+					
 				else
 				{
 					Map<String,ProductColumn> productPerProductColumn = new HashMap<String,ProductColumn>();
-					productPerProductColumn.put(catalogNumber, productColumn);
+					productPerProductColumn.put(descendantCatalogNumber, productColumn);
 					map.put(monthDate, productPerProductColumn);
 				}
 			}

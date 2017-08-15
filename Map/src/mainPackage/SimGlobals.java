@@ -1,7 +1,5 @@
 package mainPackage;
 
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-
 public class SimGlobals extends Globals
 {
 	
@@ -21,9 +19,5 @@ public class SimGlobals extends Globals
 	public String dateColumn = "תאריך ";
 	public String priceColumn = "4-מחיר תקן שיווק";
 	public String openOrdersColumn = "הפרש הז' פתוחות לסיכום 1-3";
-	public short getDateFormat(XSSFWorkbook workbook) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
 
 }

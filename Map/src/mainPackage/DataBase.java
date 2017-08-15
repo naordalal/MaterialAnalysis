@@ -1381,8 +1381,9 @@ public class DataBase {
 		try{
 			
 			connect();
-			stmt = c.prepareStatement("SELECT CN,description FROM shipments UNION SELECT CN,description FROM customerOrders"
-					+ "SELECT CN,description FROM UNION workOrder UNION SELECT CN,description FROM forecast");		
+			//stmt = c.prepareStatement("SELECT CN,description FROM shipments UNION SELECT CN,description FROM customerOrders"
+				//	+ "SELECT CN,description FROM UNION workOrder UNION SELECT CN,description FROM forecast");
+			stmt = c.prepareStatement("SELECT CN,description FROM Tree");
 			ResultSet rs = stmt.executeQuery();
 			
 			while(rs.next())
@@ -1506,6 +1507,69 @@ public class DataBase {
 		}
 	}
 	
+	public void addNewProduct(String catalogNumber , String description , String father , String quantity) 
+	{
+		try{
+			
+			connect();
+			stmt = c.prepareStatement("INSERT INTO Tree (CN , description , fatherCN , quantity) VALUES(?,?,?,?)");
+			stmt.setString(1, catalogNumber);
+			stmt.setString(2, description);
+			stmt.setString(3, father);
+			stmt.setString(3, quantity);
+			stmt.executeUpdate();
+			
+			closeConnection();
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+		}
+	}
+	
+	public void updateAlias(String catalogNumber , String alias)
+	{
+		try{
+			
+			connect();
+			stmt = c.prepareStatement("UPDATE Tree SET alias = ? where CN = ?");
+			stmt.setString(1, catalogNumber);
+			stmt.setString(2, alias);
+			stmt.executeUpdate();
+			
+			closeConnection();
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+		}
+	}
+	
+	public void updateQuantityToAssociate(String catalogNumber , String father , String quantity)
+	{
+		try{
+			
+			connect();
+			stmt = c.prepareStatement("UPDATE Tree SET quantity = ? where CN = ? and fatherCN = ?");
+			stmt.setString(1, quantity);
+			stmt.setString(2, catalogNumber);
+			stmt.setString(3, father);
+			stmt.executeUpdate();
+			
+			closeConnection();
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+		}
+	}
+	
 	public List<Shipment> getAllShipmentsOnMonth(String catalogNumber , MonthDate date) 
 	{
 		List<Shipment> shipments = new ArrayList<>();
@@ -1513,7 +1577,7 @@ public class DataBase {
 			
 			connect();
 			stmt = c.prepareStatement("SELECT * FROM Shipments where CN = ? AND date(shipmentDate) >= date(?) AND date(shipmentDate) < date(?) "
-					+ "AND date(shipmentDate) >= (SELECT COALESCE(MAX(date(initDate)), date('0001-01-01')) FROM InitProductShipments)");
+					+ "AND date(shipmentDate) >= (SELECT COALESCE(MAX(date(initDate)), date('0001-01-01')) FROM InitProductShipments) orderby shipmentDate");
 			stmt.setString(1, catalogNumber);
 			stmt.setString(2, Globals.dateToSqlFormatString(date));
 			stmt.setString(3, Globals.dateToSqlFormatString(Globals.addMonths(date, 1)));
@@ -1554,7 +1618,7 @@ public class DataBase {
 			
 			connect();
 			stmt = c.prepareStatement("SELECT * FROM CustomerOrders where CN = ? AND date(guaranteedDate) >= date(?) AND date(guaranteedDate) < date(?) "
-					+ "AND date(orderDate) >= (SELECT COALESCE(MAX(date(initDate)), date('0001-01-01')) FROM InitProductCustomerOrders)");
+					+ "AND date(orderDate) >= (SELECT COALESCE(MAX(date(initDate)), date('0001-01-01')) FROM InitProductCustomerOrders) orderby guaranteedDate");
 			
 			stmt.setString(1, catalogNumber);
 			stmt.setString(2, Globals.dateToSqlFormatString(date));
@@ -1595,7 +1659,7 @@ public class DataBase {
 			
 			connect();
 			stmt = c.prepareStatement("SELECT * FROM WorkOrder where CN = ? AND date(date) >= date(?) AND date(date) < date(?) "
-					+ "AND date(date) >= (SELECT COALESCE(MAX(date(initDate)), date('0001-01-01')) FROM InitProductWorkOrder)");
+					+ "AND date(date) >= (SELECT COALESCE(MAX(date(initDate)), date('0001-01-01')) FROM InitProductWorkOrder) orderby date");
 			
 			stmt.setString(1, catalogNumber);
 			stmt.setString(2, Globals.dateToSqlFormatString(date));
@@ -1634,7 +1698,7 @@ public class DataBase {
 			
 			connect();
 			stmt = c.prepareStatement("SELECT * FROM Forecast where CN = ? AND date(requireDate) >= date(?) AND date(requireDate) < date(?) "
-					+ "AND date(initDate) >= (SELECT COALESCE(MAX(date(initDate)), date('0001-01-01')) FROM InitProductForecast)");
+					+ "AND date(initDate) >= (SELECT COALESCE(MAX(date(initDate)), date('0001-01-01')) FROM InitProductForecast) orderby requireDate");
 			
 			stmt.setString(1, catalogNumber);
 			stmt.setString(2, Globals.dateToSqlFormatString(date));
@@ -1666,6 +1730,107 @@ public class DataBase {
 			return new ArrayList<Forecast>();
 		}
 	}
+	
+	public String getDescendantCatalogNumber(String catalogNumber)
+	{
+		String descendantCatalogNumber = catalogNumber;
+		boolean done = false;
+		try{
+			
+			connect();
+			while(!done)
+			{
+				stmt = c.prepareStatement("SELECT alias FROM Tree where CN = ?");
+				stmt.setString(1, descendantCatalogNumber);
+				ResultSet rs = stmt.executeQuery();
+				
+				if(rs.next())
+				{
+					String alias = rs.getString("alias");
+					if(alias == null)
+						done = true;
+					else
+						descendantCatalogNumber = alias;
+				}
+				else
+					done = true;
+			}
+			
+			
+			closeConnection();
+			return descendantCatalogNumber;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return null;
+		}
+	}
+	
+	public List<String> getAllPatriarchsCatalogNumber(String catalogNumber) 
+	{
+		List<String> patriarchsCatalogNumber = new ArrayList<>();
+		for (String cn : getAllCatalogNumbers().keySet()) 
+		{
+			if(getDescendantCatalogNumber(cn).trim().equals(catalogNumber))
+				patriarchsCatalogNumber.add(cn);
+		}
+		
+		return patriarchsCatalogNumber;
+	}
+	
+	public void addNewInitProductCustomerOrders(String catalogNumber, String initDate , String quantity , String requireDate , FormType type)
+	{
+		String tableName;
+		
+		switch (type) 
+		{
+			case SHIPMENT:
+				tableName = "InitProductShipments";
+				break;
+			case PO:
+				tableName = "InitProductCustomerOrders";
+				break;
+			case WO:
+				tableName = "InitProductWorkOrder";
+				break;
+			case FC:
+				tableName = "InitProductForecast";
+				break;
+			default:
+				return;
+		}
+		
+		try
+		{
+			connect();			
+			stmt = c.prepareStatement("UPDATE ? SET quantity = ? , requireDate = ? where CN = ? AND initDate = ?");
+			stmt.setString(1, tableName);
+			stmt.setString(2, quantity);
+			stmt.setString(3, Globals.parseDateToSqlFormatString(requireDate));
+			stmt.setString(4, catalogNumber);
+			stmt.setString(5, Globals.parseDateToSqlFormatString(initDate));
+			stmt.executeUpdate();
+			
+			c.commit();
+			
+			closeConnection();
+			
+		}
+		catch(SQLException e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			closeConnection();
+		}
+	}
+	
+	
 	
 	
 }

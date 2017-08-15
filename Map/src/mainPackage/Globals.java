@@ -28,6 +28,7 @@ import javax.swing.text.JTextComponent;
 import javax.swing.undo.UndoManager;
 
 import org.apache.poi.ss.usermodel.CreationHelper;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.xmlbeans.impl.util.Base64;
 
@@ -455,10 +456,11 @@ public class Globals {
 		return parseDate(parseDate);
 	}
 	
-	public short getDateFormat(XSSFWorkbook workbook)
+	public static void setDateFormat(XSSFWorkbook workbook, XSSFCellStyle cellStyle)
 	{
 		CreationHelper createHelper = workbook.getCreationHelper();
-		return createHelper.createDataFormat().getFormat("dd/MM/yyyy");
+		short dateFormat = createHelper.createDataFormat().getFormat("dd/MM/yyyy");
+		cellStyle.setDataFormat(dateFormat);
 	}
 	
 	public static int getMonth(Date date) 

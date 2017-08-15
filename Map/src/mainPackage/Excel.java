@@ -1,14 +1,21 @@
 package mainPackage;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
 import mainPackage.Globals.Sort;
 
+import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class Excel 
 {
@@ -282,5 +289,82 @@ public class Excel
 				return false;
 		}
 		return true;
+	}
+	
+	public File createExcelFile(String fileName , String [] headers , Object [][] rows)
+	{
+		File file = new File(fileName);
+		int index = 1;
+		while(file.exists())
+		{
+			file = new File(fileName.split("\\.")[0]+" (" + index + ")."+fileName.split("\\.")[1]);
+    		index++;
+		}
+
+		XSSFWorkbook w = null;
+	    w = new XSSFWorkbook();
+	    
+	    w.createSheet("Report");
+	    XSSFSheet excelSheet = w.getSheetAt(0);
+	    
+	    XSSFCellStyle headerStyle = w.createCellStyle();
+	    headerStyle.setFillForegroundColor(IndexedColors.TURQUOISE.index);
+    	headerStyle.setFillPattern(CellStyle.SOLID_FOREGROUND);
+
+    	headerStyle.setBorderBottom(HSSFCellStyle.BORDER_THIN);
+    	headerStyle.setBorderTop(HSSFCellStyle.BORDER_THIN);
+    	headerStyle.setBorderRight(HSSFCellStyle.BORDER_THIN);
+    	headerStyle.setBorderLeft(HSSFCellStyle.BORDER_THIN);
+    	   	
+	    Row newRow = excelSheet.createRow(0);
+	    
+	    for(index = 0 ; index < headers.length ; index++)
+	    {
+	    	Cell cell = newRow.createCell(index);	    
+		    cell.setCellValue(headers[index]);
+	    	cell.setCellStyle(headerStyle);
+	    }
+	    
+	    for(int rowIndex = 1 ; rowIndex < rows.length ; rowIndex++)
+	    {
+	    	newRow = excelSheet.createRow(rowIndex);
+	    	for(int columnIndex = 0 ; columnIndex < rows[rowIndex].length ; columnIndex++)
+		    {
+	        	XSSFCellStyle contentStyle = w.createCellStyle();
+	        	contentStyle.setBorderBottom(HSSFCellStyle.BORDER_THIN);
+	        	contentStyle.setBorderTop(HSSFCellStyle.BORDER_THIN);
+	        	contentStyle.setBorderRight(HSSFCellStyle.BORDER_THIN);
+	        	contentStyle.setBorderLeft(HSSFCellStyle.BORDER_THIN);
+	        	
+	    		Cell cell = newRow.createCell(columnIndex);	 
+	    		if(rows[rowIndex][columnIndex] instanceof String)
+	    			cell.setCellValue((String)rows[rowIndex][columnIndex]);
+	    		if(rows[rowIndex][columnIndex] instanceof Double)
+	    			cell.setCellValue((Double)rows[rowIndex][columnIndex]);
+	    		if(rows[rowIndex][columnIndex] instanceof Date)
+	    		{
+	    			cell.setCellValue((Date)rows[rowIndex][columnIndex]);
+	    			Globals.setDateFormat(w , contentStyle);
+	    		}
+		    	cell.setCellStyle(contentStyle);
+		    }
+	    }
+	    
+	    for(int i = 0 ; i <= headers.length ; i++)
+	    	excelSheet.autoSizeColumn(i); 
+	    
+	    FileOutputStream fos;
+		try {
+			fos = new FileOutputStream(file);
+			w.write(fos);
+			fos.close();
+			w.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+	    
+		return file;
+		
 	}
 }
