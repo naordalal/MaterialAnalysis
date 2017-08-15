@@ -192,7 +192,7 @@ public class DataBase
 		try
 		{
 			connect();
-			stmt = c.prepareStatement("DELETE FROM WorkOrder Where date(date) > ?");
+			stmt = c.prepareStatement("DELETE FROM WorkOrder Where date(date) > date(?)");
 			stmt.setString(1, Globals.dateToSqlFormatString(Globals.addMonths(Globals.getTodayDate() , -months)));
 			
 			c.commit();
@@ -216,7 +216,7 @@ public class DataBase
 		try
 		{
 			connect();
-			stmt = c.prepareStatement("DELETE FROM CustomerOrders Where date(orderDate) >= ?");
+			stmt = c.prepareStatement("DELETE FROM CustomerOrders Where date(orderDate) >= date(?)");
 			stmt.setString(1, Globals.dateToSqlFormatString(Globals.addMonths(Globals.getTodayDate() , -months)));
 			
 			c.commit();
@@ -410,6 +410,7 @@ public class DataBase
 			
 			while(rs.next())
 			{
+				int id = rs.getInt("id");
 				String orderId = rs.getString("orderId");
 				String orderCustomerId = rs.getString("orderCustomerId");
 				String customer = rs.getString("customer");
@@ -418,7 +419,7 @@ public class DataBase
 				String quantity = rs.getString("quantity");
 				String shipmentDate = rs.getString("shipmentDate");
 				
-				Shipment shipment = new Shipment(customer, orderId, orderCustomerId , catalogNumber, quantity, Globals.parseDateFromSqlFormat(shipmentDate), description);
+				Shipment shipment = new Shipment(id,customer, orderId, orderCustomerId , catalogNumber, quantity, Globals.parseDateFromSqlFormat(shipmentDate), description);
 				shipments.add(shipment);
 			}
 			
@@ -446,6 +447,7 @@ public class DataBase
 			
 			while(rs.next())
 			{
+				int id = rs.getInt("id");
 				String customer = rs.getString("customer");
 				String orderNumber = rs.getString("orderNumber");
 				String catalogNumber = rs.getString("CN");
@@ -455,7 +457,7 @@ public class DataBase
 				Date orderDate = Globals.parseDateFromSqlFormat(rs.getString("orderDate"));
 				Date guaranteedDate = Globals.parseDateFromSqlFormat(rs.getString("guaranteedDate"));
 				
-				CustomerOrder customerOrder = new CustomerOrder(customer, orderNumber, catalogNumber, description, quantity, price, orderDate, guaranteedDate);
+				CustomerOrder customerOrder = new CustomerOrder(id,customer, orderNumber, catalogNumber, description, quantity, price, orderDate, guaranteedDate);
 				customerOrders.add(customerOrder);
 			}
 			
@@ -487,6 +489,7 @@ public class DataBase
 			
 			while(rs.next())
 			{
+				int id = rs.getInt("id");
 				String customer = rs.getString("customer");
 				String woNumber = rs.getString("WOId");
 				String catalogNumber = rs.getString("CN");
@@ -494,7 +497,7 @@ public class DataBase
 				String quantity = rs.getString("quantity");
 				Date orderDate = Globals.parseDateFromSqlFormat(rs.getString("date"));
 				
-				WorkOrder customerOrder = new WorkOrder(woNumber, catalogNumber, quantity, customer, orderDate, description);
+				WorkOrder customerOrder = new WorkOrder(id, woNumber, catalogNumber, quantity, customer, orderDate, description);
 				workOrders.add(customerOrder);
 			}
 			
@@ -648,5 +651,32 @@ public class DataBase
 	public Map<String, Date> getInitProductsShipmentsDates() 
 	{
 		return getInitProductsFormDates(FormType.SHIPMENT);
+	}
+
+	public void removeProductQuantity(String CatalogNumber, MonthDate date)
+	{
+		String[] tablesName = {"productShipments" ,"productCustomerOrders" ,"productWorkOrder" , "productForecast"}  ;
+
+		for (String tableName : tablesName) 
+		{
+			try{
+				
+				connect();
+				stmt = (date == null) ? c.prepareStatement("DELETE FROM ? Where CN = ?") : c.prepareStatement("DELETE FROM ? Where CN = ? AND date(date) = date(?)");		
+				stmt.setString(1, tableName);
+				if(date != null)
+					stmt.setString(2, Globals.dateToSqlFormatString(date));
+				
+				stmt.executeQuery();	
+				closeConnection();
+			
+			}
+			catch(Exception e)
+			{
+				e.printStackTrace();
+				closeConnection();
+			}
+		}
+		
 	}
 }

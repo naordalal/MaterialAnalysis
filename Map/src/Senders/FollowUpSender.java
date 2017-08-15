@@ -1,6 +1,5 @@
 package Senders;
 
-import java.awt.Point;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -34,7 +33,6 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import mainPackage.Excel;
 import mainPackage.Globals;
-import mainPackage.Pair;
 import mainPackage.noValidEmailException;
 
 public class FollowUpSender extends Sender

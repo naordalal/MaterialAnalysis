@@ -1,7 +1,6 @@
 package Frames;
 import javax.mail.Authenticator;
 import javax.swing.AbstractAction;
-import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -28,9 +27,6 @@ import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
-import org.apache.commons.codec.binary.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
-
 import Senders.ActivitySender;
 import Senders.Sender;
 import mainPackage.Activity;
@@ -40,7 +36,6 @@ import mainPackage.MultiSelectionComboBox;
 import mainPackage.SocialAuth;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;

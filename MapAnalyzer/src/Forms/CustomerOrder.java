@@ -10,9 +10,9 @@ public class CustomerOrder extends Form{
 	private String description;
 	private String price;
 
-	public CustomerOrder(String customer , String orderNumber , String catalogNumber , String description , String quantity , String price , Date orderDate , Date guaranteedDate) 
+	public CustomerOrder(int id , String customer , String orderNumber , String catalogNumber , String description , String quantity , String price , Date orderDate , Date guaranteedDate) 
 	{
-		super(catalogNumber, quantity,orderDate, guaranteedDate);
+		super(id , catalogNumber, quantity,orderDate, guaranteedDate);
 		
 		this.customer = customer;
 		this.orderNumber = orderNumber;

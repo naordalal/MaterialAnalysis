@@ -4,7 +4,6 @@ import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.io.IOException;
 import java.net.URL;
 import java.security.Key;
 import java.text.DateFormat;
@@ -338,7 +337,6 @@ public class Globals {
 		try {
 			today = outsourceFormat.parse(toExp);
 		} catch (ParseException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		

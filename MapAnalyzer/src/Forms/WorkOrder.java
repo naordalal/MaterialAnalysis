@@ -9,9 +9,9 @@ public class WorkOrder extends Form
 	private String customer;
 	private String description;
 
-	public WorkOrder(String woNumber , String catalogNumber , String quantity , String customer , Date date , String description)
+	public WorkOrder(int id , String woNumber , String catalogNumber , String quantity , String customer , Date date , String description)
 	{
-		super(catalogNumber, quantity, date , date);
+		super(id , catalogNumber, quantity, date , date);
 		this.woNumber = woNumber;
 		this.customer = customer;
 		this.description = description;

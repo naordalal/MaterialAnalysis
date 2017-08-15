@@ -9,14 +9,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-import Forms.CustomerOrder;
 import Forms.Forecast;
 import Forms.Form;
-import Forms.Shipment;
-import Forms.WorkOrder;
 import mainPackage.DataBase;
 import mainPackage.Globals;
 import mainPackage.Globals.FormType;
+import mainPackage.Pair;
 
 public class Analyzer 
 {
@@ -115,6 +113,7 @@ public class Analyzer
 			}
 	    }
 	    
+    
 	    Iterator<Entry<String, List<QuantityPerDate>>> productsQuantityIterator = initProductsQuantityPerDate.entrySet().iterator();
 	    while (productsQuantityIterator.hasNext()) 
 	    {
@@ -126,37 +125,94 @@ public class Analyzer
 	        	List<QuantityPerDate> currentQuantityPerDateList = productsQuantityPerDate.get(entry.getKey());
 	        	List<QuantityPerDate> changedQuantityPerDateList = entry.getValue().stream().filter(el -> !currentQuantityPerDateList.contains(el)).collect(Collectors.toList());
 	        	
+        		List<MonthDate> currentDateList = currentQuantityPerDateList.stream().map(el -> el.getDate()).collect(Collectors.toList());
+        		List<MonthDate> changedDateList = new ArrayList<>();
+        		
 	        	for (QuantityPerDate quantityPerDate : changedQuantityPerDateList) 
 	        	{
-	        		List<MonthDate> currentDateList = currentQuantityPerDateList.stream().map(el -> el.getDate()).collect(Collectors.toList());
+					changedDateList.add(quantityPerDate.getDate());
 					if(currentDateList.contains(quantityPerDate.getDate()))
 						db.updateNewProductFormQuantityPerDate(entry.getKey() , quantityPerDate , type);
 					else
 						db.addNewProductFormQuantityPerDate(entry.getKey() , quantityPerDate , type);
 				}
+	        	
+        		List<MonthDate> removedDateList = currentDateList.stream().filter(date -> !changedDateList.contains(date)).collect(Collectors.toList());
+        		removedDateList.stream().forEach(date -> db.removeProductQuantity(entry.getKey() , date));
 	        }
+	    }
+	    
+	    productsQuantityIterator = productsQuantityPerDate.entrySet().iterator();
+	    while (productsQuantityIterator.hasNext()) 
+	    {
+	        Map.Entry<String,List<QuantityPerDate>> entry = (Map.Entry<String,List<QuantityPerDate>>)productsQuantityIterator.next();
+	        if(!initProductsQuantityPerDate.containsKey(entry.getKey()))
+	        	db.removeProductQuantity(entry.getKey() , null);
 	    }
 	    
 	}
 	
-	public List<Map<MonthDate,ProductColumn>> calculateMap()
+	public Map<MonthDate,Map<String,ProductColumn>> calculateMap()
 	{
 		
-		List<Map<MonthDate,ProductColumn>> map = new ArrayList<>();
-		
-		Map<String, List<QuantityPerDate>> shipmentsQuantities = db.getAllProductsShipmentQuantityPerDate();
-		Map<String, List<QuantityPerDate>> customerOrdersQuantities = db.getAllProductsPOQuantityPerDate();
-		Map<String, List<QuantityPerDate>> workOrdersQuantities = db.getAllProductsWOQuantityPerDate();
-		Map<String, List<QuantityPerDate>> forecastsQuantities = db.getAllProductsWOQuantityPerDate();
+		Map<MonthDate,Map<String,ProductColumn>> map = new HashMap<MonthDate,Map<String,ProductColumn>>();
+		Map<String,String> catalogNumbers = db.getAllCatalogNumbers();
 		
 		MonthDate maximumDate = db.getMaximumForecastDate();
 		List<MonthDate> monthToCalculate = createDates(new MonthDate(Globals.addMonths(Globals.getTodayDate() , -6)) , maximumDate);
 		
-		for (MonthDate monthDate : monthToCalculate) 
+		for (String catalogNumber : catalogNumbers.keySet()) 
 		{
-			
+			for (MonthDate monthDate : monthToCalculate) 
+			{
+				QuantityPerDate supplied = db.getProductShipmentQuantityOnDate(catalogNumber , monthDate);
+				QuantityPerDate customerOrders = db.getProductPOQuantityOnDate(catalogNumber , monthDate);
+				QuantityPerDate workOrder = db.getProductWOQuantityOnDate(catalogNumber , monthDate);
+				QuantityPerDate forecast = db.getProductFCQuantityOnDate(catalogNumber , monthDate);
+				
+				int materialAvailability = 0 ,workOrderAfterSupplied = 0 , openCustomerOrder = 0;
+				
+				int previousOpenCustomerOrder = 0 , previousWorkOrderAfterSupplied = 0 , previousMaterialAvailability = 0;
+				int indexOfCurrentMonth = monthToCalculate.indexOf(monthDate);
+				if(indexOfCurrentMonth != 0)
+				{
+					ProductColumn previousProductColumn = map.get(monthToCalculate.get(indexOfCurrentMonth - 1)).get(catalogNumber);
+					previousOpenCustomerOrder = previousProductColumn.getOpenCustomerOrder();
+					previousWorkOrderAfterSupplied = previousProductColumn.getWorkOrderAfterSupplied();
+					previousMaterialAvailability = previousProductColumn.getMaterialAvailability();
+				}
+
+				Pair<String,Integer> fatherCatalogNumberAndQuantityToAssociate = db.getFather(catalogNumber);
+				int materialAvailabilityFix = 0;
+				if(fatherCatalogNumberAndQuantityToAssociate.getLeft() != null)
+				{
+					String fatherCatalogNumber = fatherCatalogNumberAndQuantityToAssociate.getLeft();
+					QuantityPerDate fatherSupplied = db.getProductShipmentQuantityOnDate(fatherCatalogNumber , monthDate);
+					QuantityPerDate fatherWorkOrder = db.getProductWOQuantityOnDate(fatherCatalogNumber , monthDate);
+					
+					int quantityToAssociate = fatherCatalogNumberAndQuantityToAssociate.getRight();
+					customerOrders.setQuantity(customerOrders.getQuantity() + quantityToAssociate * fatherWorkOrder.getQuantity());
+					supplied.setQuantity(supplied.getQuantity() + quantityToAssociate * fatherSupplied.getQuantity());
+					materialAvailabilityFix = quantityToAssociate * fatherWorkOrder.getQuantity();
+				}
+				
+				materialAvailability = forecast.getQuantity() + previousMaterialAvailability - workOrder.getQuantity() + materialAvailabilityFix;
+				workOrderAfterSupplied = workOrder.getQuantity() - supplied.getQuantity() + previousWorkOrderAfterSupplied;
+				openCustomerOrder = customerOrders.getQuantity() - supplied.getQuantity() + previousOpenCustomerOrder;
+				
+				ProductColumn productColumn = new ProductColumn(catalogNumber, catalogNumbers.get(catalogNumber), forecast.getQuantity(), materialAvailability, workOrder.getQuantity()
+						, workOrderAfterSupplied, customerOrders.getQuantity(), supplied.getQuantity(), openCustomerOrder);
+				
+				if(map.containsKey(monthDate))
+					map.get(monthDate).put(catalogNumber, productColumn);
+				else
+				{
+					Map<String,ProductColumn> productPerProductColumn = new HashMap<String,ProductColumn>();
+					productPerProductColumn.put(catalogNumber, productColumn);
+					map.put(monthDate, productPerProductColumn);
+				}
+			}
 		}
-		
 		
 		
 		return map;
@@ -168,13 +224,12 @@ public class Analyzer
 		List<MonthDate> dates = new ArrayList<>();
 		MonthDate currentDate = fromDate;
 		
-		while(!currentDate.equals(toDate))
+		while(!currentDate.after(toDate))
 		{
 			dates.add(currentDate);
 			currentDate = new MonthDate(Globals.addMonths(currentDate, 1));
 		}
-		
-		dates.add(toDate);
+
 		return dates;
 	}
 }

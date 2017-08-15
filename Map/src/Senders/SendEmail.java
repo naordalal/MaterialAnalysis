@@ -1,19 +1,10 @@
 package Senders;
 import java.io.File;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
-import java.net.IDN;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.mail.*;
 import javax.mail.internet.*;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.html.HTMLDocument;
-import javax.swing.text.html.HTMLEditorKit;
-import javax.swing.text.html.parser.ParserDelegator;
-
 import com.google.common.base.CharMatcher;
 
 import mainPackage.noValidEmailException;

@@ -9,9 +9,9 @@ public class Shipment extends Form
 	private String description;
 	private String orderCustomerId;
 	
-	public Shipment(String customer , String orderId , String orderCustomerId , String catalogNumber , String quantity , Date shipmentDate , String description) 
+	public Shipment(int id , String customer , String orderId , String orderCustomerId , String catalogNumber , String quantity , Date shipmentDate , String description) 
 	{
-		super(catalogNumber,quantity,shipmentDate,shipmentDate);
+		super(id , catalogNumber,quantity,shipmentDate,shipmentDate);
 		
 		this.customer = customer;
 		this.orderId = orderId;

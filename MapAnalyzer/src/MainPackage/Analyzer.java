@@ -184,6 +184,7 @@ public class Analyzer
 			}
 	    }
 	    
+    
 	    Iterator<Entry<String, List<QuantityPerDate>>> productsQuantityIterator = initProductsQuantityPerDate.entrySet().iterator();
 	    while (productsQuantityIterator.hasNext()) 
 	    {
@@ -195,15 +196,29 @@ public class Analyzer
 	        	List<QuantityPerDate> currentQuantityPerDateList = productsQuantityPerDate.get(entry.getKey());
 	        	List<QuantityPerDate> changedQuantityPerDateList = entry.getValue().stream().filter(el -> !currentQuantityPerDateList.contains(el)).collect(Collectors.toList());
 	        	
+        		List<MonthDate> currentDateList = currentQuantityPerDateList.stream().map(el -> el.getDate()).collect(Collectors.toList());
+        		List<MonthDate> changedDateList = new ArrayList<>();
+        		
 	        	for (QuantityPerDate quantityPerDate : changedQuantityPerDateList) 
 	        	{
-	        		List<MonthDate> currentDateList = currentQuantityPerDateList.stream().map(el -> el.getDate()).collect(Collectors.toList());
+					changedDateList.add(quantityPerDate.getDate());
 					if(currentDateList.contains(quantityPerDate.getDate()))
 						db.updateNewProductFormQuantityPerDate(entry.getKey() , quantityPerDate , type);
 					else
 						db.addNewProductFormQuantityPerDate(entry.getKey() , quantityPerDate , type);
 				}
+	        	
+        		List<MonthDate> removedDateList = currentDateList.stream().filter(date -> !changedDateList.contains(date)).collect(Collectors.toList());
+        		removedDateList.stream().forEach(date -> db.removeProductQuantity(entry.getKey() , date));
 	        }
+	    }
+	    
+	    productsQuantityIterator = productsQuantityPerDate.entrySet().iterator();
+	    while (productsQuantityIterator.hasNext()) 
+	    {
+	        Map.Entry<String,List<QuantityPerDate>> entry = (Map.Entry<String,List<QuantityPerDate>>)productsQuantityIterator.next();
+	        if(!initProductsQuantityPerDate.containsKey(entry.getKey()))
+	        	db.removeProductQuantity(entry.getKey() , null);
 	    }
 	    
 	}

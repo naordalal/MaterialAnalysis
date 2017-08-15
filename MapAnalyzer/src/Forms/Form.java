@@ -4,12 +4,14 @@ import java.util.Date;
 
 public class Form 
 {
+	private int id;
 	private String catalogNumber;
 	private String quantity;
 	private Date requestDate , createDate;
 	
-	public Form(String catalogNumber , String quantity , Date createDate , Date requestDate) 
+	public Form(int id , String catalogNumber , String quantity , Date createDate , Date requestDate) 
 	{
+		this.id = id;
 		this.catalogNumber = catalogNumber;
 		this.quantity = quantity;
 		this.createDate = createDate;
@@ -51,5 +53,15 @@ public class Form
 	public void setCreateDate(Date createDate) 
 	{
 		this.createDate = createDate;
+	}
+
+	public int getId()
+	{
+		return id;
+	}
+
+	public void setId(int id) 
+	{
+		this.id = id;
 	}
 }

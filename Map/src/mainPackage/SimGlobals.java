@@ -1,7 +1,5 @@
 package mainPackage;
 
-import java.util.Date;
-
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class SimGlobals extends Globals

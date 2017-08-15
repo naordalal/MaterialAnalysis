@@ -443,13 +443,17 @@ public class SenderFrame extends MouseAdapter implements ActionListener{
 					destFile.delete();
 					destFile.createNewFile();
 				}
-				FileChannel src = new FileInputStream(file).getChannel();
-		        FileChannel dst = new FileOutputStream(destFile).getChannel();
+				FileInputStream srcInputStream = new FileInputStream(file);
+				FileChannel src = srcInputStream.getChannel();
+				FileOutputStream dstOutputStream = new FileOutputStream(destFile);
+				FileChannel dst = dstOutputStream.getChannel();
+				
 		        dst.transferFrom(src, 0, src.size());
 		        src.close();
 		        dst.close();
+		        srcInputStream.close();
+		        dstOutputStream.close();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
