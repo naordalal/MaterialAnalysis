@@ -990,11 +990,10 @@ public class DataBase {
 		{
 			
 			connect();
-			stmt = c.prepareStatement("INSERT INTO ? (CN , quantity , date) VALUES (?,?,?)");
-			stmt.setString(1, tableName);
-			stmt.setString(2, product);
-			stmt.setString(3, Double.toString(quantityPerDate.getQuantity()));
-			stmt.setString(4, Globals.dateToSqlFormatString(quantityPerDate.getDate()));
+			stmt = c.prepareStatement("INSERT INTO " + tableName +" (CN , quantity , date) VALUES (?,?,?)");
+			stmt.setString(1, product);
+			stmt.setString(2, Double.toString(quantityPerDate.getQuantity()));
+			stmt.setString(3, Globals.dateToSqlFormatString(quantityPerDate.getDate()));
 			stmt.executeUpdate();
 			
 			c.commit();
@@ -1044,11 +1043,10 @@ public class DataBase {
 		{
 			
 			connect();
-			stmt = c.prepareStatement("UPDATE ? SET quantity = ? where CN = ? AND date = ?");
-			stmt.setString(1, tableName);
-			stmt.setString(2, Double.toString(quantityPerDate.getQuantity()));
-			stmt.setString(3, product);
-			stmt.setString(4, Globals.dateToSqlFormatString(quantityPerDate.getDate()));
+			stmt = c.prepareStatement("UPDATE " + tableName +" SET quantity = ? where CN = ? AND date = ?");
+			stmt.setString(1, Double.toString(quantityPerDate.getQuantity()));
+			stmt.setString(2, product);
+			stmt.setString(3, Globals.dateToSqlFormatString(quantityPerDate.getDate()));
 			stmt.executeUpdate();
 			
 			c.commit();
@@ -1254,20 +1252,17 @@ public class DataBase {
 		try
 		{
 			connect();
-			stmt = c.prepareStatement("DELETE FROM ? Where CN = ?");
-			stmt.setString(1, tableName1);
-			stmt.setString(2, catalogNumber);
+			stmt = c.prepareStatement("DELETE FROM " + tableName1 +" Where CN = ?");
+			stmt.setString(1, catalogNumber);
 			stmt.executeUpdate();
 			
-			stmt = c.prepareStatement("DELETE FROM ? Where CN = ?");
-			stmt.setString(1, tableName2);
-			stmt.setString(2, catalogNumber);
+			stmt = c.prepareStatement("DELETE FROM " + tableName2 +" Where CN = ?");
+			stmt.setString(1, catalogNumber);
 			stmt.executeUpdate();
 			
-			stmt = c.prepareStatement("INSERT INTO ? (CN , initDate) VALUES(?,?)");
-			stmt.setString(1, tableName2);
-			stmt.setString(2, catalogNumber);
-			stmt.setString(3, Globals.dateToSqlFormatString(Globals.getTodayDate()));
+			stmt = c.prepareStatement("INSERT INTO " + tableName2 +" (CN , initDate) VALUES(?,?)");
+			stmt.setString(1, catalogNumber);
+			stmt.setString(2, Globals.dateToSqlFormatString(Globals.getTodayDate()));
 			stmt.executeUpdate();
 			
 			c.commit();
@@ -1358,8 +1353,8 @@ public class DataBase {
 			try{
 				
 				connect();
-				stmt = (date == null) ? c.prepareStatement("DELETE FROM ? Where CN = ?") : c.prepareStatement("DELETE FROM ? Where CN = ? AND date(date) = date(?)");		
-				stmt.setString(1, tableName);
+				stmt = (date == null) ? c.prepareStatement("DELETE FROM " + tableName + " Where CN = ?") : c.prepareStatement("DELETE FROM " + tableName +" Where CN = ? AND date(date) = date(?)");		
+				stmt.setString(1, CatalogNumber);
 				if(date != null)
 					stmt.setString(2, Globals.dateToSqlFormatString(date));
 				
@@ -1433,10 +1428,9 @@ public class DataBase {
 		try{
 			
 			connect();
-			stmt = c.prepareStatement("SELECT quantity FROM ? where CN = ? AND date(date) = date(?)");
-			stmt.setString(1, tableName);
-			stmt.setString(2, catalogNumber);
-			stmt.setString(3, Globals.dateToSqlFormatString(monthDate));
+			stmt = c.prepareStatement("SELECT quantity FROM " + tableName + " where CN = ? AND date(date) = date(?)");
+			stmt.setString(1, catalogNumber);
+			stmt.setString(2, Globals.dateToSqlFormatString(monthDate));
 			ResultSet rs = stmt.executeQuery();
 			
 			if(rs.next())
@@ -1806,12 +1800,11 @@ public class DataBase {
 		try
 		{
 			connect();			
-			stmt = c.prepareStatement("UPDATE ? SET quantity = ? , requireDate = ? where CN = ? AND initDate = ?");
-			stmt.setString(1, tableName);
-			stmt.setString(2, quantity);
-			stmt.setString(3, Globals.parseDateToSqlFormatString(requireDate));
-			stmt.setString(4, catalogNumber);
-			stmt.setString(5, Globals.parseDateToSqlFormatString(initDate));
+			stmt = c.prepareStatement("UPDATE " + tableName + " SET quantity = ? , requireDate = ? where CN = ? AND initDate = ?");
+			stmt.setString(1, quantity);
+			stmt.setString(2, Globals.parseDateToSqlFormatString(requireDate));
+			stmt.setString(3, catalogNumber);
+			stmt.setString(4, Globals.parseDateToSqlFormatString(initDate));
 			stmt.executeUpdate();
 			
 			c.commit();

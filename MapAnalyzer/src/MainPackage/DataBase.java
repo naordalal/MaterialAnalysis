@@ -261,11 +261,10 @@ public class DataBase
 		{
 			
 			connect();
-			stmt = c.prepareStatement("INSERT INTO ? (CN , quantity , date) VALUES (?,?,?)");
-			stmt.setString(1, tableName);
-			stmt.setString(2, product);
-			stmt.setString(3, Double.toString(quantityPerDate.getQuantity()));
-			stmt.setString(4, Globals.dateToSqlFormatString(quantityPerDate.getDate()));
+			stmt = c.prepareStatement("INSERT INTO " + tableName + " (CN , quantity , date) VALUES (?,?,?)");
+			stmt.setString(1, product);
+			stmt.setString(2, Double.toString(quantityPerDate.getQuantity()));
+			stmt.setString(3, Globals.dateToSqlFormatString(quantityPerDate.getDate()));
 			stmt.executeUpdate();
 			
 			c.commit();
@@ -312,11 +311,10 @@ public class DataBase
 		{
 			
 			connect();
-			stmt = c.prepareStatement("UPDATE ? SET quantity = ? where CN = ? AND date = ?");
-			stmt.setString(1, tableName);
-			stmt.setString(2, Double.toString(quantityPerDate.getQuantity()));
-			stmt.setString(3, product);
-			stmt.setString(4, Globals.dateToSqlFormatString(quantityPerDate.getDate()));
+			stmt = c.prepareStatement("UPDATE " + tableName +" SET quantity = ? where CN = ? AND date = ?");
+			stmt.setString(1, Double.toString(quantityPerDate.getQuantity()));
+			stmt.setString(2, product);
+			stmt.setString(3, Globals.dateToSqlFormatString(quantityPerDate.getDate()));
 			stmt.executeUpdate();
 			
 			c.commit();
@@ -362,8 +360,7 @@ public class DataBase
 		try{
 			
 			connect();
-			stmt = c.prepareStatement("SELECT * FROM ?");		
-			stmt.setString(1, tableName);
+			stmt = c.prepareStatement("SELECT * FROM " + tableName);		
 			ResultSet rs = stmt.executeQuery();
 			
 			while(rs.next())
@@ -544,8 +541,7 @@ public class DataBase
 		try{
 			
 			connect();
-			stmt = c.prepareStatement("SELECT * FROM ?");		
-			stmt.setString(1, tableName);
+			stmt = c.prepareStatement("SELECT * FROM " + tableName);		
 			ResultSet rs = stmt.executeQuery();
 			
 			while(rs.next())
@@ -617,8 +613,7 @@ public class DataBase
 		try{
 			
 			connect();
-			stmt = c.prepareStatement("SELECT * FROM ?");		
-			stmt.setString(1, tableName);
+			stmt = c.prepareStatement("SELECT * FROM " + tableName);		
 			ResultSet rs = stmt.executeQuery();
 			
 			while(rs.next())
@@ -665,8 +660,8 @@ public class DataBase
 			try{
 				
 				connect();
-				stmt = (date == null) ? c.prepareStatement("DELETE FROM ? Where CN = ?") : c.prepareStatement("DELETE FROM ? Where CN = ? AND date(date) = date(?)");		
-				stmt.setString(1, tableName);
+				stmt = (date == null) ? c.prepareStatement("DELETE FROM " + tableName +" Where CN = ?") : c.prepareStatement("DELETE FROM " + tableName +" Where CN = ? AND date(date) = date(?)");
+				stmt.setString(1, CatalogNumber);
 				if(date != null)
 					stmt.setString(2, Globals.dateToSqlFormatString(date));
 				
