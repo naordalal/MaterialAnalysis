@@ -47,7 +47,7 @@ public class Analyzer
 		int woNumberColumn = -1 , catalogNumberColumn = -1 , quantityColumn = -1 , customerColumn = -1 , dateColumn = -1 , descriptionColumn = -1;
 		for (String line : Files.readAllLines(Paths.get(filePath),Charset.forName(globals.charsetName)))
 		{
-			List<String> columns = Arrays.asList(line.split("\\|")).stream().map(s -> s.trim()).filter(s->!s.equals("")).collect(Collectors.toList());
+			List<String> columns = Arrays.asList(line.split("\\|")).stream().map(s -> s.trim()).collect(Collectors.toList());
 			if(woNumberColumn == -1) 
 				woNumberColumn = columns.indexOf(globals.woNumberColumn);
 			if(catalogNumberColumn == -1) 
@@ -76,7 +76,7 @@ public class Analyzer
 				orderDateColumn = - 1 , guaranteedDateColumn = -1;
 		for (String line : Files.readAllLines(Paths.get(filePath),Charset.forName(globals.charsetName)))
 		{
-			List<String> columns = Arrays.asList(line.split("\\|")).stream().map(s -> s.trim()).filter(s->!s.equals("")).collect(Collectors.toList());
+			List<String> columns = Arrays.asList(line.split("\\|")).stream().map(s -> s.trim()).collect(Collectors.toList());
 			if(customerColumn == -1) 
 				customerColumn = columns.indexOf(globals.customerIdColumn);
 			if(orderNumberColumn == -1) 
@@ -109,7 +109,7 @@ public class Analyzer
 		int customerColumn = -1 , orderIdColumn = -1 , orderCustomerIdColumn = -1 , catalogNumberColumn = -1 , quantityColumn = -1 , shipmentDateColumn = -1 , descriptionColumn = -1;
 		for (String line : Files.readAllLines(Paths.get(filePath),Charset.forName(globals.charsetName)))
 		{
-			List<String> columns = Arrays.asList(line.split("\\|")).stream().map(s -> s.trim()).filter(s->!s.equals("")).collect(Collectors.toList());
+			List<String> columns = Arrays.asList(line.split("\\|")).stream().map(s -> s.trim()).collect(Collectors.toList());
 			if(customerColumn == -1) 
 				customerColumn = columns.indexOf(globals.customerIdColumn);
 			if(orderIdColumn == -1) 

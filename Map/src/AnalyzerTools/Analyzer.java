@@ -212,9 +212,9 @@ public class Analyzer
 				QuantityPerDate workOrder = db.getProductWOQuantityOnDate(catalogNumber , monthDate);
 				QuantityPerDate forecast = db.getProductFCQuantityOnDate(catalogNumber , monthDate);
 				
-				int materialAvailability = 0 ,workOrderAfterSupplied = 0 , openCustomerOrder = 0;
+				double materialAvailability = 0 ,workOrderAfterSupplied = 0 , openCustomerOrder = 0;
 				
-				int previousOpenCustomerOrder = 0 , previousWorkOrderAfterSupplied = 0 , previousMaterialAvailability = 0;
+				double previousOpenCustomerOrder = 0 , previousWorkOrderAfterSupplied = 0 , previousMaterialAvailability = 0;
 				int indexOfCurrentMonth = monthToCalculate.indexOf(monthDate);
 				if(indexOfCurrentMonth != 0)
 				{
@@ -225,7 +225,7 @@ public class Analyzer
 				}
 
 				Pair<String,Integer> fatherCatalogNumberAndQuantityToAssociate = db.getFather(catalogNumber);
-				int materialAvailabilityFix = 0;
+				double materialAvailabilityFix = 0;
 				if(fatherCatalogNumberAndQuantityToAssociate.getLeft() != null)
 				{
 					String fatherCatalogNumber = fatherCatalogNumberAndQuantityToAssociate.getLeft();

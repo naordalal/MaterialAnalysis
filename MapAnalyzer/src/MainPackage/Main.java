@@ -12,7 +12,7 @@ public class Main {
 
 	public static void main(String[] args) 
 	{
-		String fileName = "C:/Users/naordalal/Desktop/SO_ALL_customer_ALL_SO_clean.txt";
+		/*String fileName = "C:/Users/naordalal/Desktop/SO_ALL_customer_ALL_SO_clean.txt";
 		 try {
 			for (String line : Files.readAllLines(Paths.get(fileName),Charset.forName("IBM862")))
 			 {
@@ -22,15 +22,15 @@ public class Main {
 			 }
 		} catch (IOException e) {
 			e.printStackTrace();
-		}
+		}*/
 		 
 		 //TODO
-		 /*Analyzer analyzer = new Analyzer();
+		 Analyzer analyzer = new Analyzer();
 		 try {
 			analyzer.analyze();
 		} catch (IOException e) {
 			e.printStackTrace();
-		}*/
+		}
 	}
 
 }

@@ -4,16 +4,16 @@ public class ProductColumn
 {
 	private String catalogNumber;
 	private String description;
-	private int forecast;
-	private int materialAvailability;
-	private int workOrder;
-	private int workOrderAfterSupplied;
-	private int customerOrders;
-	private int supplied;
-	private int openCustomerOrder;
+	private double forecast;
+	private double materialAvailability;
+	private double workOrder;
+	private double workOrderAfterSupplied;
+	private double customerOrders;
+	private double supplied;
+	private double openCustomerOrder;
 	
-	public ProductColumn(String catalogNumber , String description , int forecast , int materialAvailability , int workOrder 
-			, int workOrderAfterSupplied , int customerOrders , int supplied , int openCustomerOrder) 
+	public ProductColumn(String catalogNumber , String description , double forecast , double materialAvailability , double workOrder 
+			, double workOrderAfterSupplied , double customerOrders , double supplied , double openCustomerOrder) 
 	{
 		this.catalogNumber = catalogNumber;
 		this.description = description;
@@ -38,46 +38,46 @@ public class ProductColumn
 	public void setDescription(String description) {
 		this.description = description;
 	}
-	public int getForecast() {
+	public double getForecast() {
 		return forecast;
 	}
-	public void setForecast(int forecast) {
+	public void setForecast(double forecast) {
 		this.forecast = forecast;
 	}
-	public int getMaterialAvailability() {
+	public double getMaterialAvailability() {
 		return materialAvailability;
 	}
-	public void setMaterialAvailability(int materialAvailability) {
+	public void setMaterialAvailability(double materialAvailability) {
 		this.materialAvailability = materialAvailability;
 	}
-	public int getWorkOrder() {
+	public double getWorkOrder() {
 		return workOrder;
 	}
-	public void setWorkOrder(int workOrder) {
+	public void setWorkOrder(double workOrder) {
 		this.workOrder = workOrder;
 	}
-	public int getWorkOrderAfterSupplied() {
+	public double getWorkOrderAfterSupplied() {
 		return workOrderAfterSupplied;
 	}
 	public void setWorkOrderAfterSupplied(int workOrderAfterSupplied) {
 		this.workOrderAfterSupplied = workOrderAfterSupplied;
 	}
-	public int getCustomerOrders() {
+	public double getCustomerOrders() {
 		return customerOrders;
 	}
-	public void setCustomerOrders(int customerOrders) {
+	public void setCustomerOrders(double customerOrders) {
 		this.customerOrders = customerOrders;
 	}
-	public int getSupplied() {
+	public double getSupplied() {
 		return supplied;
 	}
-	public void setSupplied(int supplied) {
+	public void setSupplied(double supplied) {
 		this.supplied = supplied;
 	}
-	public int getOpenCustomerOrder() {
+	public double getOpenCustomerOrder() {
 		return openCustomerOrder;
 	}
-	public void setOpenCustomerOrder(int openCustomerOrder) {
+	public void setOpenCustomerOrder(double openCustomerOrder) {
 		this.openCustomerOrder = openCustomerOrder;
 	}
 

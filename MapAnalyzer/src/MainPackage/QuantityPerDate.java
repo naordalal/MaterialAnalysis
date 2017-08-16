@@ -4,9 +4,9 @@ package MainPackage;
 public class QuantityPerDate 
 {
 	private MonthDate date;
-	private int quantity;
+	private double quantity;
 	
-	public QuantityPerDate(MonthDate date , int quantity) 
+	public QuantityPerDate(MonthDate date , double quantity) 
 	{
 		this.date = date;
 		this.quantity = quantity;
@@ -21,16 +21,16 @@ public class QuantityPerDate
 		this.date = date;
 	}
 	
-	public int getQuantity() 
+	public double getQuantity() 
 	{
 		return quantity;
 	}
-	public void setQuantity(int quantity) 
+	public void setQuantity(double quantity) 
 	{
 		this.quantity = quantity;
 	}
 	
-	public void addQuantity(int quantity2) 
+	public void addQuantity(double quantity2) 
 	{
 		this.quantity += quantity2;
 	}

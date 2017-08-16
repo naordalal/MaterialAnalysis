@@ -993,7 +993,7 @@ public class DataBase {
 			stmt = c.prepareStatement("INSERT INTO ? (CN , quantity , date) VALUES (?,?,?)");
 			stmt.setString(1, tableName);
 			stmt.setString(2, product);
-			stmt.setString(3, Integer.toString(quantityPerDate.getQuantity()));
+			stmt.setString(3, Double.toString(quantityPerDate.getQuantity()));
 			stmt.setString(4, Globals.dateToSqlFormatString(quantityPerDate.getDate()));
 			stmt.executeUpdate();
 			
@@ -1046,7 +1046,7 @@ public class DataBase {
 			connect();
 			stmt = c.prepareStatement("UPDATE ? SET quantity = ? where CN = ? AND date = ?");
 			stmt.setString(1, tableName);
-			stmt.setString(2, Integer.toString(quantityPerDate.getQuantity()));
+			stmt.setString(2, Double.toString(quantityPerDate.getQuantity()));
 			stmt.setString(3, product);
 			stmt.setString(4, Globals.dateToSqlFormatString(quantityPerDate.getDate()));
 			stmt.executeUpdate();
@@ -1127,7 +1127,7 @@ public class DataBase {
 				String quantity = rs.getString("quantity");
 				MonthDate requireDate = new MonthDate(Globals.parseDateFromSqlFormat(rs.getString("date")));
 				
-				QuantityPerDate quantityPerDate = new QuantityPerDate(requireDate, Integer.parseInt(quantity));
+				QuantityPerDate quantityPerDate = new QuantityPerDate(requireDate, Double.parseDouble(quantity));
 				
 				if(productFormQuantityPerDate.containsKey(catalogNumber))
 					productFormQuantityPerDate.get(catalogNumber).add(quantityPerDate);
@@ -1170,7 +1170,7 @@ public class DataBase {
 				String quantity = rs.getString("quantity");
 				MonthDate requireDate = new MonthDate(Globals.parseDateFromSqlFormat(rs.getString("requireDate")));
 				
-				QuantityPerDate quantityPerDate = new QuantityPerDate(requireDate, Integer.parseInt(quantity));
+				QuantityPerDate quantityPerDate = new QuantityPerDate(requireDate, Double.parseDouble(quantity));
 				
 				if(productFormQuantityPerDate.containsKey(catalogNumber))
 					productFormQuantityPerDate.get(catalogNumber).add(quantityPerDate);
@@ -1442,7 +1442,7 @@ public class DataBase {
 			if(rs.next())
 			{
 				String quantity = rs.getString("quantity");
-				quantityPerDate = new QuantityPerDate(monthDate, Integer.parseInt(quantity));
+				quantityPerDate = new QuantityPerDate(monthDate, Double.parseDouble(quantity));
 			}
 			else
 				quantityPerDate = new QuantityPerDate(monthDate, 0);
