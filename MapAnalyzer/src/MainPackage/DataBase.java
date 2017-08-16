@@ -92,22 +92,23 @@ public class DataBase
 		}
 	}
 	
-	public boolean addCustomerOrder(String customer , String orderNumber , String catalogNumber , String description , String quantity , String price , String orderDate , String guaranteedDate) 
+	public boolean addCustomerOrder(String customer , String orderNumber , String customerOrderNumber , String catalogNumber , String description , String quantity , String price , String orderDate , String guaranteedDate) 
 	{
 		try
 		{
 			if(quantity.trim().equals(""))
 				quantity = "0";
 			connect();
-			stmt = c.prepareStatement("INSERT INTO CustomerOrders (orderNumber , customer , orderDate , CN , description ,quantity , price , guaranteedDate) VALUES (?,?,?,?,?,?,?,?)");
+			stmt = c.prepareStatement("INSERT INTO CustomerOrders (orderNumber , customerOrderNumber , customer , orderDate , CN , description ,quantity , price , guaranteedDate) VALUES (?,?,?,?,?,?,?,?,?)");
 			stmt.setString(1, orderNumber);
-			stmt.setString(2, customer);
-			stmt.setString(3, Globals.parseDateToSqlFormatString(orderDate));
-			stmt.setString(4, catalogNumber);
-			stmt.setString(5, description);
-			stmt.setString(6, quantity);
-			stmt.setString(7, price);
-			stmt.setString(8, Globals.parseDateToSqlFormatString(guaranteedDate));
+			stmt.setString(2, customerOrderNumber);
+			stmt.setString(3, customer);
+			stmt.setString(4, Globals.parseDateToSqlFormatString(orderDate));
+			stmt.setString(5, catalogNumber);
+			stmt.setString(6, description);
+			stmt.setString(7, quantity);
+			stmt.setString(8, price);
+			stmt.setString(9, Globals.parseDateToSqlFormatString(guaranteedDate));
 			stmt.executeUpdate();
 			
 			c.commit();
@@ -452,6 +453,7 @@ public class DataBase
 				int id = rs.getInt("id");
 				String customer = rs.getString("customer");
 				String orderNumber = rs.getString("orderNumber");
+				String customerOrderNumber = rs.getString("customerOrderNumber");
 				String catalogNumber = rs.getString("CN");
 				String description = rs.getString("description");
 				String quantity = rs.getString("quantity");
@@ -459,7 +461,7 @@ public class DataBase
 				Date orderDate = Globals.parseDateFromSqlFormat(rs.getString("orderDate"));
 				Date guaranteedDate = Globals.parseDateFromSqlFormat(rs.getString("guaranteedDate"));
 				
-				CustomerOrder customerOrder = new CustomerOrder(id,customer, orderNumber, catalogNumber, description, quantity, price, orderDate, guaranteedDate);
+				CustomerOrder customerOrder = new CustomerOrder(id,customer, orderNumber, customerOrderNumber , catalogNumber, description, quantity, price, orderDate, guaranteedDate);
 				customerOrders.add(customerOrder);
 			}
 			
@@ -667,7 +669,7 @@ public class DataBase
 				if(date != null)
 					stmt.setString(2, Globals.dateToSqlFormatString(date));
 				
-				stmt.executeQuery();
+				stmt.executeUpdate();
 				
 				c.commit();
 				closeConnection();
@@ -678,7 +680,6 @@ public class DataBase
 				try {
 					c.rollback();
 				} catch (SQLException e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 				e.printStackTrace();

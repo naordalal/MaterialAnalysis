@@ -9,13 +9,15 @@ public class CustomerOrder extends Form{
 	private String orderNumber;
 	private String description;
 	private String price;
+	private String customerOrderNumber;
 
-	public CustomerOrder(int id , String customer , String orderNumber , String catalogNumber , String description , String quantity , String price , Date orderDate , Date guaranteedDate) 
+	public CustomerOrder(int id , String customer , String orderNumber , String customerOrderNumber , String catalogNumber , String description , String quantity , String price , Date orderDate , Date guaranteedDate) 
 	{
 		super(id , catalogNumber, quantity,orderDate, guaranteedDate);
 		
 		this.customer = customer;
 		this.orderNumber = orderNumber;
+		this.customerOrderNumber = customerOrderNumber;
 		this.description = description;
 		this.price = price;
 	}
@@ -58,6 +60,16 @@ public class CustomerOrder extends Form{
 	public void setPrice(String price) 
 	{
 		this.price = price;
+	}
+
+	public String getCustomerOrderNumber() 
+	{
+		return customerOrderNumber;
+	}
+
+	public void setCustomerOrderNumber(String customerOrderNumber) 
+	{
+		this.customerOrderNumber = customerOrderNumber;
 	}
 
 }

@@ -1644,13 +1644,14 @@ public class DataBase {
 				int id = rs.getInt("id");
 				String customer = rs.getString("customer");
 				String orderNumber = rs.getString("orderNumber");
+				String customerOrderNumber = rs.getString("customerOrderNumber");
 				String description = rs.getString("description");
 				String quantity = rs.getString("quantity");
 				String price = rs.getString("price");
 				java.util.Date orderDate = Globals.parseDateFromSqlFormat(rs.getString("orderDate"));
 				java.util.Date guaranteedDate = Globals.parseDateFromSqlFormat(rs.getString("guaranteedDate"));
 				
-				CustomerOrder customerOrder = new CustomerOrder(id,customer, orderNumber, catalogNumber, description, quantity, price, orderDate, guaranteedDate);
+				CustomerOrder customerOrder = new CustomerOrder(id,customer, orderNumber, customerOrderNumber , catalogNumber, description, quantity, price, orderDate, guaranteedDate);
 				customerOrders.add(customerOrder);
 			}
 			

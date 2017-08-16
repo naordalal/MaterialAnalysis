@@ -72,7 +72,7 @@ public class Analyzer
 	
 	private void analyzeCustomerOrders(String filePath) throws IOException 
 	{
-		int customerColumn = -1 , orderNumberColumn = -1 , catalogNumberColumn = -1 , descriptionColumn = -1 , quantityColumn = -1 , priceColumn = -1,
+		int customerColumn = -1 , orderNumberColumn = -1 , customerOrderNumberColumn = -1 , catalogNumberColumn = -1 , descriptionColumn = -1 , quantityColumn = -1 , priceColumn = -1,
 				orderDateColumn = - 1 , guaranteedDateColumn = -1;
 		for (String line : Files.readAllLines(Paths.get(filePath),Charset.forName(globals.charsetName)))
 		{
@@ -81,6 +81,8 @@ public class Analyzer
 				customerColumn = columns.indexOf(globals.customerIdColumn);
 			if(orderNumberColumn == -1) 
 				orderNumberColumn = columns.indexOf(globals.orderNumberColumn);
+			if(customerOrderNumberColumn == -1) 
+				customerOrderNumberColumn = columns.indexOf(globals.customerOrderNumberColumn);
 			if(catalogNumberColumn == -1)
 				catalogNumberColumn = columns.indexOf(globals.catalogNumberColumn);
 			if(descriptionColumn == -1) 
@@ -97,7 +99,7 @@ public class Analyzer
 			{
 				Date date = Globals.parseDate(columns.get(orderDateColumn));
 				if(Globals.addMonths(Globals.getTodayDate(), -globals.monthsToIgnore).before(date))
-					db.addCustomerOrder(columns.get(customerColumn), columns.get(orderNumberColumn), columns.get(catalogNumberColumn)
+					db.addCustomerOrder(columns.get(customerColumn), columns.get(orderNumberColumn), columns.get(customerOrderNumberColumn), columns.get(catalogNumberColumn)
 							, columns.get(descriptionColumn), columns.get(quantityColumn), columns.get(priceColumn) 
 							, columns.get(orderDateColumn) , columns.get(guaranteedDateColumn));
 			}
@@ -197,18 +199,17 @@ public class Analyzer
 	        	List<QuantityPerDate> changedQuantityPerDateList = entry.getValue().stream().filter(el -> !currentQuantityPerDateList.contains(el)).collect(Collectors.toList());
 	        	
         		List<MonthDate> currentDateList = currentQuantityPerDateList.stream().map(el -> el.getDate()).collect(Collectors.toList());
-        		List<MonthDate> changedDateList = new ArrayList<>();
+        		List<MonthDate> newDateList = entry.getValue().stream().map(el -> el.getDate()).collect(Collectors.toList());
         		
 	        	for (QuantityPerDate quantityPerDate : changedQuantityPerDateList) 
 	        	{
-					changedDateList.add(quantityPerDate.getDate());
 					if(currentDateList.contains(quantityPerDate.getDate()))
 						db.updateNewProductFormQuantityPerDate(entry.getKey() , quantityPerDate , type);
 					else
 						db.addNewProductFormQuantityPerDate(entry.getKey() , quantityPerDate , type);
 				}
 	        	
-        		List<MonthDate> removedDateList = currentDateList.stream().filter(date -> !changedDateList.contains(date)).collect(Collectors.toList());
+        		List<MonthDate> removedDateList = currentDateList.stream().filter(date -> !newDateList.contains(date)).collect(Collectors.toList());
         		removedDateList.stream().forEach(date -> db.removeProductQuantity(entry.getKey() , date));
 	        }
 	    }

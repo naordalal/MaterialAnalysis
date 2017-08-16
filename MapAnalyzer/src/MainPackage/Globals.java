@@ -25,6 +25,7 @@ public class Globals
 	
 	public final String customerIdColumn = "מס לקוח";
 	public final String orderNumberColumn = "מס הזמנה";
+	public final String customerOrderNumberColumn = "מס הזמנת לקוח";
 	public final String orderDateColumn = "תאריך הזמנה";
 	public final String priceColumn = "מחיר יחידה";
 	public final String quantityOrderColumn = "כמות מוזמנת";

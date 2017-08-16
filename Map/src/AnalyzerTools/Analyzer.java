@@ -166,18 +166,17 @@ public class Analyzer
 	        	List<QuantityPerDate> changedQuantityPerDateList = entry.getValue().stream().filter(el -> !currentQuantityPerDateList.contains(el)).collect(Collectors.toList());
 	        	
         		List<MonthDate> currentDateList = currentQuantityPerDateList.stream().map(el -> el.getDate()).collect(Collectors.toList());
-        		List<MonthDate> changedDateList = new ArrayList<>();
+        		List<MonthDate> newDateList = entry.getValue().stream().map(el -> el.getDate()).collect(Collectors.toList());
         		
 	        	for (QuantityPerDate quantityPerDate : changedQuantityPerDateList) 
 	        	{
-					changedDateList.add(quantityPerDate.getDate());
 					if(currentDateList.contains(quantityPerDate.getDate()))
 						db.updateNewProductFormQuantityPerDate(entry.getKey() , quantityPerDate , type);
 					else
 						db.addNewProductFormQuantityPerDate(entry.getKey() , quantityPerDate , type);
 				}
 	        	
-        		List<MonthDate> removedDateList = currentDateList.stream().filter(date -> !changedDateList.contains(date)).collect(Collectors.toList());
+        		List<MonthDate> removedDateList = currentDateList.stream().filter(date -> !newDateList.contains(date)).collect(Collectors.toList());
         		removedDateList.stream().forEach(date -> db.removeProductQuantity(entry.getKey() , date));
 	        }
 	    }
