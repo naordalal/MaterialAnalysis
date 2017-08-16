@@ -197,6 +197,7 @@ public class DataBase
 			connect();
 			stmt = c.prepareStatement("DELETE FROM WorkOrder Where date(date) > date(?)");
 			stmt.setString(1, Globals.dateToSqlFormatString(Globals.setFirstDayOfMonth(Globals.addMonths(Globals.getTodayDate() , -months))));
+			stmt.executeUpdate();
 			
 			c.commit();
 			
@@ -219,8 +220,9 @@ public class DataBase
 		try
 		{
 			connect();
-			stmt = c.prepareStatement("DELETE FROM CustomerOrders Where date(orderDate) >= date(?)");
+			stmt = c.prepareStatement("DELETE FROM CustomerOrders Where date(orderDate) > date(?)");
 			stmt.setString(1, Globals.dateToSqlFormatString(Globals.setFirstDayOfMonth(Globals.addMonths(Globals.getTodayDate() , -months))));
+			stmt.executeUpdate();
 			
 			c.commit();
 			
@@ -665,12 +667,20 @@ public class DataBase
 				if(date != null)
 					stmt.setString(2, Globals.dateToSqlFormatString(date));
 				
-				stmt.executeQuery();	
+				stmt.executeQuery();
+				
+				c.commit();
 				closeConnection();
 			
 			}
 			catch(Exception e)
 			{
+				try {
+					c.rollback();
+				} catch (SQLException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 				e.printStackTrace();
 				closeConnection();
 			}

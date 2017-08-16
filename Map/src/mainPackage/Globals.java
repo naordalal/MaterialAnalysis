@@ -403,7 +403,7 @@ public class Globals {
 		int month = c.get(Calendar.MONTH);
 		int day = c.get(Calendar.DAY_OF_MONTH);
 
-		String s = year + "-" + String.format("%02d", month) + "-" + String.format("%02d", day);
+		String s = year + "-" + String.format("%02d", month + 1) + "-" + String.format("%02d", day);
 		
 		return s;
 	}
@@ -472,7 +472,7 @@ public class Globals {
 		c.set(Calendar.SECOND, 0);
 		c.set(Calendar.MILLISECOND, 0);
 		
-		return c.get(Calendar.MONTH);
+		return c.get(Calendar.MONTH) + 1;
 	}
 
 	public static int getYear(Date date) 
@@ -515,7 +515,7 @@ public class Globals {
 		int month = c.get(Calendar.MONTH);
 		int day = c.get(Calendar.DAY_OF_MONTH);
 
-		String s = String.format("%02d", day) + "/" + String.format("%02d", month) + "/" + year;
+		String s = String.format("%02d", day) + "/" + String.format("%02d", month + 1) + "/" + year;
 		
 		return s;
 	}

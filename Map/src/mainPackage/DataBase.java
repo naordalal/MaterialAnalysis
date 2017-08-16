@@ -1513,11 +1513,18 @@ public class DataBase {
 			stmt.setString(3, quantity);
 			stmt.executeUpdate();
 			
+			c.commit();
+			
 			closeConnection();
 		
 		}
 		catch(Exception e)
 		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
 			e.printStackTrace();
 			closeConnection();
 		}
@@ -1533,11 +1540,17 @@ public class DataBase {
 			stmt.setString(2, alias);
 			stmt.executeUpdate();
 			
+			c.commit();
 			closeConnection();
 		
 		}
 		catch(Exception e)
 		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
 			e.printStackTrace();
 			closeConnection();
 		}
@@ -1554,11 +1567,18 @@ public class DataBase {
 			stmt.setString(3, father);
 			stmt.executeUpdate();
 			
+			c.commit();
+			
 			closeConnection();
 		
 		}
 		catch(Exception e)
 		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
 			e.printStackTrace();
 			closeConnection();
 		}
