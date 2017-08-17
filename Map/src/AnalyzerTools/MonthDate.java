@@ -2,6 +2,7 @@ package AnalyzerTools;
 
 import java.text.DateFormatSymbols;
 import java.util.Date;
+import java.util.Locale;
 
 import mainPackage.Globals;
 
@@ -22,7 +23,7 @@ public class MonthDate extends Date
 
 	private static String parseShortDate(String monthOnShortName) 
 	{
-		DateFormatSymbols dfs = new DateFormatSymbols();
+		DateFormatSymbols dfs = new DateFormatSymbols(Locale.US);
 		String[] months = dfs.getShortMonths();
 		String monthName = monthOnShortName.split(" ")[0];
 		int monthNumber = 0;
@@ -58,7 +59,7 @@ public class MonthDate extends Date
 	
 	public String shortString()
 	{
-		DateFormatSymbols dfs = new DateFormatSymbols();
+		DateFormatSymbols dfs = new DateFormatSymbols(Locale.US);
         String[] months = dfs.getShortMonths();
         String nameOfMonth = months[Globals.getMonth(this) - 1];
         return nameOfMonth + " " + Globals.getYear(this);

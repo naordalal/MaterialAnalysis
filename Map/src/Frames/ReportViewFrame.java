@@ -1,10 +1,18 @@
 package Frames;
 
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.geom.Line2D;
 import java.util.List;
 
 import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -12,15 +20,25 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.KeyStroke;
+import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.UIManager;
+import javax.swing.border.AbstractBorder;
+import javax.swing.border.Border;
+import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
 
 import mainPackage.CallBack;
 import mainPackage.Globals;
 
 public class ReportViewFrame 
 {
+	protected static final int padding = 16;
 	private JFrame frame;
 	private Globals globals;
 	private JPanel panel;
@@ -90,68 +108,91 @@ public class ReportViewFrame
 		if(canEdit)
 			invalidEditableColumns.stream().forEach(column -> table.addInvalidEditableColumn(column));
 		createTable(model);
-		table.setRowHeight(30);
 		table.setShowGrid(true);
 		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		
-		
 		DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
 		centerRenderer.setHorizontalAlignment(JLabel.CENTER);
+		setCellRenderer(centerRenderer);
+		//table.setFont(new Font("Tahoma", Font.PLAIN, 16));
+		int lengthOfColumns = setColumnWidth(); 
+		table.getTableHeader().setReorderingAllowed(false);
+		table.getTableHeader().setResizingAllowed(false);
+		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		
-		setRenderer(centerRenderer);
+		DefaultTableCellRenderer headerRenderer = new DefaultTableCellRenderer();
+		headerRenderer.setBorder(UIManager.getBorder("TableHeader.cellBorder"));
+		headerRenderer.setHorizontalAlignment(JLabel.CENTER);
+		setHeaderRenderer(headerRenderer);
+		
+		table.setBorder(new AbstractBorder() 
+		{
+			@Override
+			public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+				 g.setColor(Color.RED);
+				 String lastVal = "";
+				 for (int rowIndex = 0 ; rowIndex < content.length ; rowIndex++) 
+				 {
+					String [] row = content[rowIndex];
+					int rowHeight = getRowHeight(rowIndex);
+					if(!lastVal.equals(row[0]))
+					{
+						g.drawLine(x, y + rowIndex * rowHeight, x + lengthOfColumns, y + rowIndex * rowHeight);
+						lastVal = row[0];
+					}
+				 }
+			}
+			
+			@Override
+		    public boolean isBorderOpaque()
+		    {
+		        return true;
+		    }
 
-		//table.getTableHeader().setBorder(UIManager.getBorder("TableHeader.cellBorder"));
-		//table.getTableHeader().setReorderingAllowed(false);
-		
+
+			@Override
+			public Insets getBorderInsets(Component arg0) {
+				return new Insets(2,2,2,2);
+			}
+		});
+
 		scrollPane = new JScrollPane(table);
 		scrollPane.setLocation(30, 30);
 		scrollPane.setSize(850,600);
 		scrollPane.setVisible(true);
-		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
-		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
 		panel.add(scrollPane);
-		
-		/*valueCellChangeAction = new CallBack<Object>()
-		{
-			@Override
-			public Object execute(Object... objects) 
-			{
-		        return null;
-			}
-		};
-		
-		doubleLeftClickAction = new CallBack<Object>()
-		{
-			@Override
-			public Object execute(Object... objects) 
-			{
-				TableCellListener tcl = (TableCellListener)objects[0];
-				int row = tcl.getRow();
-				int column = tcl.getColumn();
-		        return null;
-			}
-		};
-		
-		rightClickAction = new CallBack<Object>()
-		{
-			@Override
-			public Object execute(Object... objects) 
-			{
-				return null;
-			}
-		};*/
 		
 		new TableCellListener(table, valueCellChangeAction, doubleLeftClickAction, rightClickAction);		
 	}
 
-	private void setRenderer(DefaultTableCellRenderer renderer) 
+	private int getRowHeight(int row) 
+	{
+        int maxHeight = 0;
+        for (int column = 0; column < table.getColumnCount(); column++) 
+        {
+            TableCellRenderer cellRenderer = table.getCellRenderer(row, column);
+            Object valueAt = table.getValueAt(row, column);
+            Component tableCellRendererComponent = cellRenderer.getTableCellRendererComponent(table, valueAt, false, false, row, column);
+            int heightPreferable = tableCellRendererComponent.getPreferredSize().height;
+            maxHeight = Math.max(heightPreferable, maxHeight);
+        }
+        
+        return maxHeight;
+		
+	}
+
+	private void setCellRenderer(DefaultTableCellRenderer renderer) 
 	{
 		for(int index = 0 ; index < columns.length ; index++)
-		{
-			table.getColumnModel().getColumn(index).setHeaderRenderer(renderer);
 			table.getColumnModel().getColumn(index).setCellRenderer(renderer);
-		}
-		
+	}
+	
+	private void setHeaderRenderer(DefaultTableCellRenderer renderer) 
+	{
+		for(int index = 0 ; index < columns.length ; index++)
+			table.getColumnModel().getColumn(index).setHeaderRenderer(renderer);
 	}
 
 	private void createTable(DefaultTableModel model) 
@@ -176,6 +217,63 @@ public class ReportViewFrame
 	{
 		table.getModel().setValueAt(newValue, row, column);
 	}
+	
+	private int setColumnWidth() 
+    {
+		int width = 0;
+        adjustJTableRowSizes(table);
+        for (int i = 0; i < table.getColumnCount(); i++) 
+        	width += adjustColumnSizes(table, i, 4);
+        return width;
+    }
+
+    private void adjustJTableRowSizes(JTable jTable) 
+    {
+        for (int row = 0; row < jTable.getRowCount(); row++) 
+        {
+            int maxHeight = 0;
+            for (int column = 0; column < jTable.getColumnCount(); column++) 
+            {
+                TableCellRenderer cellRenderer = jTable.getCellRenderer(row, column);
+                Object valueAt = jTable.getValueAt(row, column);
+                Component tableCellRendererComponent = cellRenderer.getTableCellRendererComponent(jTable, valueAt, false, false, row, column);
+                int heightPreferable = tableCellRendererComponent.getPreferredSize().height;
+                maxHeight = Math.max(heightPreferable, maxHeight);
+            }
+            jTable.setRowHeight(row, maxHeight);
+        }
+
+    }
+
+    public int adjustColumnSizes(JTable table, int column, int margin) 
+    {
+        DefaultTableColumnModel colModel = (DefaultTableColumnModel) table.getColumnModel();
+        TableColumn col = colModel.getColumn(column);
+        int width;
+
+        TableCellRenderer renderer = col.getHeaderRenderer();
+        if (renderer == null) 
+        {
+            renderer = table.getTableHeader().getDefaultRenderer();
+        }
+        Component comp = renderer.getTableCellRendererComponent(table, col.getHeaderValue(), false, false, 0, 0);
+        width = comp.getPreferredSize().width;
+
+        for (int r = 0; r < table.getRowCount(); r++) 
+        {
+            renderer = table.getCellRenderer(r, column);
+            comp = renderer.getTableCellRendererComponent(table, table.getValueAt(r, column), false, false, r, column);
+            int currentWidth = comp.getPreferredSize().width;
+            width = Math.max(width, currentWidth);
+        }
+
+        width += 2 * margin;
+        
+        col.setPreferredWidth(width);
+        col.setWidth(width);
+        return width;
+    }
+    
 
 }
 

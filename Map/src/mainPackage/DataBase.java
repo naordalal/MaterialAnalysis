@@ -1108,122 +1108,7 @@ public class DataBase {
 		}
 	}
 	
-	public Map<String, List<QuantityPerDate>> getAllProductsFCQuantityPerDate(String catalogNumber) 
-	{
-		Map<String, List<QuantityPerDate>> productFormQuantityPerDate = new HashMap<>();
-		
-		try{
-			
-			connect();
-			stmt = (catalogNumber == null) ? c.prepareStatement("SELECT * FROM productForecast") : c.prepareStatement("SELECT * FROM productForecast where CN = ?");
-			if(catalogNumber != null)
-				stmt.setString(1, catalogNumber); 	
-			ResultSet rs = stmt.executeQuery();
-			
-			while(rs.next())
-			{
-				catalogNumber = (catalogNumber == null) ? rs.getString("CN") : catalogNumber;
-				String quantity = rs.getString("quantity");
-				MonthDate requireDate = new MonthDate(Globals.parseDateFromSqlFormat(rs.getString("date")));
-				
-				QuantityPerDate quantityPerDate = new QuantityPerDate(requireDate, Double.parseDouble(quantity));
-				
-				if(productFormQuantityPerDate.containsKey(catalogNumber))
-					productFormQuantityPerDate.get(catalogNumber).add(quantityPerDate);
-				else
-				{
-					List<QuantityPerDate> quantityPerDates = new ArrayList<>();
-					quantityPerDates.add(quantityPerDate);
-					productFormQuantityPerDate.put(catalogNumber, quantityPerDates);
-				}
-				
-			}
-			
-			closeConnection();
-			return productFormQuantityPerDate;
-		
-		}
-		catch(Exception e)
-		{
-			e.printStackTrace();
-			closeConnection();
-			return new HashMap<>();
-		}
-	}
 	
-	public Map<String, List<QuantityPerDate>> getInitProductsFCQuantityPerDate(String catalogNumber) 
-	{
-		Map<String, List<QuantityPerDate>> productFormQuantityPerDate = new HashMap<>();
-		
-		try{
-			
-			connect();
-			stmt = (catalogNumber == null) ? c.prepareStatement("SELECT * FROM InitProductForecast") : c.prepareStatement("SELECT * FROM InitProductForecast where CN = ?");
-			if(catalogNumber != null)
-				stmt.setString(1, catalogNumber);
-			ResultSet rs = stmt.executeQuery();
-			
-			while(rs.next())
-			{
-				catalogNumber = (catalogNumber == null) ? rs.getString("CN") : catalogNumber;
-				String quantity = rs.getString("quantity");
-				MonthDate requireDate = new MonthDate(Globals.parseDateFromSqlFormat(rs.getString("requireDate")));
-				
-				QuantityPerDate quantityPerDate = new QuantityPerDate(requireDate, Double.parseDouble(quantity));
-				
-				if(productFormQuantityPerDate.containsKey(catalogNumber))
-					productFormQuantityPerDate.get(catalogNumber).add(quantityPerDate);
-				else
-				{
-					List<QuantityPerDate> quantityPerDates = new ArrayList<>();
-					quantityPerDates.add(quantityPerDate);
-					productFormQuantityPerDate.put(catalogNumber, quantityPerDates);
-				}
-				
-			}
-			
-			closeConnection();
-			return productFormQuantityPerDate;
-		
-		}
-		catch(Exception e)
-		{
-			e.printStackTrace();
-			closeConnection();
-			return new HashMap<>();
-		}
-	}
-	public Map<String, java.util.Date> getInitProductsFCDates(String catalogNumber) 
-	{
-		Map<String, java.util.Date> productFormQuantityPerDate = new HashMap<>();
-		
-		try{
-			
-			connect();
-			stmt = (catalogNumber == null) ? c.prepareStatement("SELECT * FROM InitProductForecast") : c.prepareStatement("SELECT * FROM InitProductForecast where CN = ?");
-			if(catalogNumber != null)
-				stmt.setString(1, catalogNumber);
-			ResultSet rs = stmt.executeQuery();
-			
-			while(rs.next())
-			{
-				catalogNumber = (catalogNumber == null) ? rs.getString("CN") : catalogNumber;
-				java.util.Date initDate = Globals.parseDateFromSqlFormat(rs.getString("initDate"));
-				
-				productFormQuantityPerDate.put(catalogNumber, initDate);
-			}
-			
-			closeConnection();
-			return productFormQuantityPerDate;
-		
-		}
-		catch(Exception e)
-		{
-			e.printStackTrace();
-			closeConnection();
-			return new HashMap<>();
-		}
-	}
 	public void cleanProductQuantityPerDate(String catalogNumber, FormType type) 
 	{
 		String tableName1 , tableName2;
@@ -1888,7 +1773,350 @@ public class DataBase {
 		}
 	}
 	
+	public List<WorkOrder> getAllWO(String catalogNumber) 
+	{
+		List<WorkOrder> workOrders = new ArrayList<>();
+		try{
+			connect();
+			stmt = (catalogNumber == null) ? c.prepareStatement("SELECT * FROM WorkOrder") : c.prepareStatement("SELECT * FROM WorkOrder where CN = ?");
+			if(catalogNumber != null)
+				stmt.setString(1, catalogNumber);
+			ResultSet rs = stmt.executeQuery();
+			
+			while(rs.next())
+			{
+				int id = rs.getInt("id");
+				String customer = rs.getString("customer");
+				String woNumber = rs.getString("WOId");
+				catalogNumber = (catalogNumber == null) ? rs.getString("CN") : catalogNumber;
+				String description = rs.getString("description");
+				String quantity = rs.getString("quantity");
+				java.util.Date orderDate = Globals.parseDateFromSqlFormat(rs.getString("date"));
+				
+				WorkOrder customerOrder = new WorkOrder(id, woNumber, catalogNumber, quantity, customer, orderDate, description);
+				workOrders.add(customerOrder);
+			}
+			
+			closeConnection();
+			return workOrders;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return new ArrayList<WorkOrder>();
+		}
+	}
 	
+	public List<CustomerOrder> getAllPO(String catalogNumber) 
+	{
+		List<CustomerOrder> customerOrders = new ArrayList<>();
+		try{
+			
+			connect();
+			stmt = (catalogNumber == null) ? c.prepareStatement("SELECT * FROM CustomerOrders") : c.prepareStatement("SELECT * FROM CustomerOrders where CN = ?");
+			if(catalogNumber != null)
+				stmt.setString(1, catalogNumber);
+			ResultSet rs = stmt.executeQuery();
+			
+			while(rs.next())
+			{
+				int id = rs.getInt("id");
+				String customer = rs.getString("customer");
+				String orderNumber = rs.getString("orderNumber");
+				String customerOrderNumber = rs.getString("customerOrderNumber");
+				catalogNumber = (catalogNumber == null) ? rs.getString("CN") : catalogNumber;
+				String description = rs.getString("description");
+				String quantity = rs.getString("quantity");
+				String price = rs.getString("price");
+				java.util.Date orderDate = Globals.parseDateFromSqlFormat(rs.getString("orderDate"));
+				java.util.Date guaranteedDate = Globals.parseDateFromSqlFormat(rs.getString("guaranteedDate"));
+				
+				CustomerOrder customerOrder = new CustomerOrder(id,customer, orderNumber, customerOrderNumber , catalogNumber, description, quantity, price, orderDate, guaranteedDate);
+				customerOrders.add(customerOrder);
+			}
+			
+			closeConnection();
+			return customerOrders;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return new ArrayList<CustomerOrder>();
+		}
+	}
 	
+	public List<Shipment> getAllShipments(String catalogNumber) 
+	{
+		List<Shipment> shipments = new ArrayList<>();
+		try{
+			
+			connect();
+			stmt = (catalogNumber == null) ? c.prepareStatement("SELECT * FROM Shipments") : c.prepareStatement("SELECT * FROM Shipments where CN = ?");
+			if(catalogNumber != null)
+				stmt.setString(1, catalogNumber);	
+			ResultSet rs = stmt.executeQuery();
+			
+			while(rs.next())
+			{
+				int id = rs.getInt("id");
+				String orderId = rs.getString("orderId");
+				String orderCustomerId = rs.getString("orderCustomerId");
+				String customer = rs.getString("customer");
+				catalogNumber = (catalogNumber == null) ? rs.getString("CN") : catalogNumber;
+				String description = rs.getString("description");
+				String quantity = rs.getString("quantity");
+				String shipmentDate = rs.getString("shipmentDate");
+				
+				Shipment shipment = new Shipment(id,customer, orderId, orderCustomerId , catalogNumber, quantity, Globals.parseDateFromSqlFormat(shipmentDate), description);
+				shipments.add(shipment);
+			}
+			
+			closeConnection();
+			return shipments;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return new ArrayList<Shipment>();
+		}
+		
+	}
 	
+	public Map<String, List<QuantityPerDate>> getAllProductsFormQuantityPerDate(FormType type , String catalogNumber)
+	{
+		Map<String, List<QuantityPerDate>> productFormQuantityPerDate = new HashMap<>();
+		String tableName;
+		
+		switch (type) 
+		{
+			case SHIPMENT:
+				tableName = "productShipments";
+				break;
+			case PO:
+				tableName = "productCustomerOrders";
+				break;
+			case WO:
+				tableName = "productWorkOrder";
+				break;
+			case FC:
+				tableName = "productForecast";
+				break;
+			default:
+				return new HashMap<>();
+		}
+		
+		try{
+			
+			connect();
+			stmt = (catalogNumber == null) ? c.prepareStatement("SELECT * FROM " + tableName) : c.prepareStatement("SELECT * FROM " + tableName + " where CN = ?");
+			if(catalogNumber != null)
+				stmt.setString(1, catalogNumber);	
+			ResultSet rs = stmt.executeQuery();
+			
+			while(rs.next())
+			{
+				catalogNumber = (catalogNumber == null) ? rs.getString("CN") : catalogNumber;
+				String quantity = rs.getString("quantity");
+				MonthDate requireDate = new MonthDate(Globals.parseDateFromSqlFormat(rs.getString("date")));
+				
+				QuantityPerDate quantityPerDate = new QuantityPerDate(requireDate, Double.parseDouble(quantity));
+				
+				if(productFormQuantityPerDate.containsKey(catalogNumber))
+					productFormQuantityPerDate.get(catalogNumber).add(quantityPerDate);
+				else
+				{
+					List<QuantityPerDate> quantityPerDates = new ArrayList<>();
+					quantityPerDates.add(quantityPerDate);
+					productFormQuantityPerDate.put(catalogNumber, quantityPerDates);
+				}
+				
+			}
+			
+			closeConnection();
+			return productFormQuantityPerDate;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return new HashMap<>();
+		}
+	}
+	
+	public Map<String, List<QuantityPerDate>> getAllProductsWOQuantityPerDate(String catalogNumber) 
+	{
+		return getAllProductsFormQuantityPerDate(FormType.WO , catalogNumber);
+	}
+	
+	public Map<String, List<QuantityPerDate>> getAllProductsPOQuantityPerDate(String catalogNumber) 
+	{
+		return getAllProductsFormQuantityPerDate(FormType.PO , catalogNumber);
+	}
+	
+	public Map<String, List<QuantityPerDate>> getAllProductsShipmentQuantityPerDate(String catalogNumber) 
+	{
+		return getAllProductsFormQuantityPerDate(FormType.SHIPMENT , catalogNumber);
+	}
+	
+	public Map<String, List<QuantityPerDate>> getAllProductsFCQuantityPerDate(String catalogNumber) 
+	{
+		return getAllProductsFormQuantityPerDate(FormType.FC , catalogNumber);
+	}
+	
+	public Map<String,List<QuantityPerDate>> getInitProductsFormQuantityPerDate(FormType type , String catalogNumber)
+	{
+		Map<String, List<QuantityPerDate>> productFormQuantityPerDate = new HashMap<>();
+		String tableName;
+		
+		switch (type) 
+		{
+			case SHIPMENT:
+				tableName = "InitProductShipments";
+				break;
+			case PO:
+				tableName = "InitProductCustomerOrders";
+				break;
+			case WO:
+				tableName = "InitProductWorkOrder";
+				break;
+			case FC:
+				tableName = "InitProductForecast";
+				break;
+			default:
+				return new HashMap<>();
+		}
+		
+		try{
+			
+			connect();
+			stmt = (catalogNumber == null) ? c.prepareStatement("SELECT * FROM " + tableName) : c.prepareStatement("SELECT * FROM " + tableName +" where CN = ?");
+			if(catalogNumber != null)
+				stmt.setString(1, catalogNumber);
+			ResultSet rs = stmt.executeQuery();
+			
+			while(rs.next())
+			{
+				catalogNumber = (catalogNumber == null) ? rs.getString("CN") : catalogNumber;
+				String quantity = rs.getString("quantity");
+				MonthDate requireDate = new MonthDate(Globals.parseDateFromSqlFormat(rs.getString("requireDate")));
+				
+				QuantityPerDate quantityPerDate = new QuantityPerDate(requireDate, Double.parseDouble(quantity));
+				
+				if(productFormQuantityPerDate.containsKey(catalogNumber))
+					productFormQuantityPerDate.get(catalogNumber).add(quantityPerDate);
+				else
+				{
+					List<QuantityPerDate> quantityPerDates = new ArrayList<>();
+					quantityPerDates.add(quantityPerDate);
+					productFormQuantityPerDate.put(catalogNumber, quantityPerDates);
+				}
+				
+			}
+			
+			closeConnection();
+			return productFormQuantityPerDate;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return new HashMap<>();
+		}
+	}
+	public Map<String, List<QuantityPerDate>> getInitProductsFCQuantityPerDate(String catalogNumber) 
+	{
+		return getInitProductsFormQuantityPerDate(FormType.FC , catalogNumber);
+	}
+	public Map<String, List<QuantityPerDate>> getInitProductsWOQuantityPerDate(String catalogNumber) 
+	{
+		return getInitProductsFormQuantityPerDate(FormType.WO , catalogNumber);
+	}
+	public Map<String, List<QuantityPerDate>> getInitProductsPOQuantityPerDate(String catalogNumber) 
+	{
+		return getInitProductsFormQuantityPerDate(FormType.PO , catalogNumber);
+	}
+	public Map<String, List<QuantityPerDate>> getInitProductsShipmentsQuantityPerDate(String catalogNumber) 
+	{
+		return getInitProductsFormQuantityPerDate(FormType.SHIPMENT , catalogNumber);
+	}
+	
+	public Map<String, java.util.Date> getInitProductsFormDates(FormType type , String catalogNumber)
+	{
+		Map<String, java.util.Date> productFormQuantityPerDate = new HashMap<>();
+		String tableName;
+		
+		switch (type) 
+		{
+			case SHIPMENT:
+				tableName = "InitProductShipments";
+				break;
+			case PO:
+				tableName = "InitProductCustomerOrders";
+				break;
+			case WO:
+				tableName = "InitProductWorkOrder";
+				break;
+			case FC:
+				tableName = "InitProductForecast";
+				break;
+			default:
+				return new HashMap<>();
+		}
+		
+		try{
+			
+			connect();
+			stmt = (catalogNumber == null) ? c.prepareStatement("SELECT * FROM " + tableName) : c.prepareStatement("SELECT * FROM " + tableName + " where CN = ?");
+			if(catalogNumber != null)
+				stmt.setString(1, catalogNumber);		
+			ResultSet rs = stmt.executeQuery();
+			
+			while(rs.next())
+			{
+				catalogNumber = (catalogNumber == null) ? rs.getString("CN") : catalogNumber;
+				java.util.Date initDate = Globals.parseDateFromSqlFormat(rs.getString("initDate"));
+				
+				productFormQuantityPerDate.put(catalogNumber, initDate);
+			}
+			
+			closeConnection();
+			return productFormQuantityPerDate;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return new HashMap<>();
+		}
+	}
+	
+	public Map<String, java.util.Date> getInitProductsPODates(String catalogNumber) 
+	{
+		return getInitProductsFormDates(FormType.PO , catalogNumber);
+	}
+
+	public Map<String, java.util.Date> getInitProductsWODates(String catalogNumber) 
+	{
+		return getInitProductsFormDates(FormType.WO , catalogNumber);
+	}
+
+	public Map<String, java.util.Date> getInitProductsShipmentsDates(String catalogNumber) 
+	{
+		return getInitProductsFormDates(FormType.SHIPMENT , catalogNumber);
+	}
+	
+	public Map<String, java.util.Date> getInitProductsFCDates(String catalogNumber) 
+	{
+		return getInitProductsFormDates(FormType.FC , catalogNumber);
+	}
+
 }

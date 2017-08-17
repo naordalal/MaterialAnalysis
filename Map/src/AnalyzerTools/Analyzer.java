@@ -100,12 +100,19 @@ public class Analyzer
 		db.cleanProductQuantityPerDate(catalogNumber , FormType.PO);
 		db.cleanProductQuantityPerDate(catalogNumber , FormType.SHIPMENT);
 		db.cleanProductQuantityPerDate(catalogNumber , FormType.FC);
+		
+		updateProductQuantities(db.getAllFC(catalogNumber), db.getAllProductsFCQuantityPerDate(catalogNumber),db.getInitProductsFCQuantityPerDate(catalogNumber),db.getInitProductsFCDates(catalogNumber) , FormType.FC);
+		updateProductQuantities(db.getAllWO(catalogNumber), db.getAllProductsWOQuantityPerDate(catalogNumber),db.getInitProductsWOQuantityPerDate(catalogNumber),db.getInitProductsWODates(catalogNumber) , FormType.FC);
+		updateProductQuantities(db.getAllPO(catalogNumber), db.getAllProductsPOQuantityPerDate(catalogNumber),db.getInitProductsPOQuantityPerDate(catalogNumber),db.getInitProductsPODates(catalogNumber) , FormType.FC);
+		updateProductQuantities(db.getAllShipments(catalogNumber), db.getAllProductsShipmentQuantityPerDate(catalogNumber),db.getInitProductsShipmentsQuantityPerDate(catalogNumber),db.getInitProductsShipmentsDates(catalogNumber) , FormType.FC);
+		
 	}
 	
 	public void updateProductQuantities(String catalogNumber)
 	{
 		updateProductQuantities(db.getAllFC(catalogNumber), db.getAllProductsFCQuantityPerDate(catalogNumber),db.getInitProductsFCQuantityPerDate(catalogNumber),db.getInitProductsFCDates(catalogNumber) , FormType.FC);
 	}
+	
 
 	private void updateProductQuantities(List<? extends Form> forms ,  Map<String, List<QuantityPerDate>> productsQuantityPerDate 
 			, Map<String , List<QuantityPerDate>> initProductsQuantityPerDate, Map<String , Date> productsInitDates ,  FormType type)
