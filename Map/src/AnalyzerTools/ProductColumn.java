@@ -1,5 +1,7 @@
 package AnalyzerTools;
 
+import mainPackage.Globals.FormType;
+
 public class ProductColumn 
 {
 	private String catalogNumber;
@@ -90,5 +92,91 @@ public class ProductColumn
 		this.customerOrders += productColumn.customerOrders;
 		this.supplied += productColumn.supplied;
 		this.openCustomerOrder += productColumn.openCustomerOrder;
+	}
+	
+	@Override
+	public String toString() 
+	{
+		String s = "";
+		s += "Forecast : " + this.forecast + "\n";
+		s += "Material Availability : " + this.materialAvailability + "\n";
+		s += "Work Order : " + this.workOrder + "\n";
+		s += "Work Order After Supplied : " + this.workOrderAfterSupplied + "\n";
+		s += "Customer Orders : " + this.customerOrders + "\n";
+		s += "Supplied : " + this.supplied + "\n";
+		s += "Open Customer Order : " + this.openCustomerOrder + "\n";
+		
+		return s;
+	}
+
+	public int getCategoriesCount() 
+	{
+		return 7;
+	}
+
+	public double getColumnValue(int index) 
+	{
+		switch (index) 
+		{
+			case 0:
+				return this.forecast;
+			case 1:
+				return this.materialAvailability;
+			case 2:
+				return this.workOrder;
+			case 3:
+				return this.workOrderAfterSupplied;
+			case 4:
+				return this.customerOrders;
+			case 5:
+				return this.supplied;
+			case 6:
+				return this.openCustomerOrder;
+	
+			default:
+				return 0;
+		}
+	}
+
+	public String getColumn(int index) 
+	{
+		switch (index) 
+		{
+			case 0:
+				return "Forecast";
+			case 1:
+				return "Material Availability";
+			case 2:
+				return "Work Order";
+			case 3:
+				return "Work Order After Supplied";
+			case 4:
+				return "Customer Orders";
+			case 5:
+				return "Supplied";
+			case 6:
+				return "Open Customer Order";
+	
+			default:
+				return "";
+		}
+	}
+
+	public FormType getFormType(String category) 
+	{		
+		switch (category) 
+		{
+			case "Forecast":
+				return FormType.FC;
+			case "Work Order":
+				return FormType.WO;
+			case "Customer Orders":
+				return FormType.PO;
+			case "Supplied":
+				return FormType.SHIPMENT;
+				
+			default:
+				return null;
+		}
 	}
 }

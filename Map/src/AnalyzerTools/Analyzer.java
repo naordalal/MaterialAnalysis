@@ -1,6 +1,7 @@
 package AnalyzerTools;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -8,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
+
+import javax.swing.JTable;
 
 import Forms.CustomerOrder;
 import Forms.Forecast;
@@ -21,8 +24,9 @@ import mainPackage.Pair;
 
 public class Analyzer 
 {
+	public static final int ConstantColumnsCount = 3;
 	private DataBase db;
-
+	
 	public Analyzer() 
 	{
 		new Globals();
@@ -37,9 +41,9 @@ public class Analyzer
 	
 	public void updateFC(int id , String customer , String catalogNumber , String quantity , String initDate , String requireDate , String description , String notes)
 	{
-		db.updateFC(id,customer, catalogNumber, quantity, initDate, requireDate, description , notes);
 		int remainder = Integer.parseInt(getForecast(id).getQuantity()) - Integer.parseInt(quantity);
-		if(remainder != 0)
+		boolean successUpdate = db.updateFC(id,customer, catalogNumber, quantity, initDate, requireDate, description , notes);
+		if(remainder != 0 && successUpdate)
 			updateProductQuantities(catalogNumber);
 	}
 	
@@ -198,7 +202,11 @@ public class Analyzer
 		Map<String,String> catalogNumbers = db.getAllCatalogNumbers();
 		
 		MonthDate maximumDate = db.getMaximumForecastDate();
-		List<MonthDate> monthToCalculate = createDates(new MonthDate(Globals.addMonths(Globals.getTodayDate() , -6)) , maximumDate);
+		MonthDate minimumDate = db.getMinimumInitDate();
+		if(maximumDate == null || maximumDate.before(minimumDate))
+			return map;
+		
+		List<MonthDate> monthToCalculate = createDates(minimumDate , maximumDate);
 		
 		for (String catalogNumber : catalogNumbers.keySet()) 
 		{
@@ -278,5 +286,84 @@ public class Analyzer
 		}
 
 		return dates;
+	}
+
+	public String[][] getRows(Map<MonthDate, Map<String, ProductColumn>> map) 
+	{
+		List<List<String>> rows = new ArrayList<>();
+		
+		List<MonthDate> months = map.keySet().stream().collect(Collectors.toList());
+		Collections.sort(months);
+		
+		for (MonthDate monthDate : months) 
+		{
+			Map<String , ProductColumn> productColumnPerProduct = map.get(monthDate);
+			List<String> products = productColumnPerProduct.keySet().stream().collect(Collectors.toList());
+			Collections.sort(products);
+			
+			for (int index = 0 ; index < products.size() ; index ++) 
+			{
+				String product = products.get(index);
+				ProductColumn productColumn = productColumnPerProduct.get(product);
+				if(months.indexOf(monthDate) == 0)
+				{
+					for(int i = 0 ; i < productColumn.getCategoriesCount() ; i++)
+					{
+						List<String> row = new ArrayList<>();
+						row.add(product);
+						row.add(productColumn.getDescription());
+						row.add(productColumn.getColumn(i));
+						rows.add(row);
+					}	
+				}
+				
+				for(int i = 0 ; i < productColumn.getCategoriesCount() ; i++)
+				{
+					List<String> row = rows.get(index * productColumn.getCategoriesCount() + i);
+					row.add(Double.toString(productColumn.getColumnValue(i)));
+				}
+			}
+			
+		}
+		
+		return rows.stream().map(row -> row.toArray(new String[0])).toArray(String[][]::new);
+	}
+
+	public String[] getColumns(Map<MonthDate, Map<String, ProductColumn>> map) 
+	{
+		List<String> columns = new ArrayList<>();
+		columns.add("Catalog Number");
+		columns.add("Description");
+		columns.add("Category");
+		List<MonthDate> months = map.keySet().stream().collect(Collectors.toList());
+		Collections.sort(months);
+		columns.addAll(months.stream().map(date -> date.shortString()).collect(Collectors.toList()));
+		
+		return columns.toArray(new String[0]);
+	}
+
+	public List<? extends Form> getFormsFromCell(Map<MonthDate, Map<String, ProductColumn>> map , String product, MonthDate date , String category) 
+	{
+		FormType type = map.get(date).get(product).getFormType(category);
+		if(type == null)
+			return null;
+		
+		switch (type) {
+		case PO:
+			return getAllCustomerOrdersOnMonth(product, date);
+		case WO:
+			return getAllWorkOrderOnMonth(product, date);
+		case SHIPMENT:
+			return getAllShipmentsOnMonth(product, date);
+		case FC:
+			return getAllForecastOnMonth(product, date);
+		default:
+			return null;
+		}
+	}
+
+	public String getProductOnRow(JTable table, int row) 
+	{
+		return (String) table.getValueAt(row, 0);
 	}
 }

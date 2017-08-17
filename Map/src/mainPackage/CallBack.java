@@ -2,5 +2,5 @@ package mainPackage;
 
 public interface CallBack<T> 
 {
-	public T execute();
+	public T execute(Object ... objects);
 }

@@ -1,8 +1,9 @@
 package Forms;
 
 import java.util.Date;
+import java.util.List;
 
-public class Form 
+public abstract class Form 
 {
 	private int id;
 	private String catalogNumber;
@@ -64,4 +65,14 @@ public class Form
 	{
 		this.id = id;
 	}
+	
+	public abstract String [] getColumns();
+
+	public abstract String[] getRow();
+	
+	public abstract boolean canEdit();
+
+	public abstract void updateValue(int column, String newValue) throws Exception;
+	
+	public abstract List<Integer> getInvalidEditableColumns();
 }

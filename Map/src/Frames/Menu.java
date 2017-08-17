@@ -30,6 +30,7 @@ import javax.swing.table.DefaultTableModel;
 import Senders.ActivitySender;
 import Senders.Sender;
 import mainPackage.Activity;
+import mainPackage.CallBack;
 import mainPackage.DataBase;
 import mainPackage.Globals;
 import mainPackage.MultiSelectionComboBox;
@@ -37,7 +38,6 @@ import mainPackage.SocialAuth;
 
 import java.awt.Color;
 import java.awt.Cursor;
-import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -139,10 +139,12 @@ public class Menu implements ActionListener , DocumentListener{
 	private JLabel followUpDirectoryPath;
 	private JLabel daysLabel;
 	private JTextField daysText;
+	private CallBack<Integer> callBack;
 	
 	
-	public Menu() 
+	public Menu(CallBack<Integer> callBack) 
 	{
+		this.callBack = callBack;
 		initialize();
 	}
 	
@@ -1647,7 +1649,7 @@ public class Menu implements ActionListener , DocumentListener{
 				return;
 			}
 			
-			 new UpdatePasswordFrame(nickNametext.getText() , globals , ()->{
+			 new UpdatePasswordFrame(nickNametext.getText() , globals , (objects)->{
 				String nickName = nickNametext.getText();
 				passwordField.setText("");
 				updateViews();
@@ -1712,7 +1714,8 @@ public class Menu implements ActionListener , DocumentListener{
 	}
 	
 	
-	private boolean isValidDate(String date) {
+	private boolean isValidDate(String date) 
+	{
 		SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
 		dateFormat.setLenient(false);
 		
@@ -1754,13 +1757,14 @@ public class Menu implements ActionListener , DocumentListener{
 	{
 		db.closeConnection();
 		this.frame.dispose();
-		System.exit(0);		
+		//System.exit(0);
+		this.callBack.execute();
 	}
 
 
-	public static void main(String[] args) 
+	/*public static void main(String[] args) 
 	{
-		EventQueue.invokeLater(new Runnable() 
+		/*EventQueue.invokeLater(new Runnable() 
 		{
 			public void run() 
 			{
@@ -1775,7 +1779,10 @@ public class Menu implements ActionListener , DocumentListener{
 				}
 			}
 		});
-	}
+		Analyzer analyzer = new Analyzer();
+		Map<MonthDate, Map<String, ProductColumn>> map = analyzer.calculateMap();
+		System.out.println(map);
+	}*/
 	
 	private void updateTemplateText()
 	{

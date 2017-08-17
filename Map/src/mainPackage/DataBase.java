@@ -14,6 +14,7 @@ import java.util.Map;
 
 import javax.swing.JOptionPane;
 
+import org.apache.commons.lang3.StringUtils;
 import org.sqlite.SQLiteConfig;
 
 import AnalyzerTools.MonthDate;
@@ -1321,7 +1322,7 @@ public class DataBase {
 
 	public MonthDate getMaximumForecastDate() 
 	{
-		MonthDate requireDate = null;
+		MonthDate requireDate = new MonthDate(Globals.getTodayDate());
 		
 		try{
 			
@@ -1330,7 +1331,42 @@ public class DataBase {
 			ResultSet rs = stmt.executeQuery();
 
 			if(rs.next())
-				requireDate = new MonthDate(Globals.parseDateFromSqlFormat(rs.getString("date")));
+			{
+				String date = rs.getString("date");
+				if(date != null && !date.trim().equals(""))
+					requireDate = new MonthDate(Globals.parseDateFromSqlFormat(date));
+			}
+			
+			closeConnection();
+			return requireDate;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return null;
+		}
+	}
+	
+	public MonthDate getMinimumInitDate() 
+	{
+		MonthDate requireDate = new MonthDate(Globals.getTodayDate());
+		
+		try{
+			
+			connect();
+			stmt =  c.prepareStatement("SELECT Min(date(initDate)) AS date FROM (SELECT initDate FROM InitProductCustomerOrders UNION "
+					+ "SELECT initDate FROM InitProductForecast UNION SELECT initDate FROM InitProductWorkOrder UNION SELECT initDate FROM InitProductShipments)");
+			ResultSet rs = stmt.executeQuery();
+
+			if(rs.next())
+			{
+				String date = rs.getString("date");
+				if(date != null && !date.trim().equals(""))
+					requireDate = new MonthDate(Globals.parseDateFromSqlFormat(date));
+			}
+				
 			
 			closeConnection();
 			return requireDate;
@@ -1483,8 +1519,16 @@ public class DataBase {
 			if(rs.next())
 			{
 				String fatherCatalogNumber = rs.getString("fatherCN");
-				String quantity = rs.getString("quantity");
-				father = new Pair<String,Integer>(fatherCatalogNumber, Integer.parseInt(quantity));
+				if(fatherCatalogNumber == null || fatherCatalogNumber.trim().equals(""))
+					father = new Pair<String,Integer>(null, null);
+				else
+				{
+					String quantity = rs.getString("quantity");
+					if(StringUtils.isNumeric(quantity))
+						father = new Pair<String,Integer>(fatherCatalogNumber, Integer.parseInt(quantity));
+					else
+						father = new Pair<String,Integer>(fatherCatalogNumber, 0);
+				}
 			}
 			else
 				father = new Pair<String,Integer>(null, null);
@@ -1591,7 +1635,7 @@ public class DataBase {
 			
 			connect();
 			stmt = c.prepareStatement("SELECT * FROM Shipments where CN = ? AND date(shipmentDate) >= date(?) AND date(shipmentDate) < date(?) "
-					+ "AND date(shipmentDate) >= (SELECT COALESCE(MAX(date(initDate)), date('0001-01-01')) FROM InitProductShipments) orderby shipmentDate");
+					+ "AND date(shipmentDate) >= (SELECT COALESCE(MAX(date(initDate)), date('0001-01-01')) FROM InitProductShipments) order by shipmentDate");
 			stmt.setString(1, catalogNumber);
 			stmt.setString(2, Globals.dateToSqlFormatString(date));
 			stmt.setString(3, Globals.dateToSqlFormatString(Globals.addMonths(date, 1)));
@@ -1632,7 +1676,7 @@ public class DataBase {
 			
 			connect();
 			stmt = c.prepareStatement("SELECT * FROM CustomerOrders where CN = ? AND date(guaranteedDate) >= date(?) AND date(guaranteedDate) < date(?) "
-					+ "AND date(orderDate) >= (SELECT COALESCE(MAX(date(initDate)), date('0001-01-01')) FROM InitProductCustomerOrders) orderby guaranteedDate");
+					+ "AND date(orderDate) >= (SELECT COALESCE(MAX(date(initDate)), date('0001-01-01')) FROM InitProductCustomerOrders) order by guaranteedDate");
 			
 			stmt.setString(1, catalogNumber);
 			stmt.setString(2, Globals.dateToSqlFormatString(date));
@@ -1674,7 +1718,7 @@ public class DataBase {
 			
 			connect();
 			stmt = c.prepareStatement("SELECT * FROM WorkOrder where CN = ? AND date(date) >= date(?) AND date(date) < date(?) "
-					+ "AND date(date) >= (SELECT COALESCE(MAX(date(initDate)), date('0001-01-01')) FROM InitProductWorkOrder) orderby date");
+					+ "AND date(date) >= (SELECT COALESCE(MAX(date(initDate)), date('0001-01-01')) FROM InitProductWorkOrder) order by date");
 			
 			stmt.setString(1, catalogNumber);
 			stmt.setString(2, Globals.dateToSqlFormatString(date));
@@ -1713,7 +1757,7 @@ public class DataBase {
 			
 			connect();
 			stmt = c.prepareStatement("SELECT * FROM Forecast where CN = ? AND date(requireDate) >= date(?) AND date(requireDate) < date(?) "
-					+ "AND date(initDate) >= (SELECT COALESCE(MAX(date(initDate)), date('0001-01-01')) FROM InitProductForecast) orderby requireDate");
+					+ "AND date(initDate) >= (SELECT COALESCE(MAX(date(initDate)), date('0001-01-01')) FROM InitProductForecast) order by requireDate");
 			
 			stmt.setString(1, catalogNumber);
 			stmt.setString(2, Globals.dateToSqlFormatString(date));
@@ -1762,7 +1806,7 @@ public class DataBase {
 				if(rs.next())
 				{
 					String alias = rs.getString("alias");
-					if(alias == null)
+					if(alias == null || alias.trim().equals(""))
 						done = true;
 					else
 						descendantCatalogNumber = alias;
