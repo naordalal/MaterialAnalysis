@@ -56,14 +56,13 @@ public class WorkOrder extends Form
 	@Override
 	public String[] getColumns() 
 	{
-		String [] columns = new String[7];
-		columns[0] = "Id";
-		columns[1] = "Work Order Number";
-		columns[2] = "Customer";
-		columns[3] = "Catalog Number";
-		columns[4] = "Description";
-		columns[5] = "Quantity";
-		columns[6] = "Date";
+		String [] columns = new String[6];
+		columns[0] = "Work Order Number";
+		columns[1] = "Customer";
+		columns[2] = "Catalog Number";
+		columns[3] = "Description";
+		columns[4] = "Quantity";
+		columns[5] = "Date";
 		
 		return columns;
 	}
@@ -71,14 +70,13 @@ public class WorkOrder extends Form
 	@Override
 	public String[] getRow() 
 	{
-		String [] row = new String[7];
-		row[0] = Integer.toString(super.getId());
-		row[1] = this.woNumber;
-		row[2] = this.customer;
-		row[3] = super.getCatalogNumber();
-		row[4] = this.description;
-		row[5] = super.getQuantity();
-		row[6] = Globals.dateWithoutHourToString(super.getRequestDate());
+		String [] row = new String[6];
+		row[0] = this.woNumber;
+		row[1] = this.customer;
+		row[2] = super.getCatalogNumber();
+		row[3] = this.description;
+		row[4] = super.getQuantity();
+		row[5] = Globals.dateWithoutHourToString(super.getRequestDate());
 		
 		return row;
 	}
@@ -98,25 +96,23 @@ public class WorkOrder extends Form
 		switch(column)
 		{
 			case 0:
-				break;
-			case 1:
 				this.woNumber = newValue;
 				break;
-			case 2:
+			case 1:
 				this.customer = newValue;
-			case 3:
+			case 2:
 				super.setCatalogNumber(newValue);
 				break;
-			case 4:
+			case 3:
 				this.description = newValue;
 				break;
-			case 5:
+			case 4:
 				if(StringUtils.isNumeric(newValue))
 					super.setQuantity(newValue);
 				else
 					throw new Exception("Quantity have to be a numeric value");
 				break;
-			case 6:
+			case 5:
 				Date requestDate;
 				if((requestDate = Globals.isValidDate(newValue)) != null)
 					super.setRequstDate(requestDate);
@@ -134,7 +130,6 @@ public class WorkOrder extends Form
 	public List<Integer> getInvalidEditableColumns() 
 	{
 		List<Integer> columns = new ArrayList<>();
-		columns.add(0);
 		return columns;
 	}
 

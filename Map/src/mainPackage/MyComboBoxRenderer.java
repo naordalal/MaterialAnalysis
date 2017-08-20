@@ -7,12 +7,12 @@ import javax.swing.Icon;
 import javax.swing.JList;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
 
-public class MyRenderer extends BasicComboBoxRenderer 
+public class MyComboBoxRenderer extends BasicComboBoxRenderer 
 {
 
 	 SelectionManager selectionManager;
 	  
-    public MyRenderer(SelectionManager sm) {
+    public MyComboBoxRenderer(SelectionManager sm) {
         selectionManager = sm;
     }
   

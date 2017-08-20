@@ -5,15 +5,13 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
@@ -32,12 +30,18 @@ public class MainMapFrame implements ActionListener
 	private JFrame frame;
 	private JPanel panel;
 	private JButton mapButton;
+	private JButton addForecastButton;
 	private Analyzer analyzer;
+	private String userName;
+	private String password;
+	private JLabel copyRight;
 
-	public MainMapFrame(CallBack<Integer> callBack) 
+	public MainMapFrame(String userName, String password, CallBack<Integer> callBack) 
 	{
 		this.callBack = callBack;
 		analyzer = new Analyzer();
+		this.userName = userName;
+		this.password = password;
 		initialize();
 	}
 
@@ -49,7 +53,7 @@ public class MainMapFrame implements ActionListener
 		frame.setVisible(true);
 		frame.setLayout(null);
 		frame.getRootPane().setFocusable(true);
-		frame.setBounds(300, 100, 500, 500);
+		frame.setBounds(400, 100, 500, 500);
 		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		frame.addWindowListener(new WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) 
@@ -84,6 +88,16 @@ public class MainMapFrame implements ActionListener
 		mapButton.addActionListener(this);
 		panel.add(mapButton);
 		
+		addForecastButton = new JButton("<html><b>Add Forecast</b></html>");
+		addForecastButton.setLocation(150 , 30);
+		addForecastButton.setSize(100, 60);
+		addForecastButton.addActionListener(this);
+		panel.add(addForecastButton);
+		
+		copyRight = new JLabel("<html><b>\u00a9 Naor Dalal</b></html>");
+		copyRight.setLocation(30 , 430);
+		copyRight.setSize(100,30);
+		panel.add(copyRight);
 	}
 
 	@Override
@@ -102,6 +116,10 @@ public class MainMapFrame implements ActionListener
 			
 			mapFrame.show();
 
+		}
+		else if(event.getSource() == addForecastButton)
+		{
+			new AddForecastFrame();
 		}
 		
 	}
@@ -185,6 +203,7 @@ public class MainMapFrame implements ActionListener
 						{
 							updateForm.updateValue(column , newValue);
 							mapFrame.refresh(analyzer.getRows(analyzer.calculateMap()));
+							reportViewFrame.setColumnWidth();
 							return null;
 						} catch (Exception e) 
 						{

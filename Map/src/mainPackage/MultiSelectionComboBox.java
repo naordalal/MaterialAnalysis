@@ -22,7 +22,7 @@ public class MultiSelectionComboBox<T> extends JComboBox<T>
 
         manager = new SelectionManager();
 
-        BasicComboBoxRenderer renderer = new MyRenderer(manager);
+        BasicComboBoxRenderer renderer = new MyComboBoxRenderer(manager);
         this.addActionListener(manager);
         this.setRenderer(renderer);      
     }

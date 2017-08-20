@@ -1,12 +1,6 @@
 package MainPackage;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class Main {
 
@@ -24,7 +18,6 @@ public class Main {
 			e.printStackTrace();
 		}*/
 		 
-		 //TODO
 		 Analyzer analyzer = new Analyzer();
 		 try {
 			analyzer.analyze();

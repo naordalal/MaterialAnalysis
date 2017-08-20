@@ -81,17 +81,16 @@ public class CustomerOrder extends Form{
 	@Override
 	public String[] getColumns() 
 	{
-		String [] columns = new String[10];
-		columns[0] = "Id";
-		columns[1] = "Customer";
-		columns[2] = "Order Number";
-		columns[3] = "Customer Order Number";
-		columns[4] = "Catalog Number";
-		columns[5] = "Description";
-		columns[6] = "Price";
-		columns[7] = "Quantity";
-		columns[8] = "Order Date";
-		columns[9] = "Guaranteed Date";
+		String [] columns = new String[9];
+		columns[0] = "Customer";
+		columns[1] = "Order Number";
+		columns[2] = "Customer Order Number";
+		columns[3] = "Catalog Number";
+		columns[4] = "Description";
+		columns[5] = "Price";
+		columns[6] = "Quantity";
+		columns[7] = "Order Date";
+		columns[8] = "Guaranteed Date";
 		
 		return columns;
 	}
@@ -99,17 +98,16 @@ public class CustomerOrder extends Form{
 	@Override
 	public String[] getRow() 
 	{
-		String [] row = new String[10];
-		row[0] = Integer.toString(super.getId());
-		row[1] = this.customer;
-		row[2] = this.orderNumber;
-		row[3] = this.customerOrderNumber;
-		row[4] = super.getCatalogNumber();
-		row[5] = this.description;
-		row[6] = this.price;
-		row[7] = super.getQuantity();
-		row[8] = Globals.dateWithoutHourToString(super.getCreateDate());
-		row[9] = Globals.dateWithoutHourToString(super.getRequestDate());
+		String [] row = new String[9];
+		row[0] = this.customer;
+		row[1] = this.orderNumber;
+		row[2] = this.customerOrderNumber;
+		row[3] = super.getCatalogNumber();
+		row[4] = this.description;
+		row[5] = this.price;
+		row[6] = super.getQuantity();
+		row[7] = Globals.dateWithoutHourToString(super.getCreateDate());
+		row[8] = Globals.dateWithoutHourToString(super.getRequestDate());
 		
 		return row;
 	}
@@ -129,38 +127,36 @@ public class CustomerOrder extends Form{
 		switch(column)
 		{
 			case 0:
-				break;
-			case 1:
 				this.customer = newValue;
-			case 2:
+			case 1:
 				this.orderNumber = newValue;
 				break;
-			case 3:
+			case 2:
 				this.customerOrderNumber = newValue;
 				break;
-			case 4:
+			case 3:
 				super.setCatalogNumber(newValue);
 				break;
-			case 5:
+			case 4:
 				this.description = newValue;
 				break;
-			case 6:
+			case 5:
 				this.price = newValue;
 				break;
-			case 7:
+			case 6:
 				if(StringUtils.isNumeric(newValue))
 					super.setQuantity(newValue);
 				else
 					throw new Exception("Quantity have to be a numeric value");
 				break;
-			case 8:
+			case 7:
 				Date createDate;
 				if((createDate = Globals.isValidDate(newValue)) != null)
 					super.setCreateDate(createDate);
 				else
 					throw new Exception("Create date have to be a date format");
 				break;
-			case 9:
+			case 8:
 				Date requestDate;
 				if((requestDate = Globals.isValidDate(newValue)) != null)
 					super.setRequstDate(requestDate);
@@ -178,7 +174,6 @@ public class CustomerOrder extends Form{
 	public List<Integer> getInvalidEditableColumns() 
 	{
 		List<Integer> columns = new ArrayList<>();
-		columns.add(0);
 		return columns;
 	}
 

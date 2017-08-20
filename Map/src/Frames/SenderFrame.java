@@ -176,7 +176,7 @@ public class SenderFrame extends MouseAdapter implements ActionListener{
 		subjectLabel.setVisible(!expediteDate);
 		panel.add(subjectLabel);
 		
-		String[] bodyAndSubject = Menu.db.getSubjectAndBody(datesId);
+		String[] bodyAndSubject = FollowUpAndExpediteMenu.db.getSubjectAndBody(datesId);
 		
 		subjectText = new JTextField(bodyAndSubject[0]);
 		subjectText.setLocation(100 ,  100);
@@ -192,7 +192,7 @@ public class SenderFrame extends MouseAdapter implements ActionListener{
 		bodyLabel.setVisible(!expediteDate);
 		panel.add(bodyLabel);
 		
-		String signature = Menu.db.getSignature(nickName);
+		String signature = FollowUpAndExpediteMenu.db.getSignature(nickName);
 		String body = bodyAndSubject[1];
 		
 		bodyText = new JTextArea(body+"\n\n"+signature);

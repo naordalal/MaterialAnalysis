@@ -35,6 +35,9 @@ import javax.swing.table.TableColumn;
 
 import mainPackage.CallBack;
 import mainPackage.Globals;
+import mainPackage.MyComboBoxRenderer;
+import mainPackage.MyTableRenderer;
+import mainPackage.SelectionManager;
 
 public class ReportViewFrame 
 {
@@ -51,6 +54,7 @@ public class ReportViewFrame
 	private CallBack<Object> rightClickAction;
 	private boolean canEdit;
 	private List<Integer> invalidEditableColumns;
+	private JLabel copyRight;
 
 	public ReportViewFrame(String [] columns , String [][] content , boolean canEdit , List<Integer> invalidEditableColumns) 
 	{
@@ -111,9 +115,10 @@ public class ReportViewFrame
 		table.setShowGrid(true);
 		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		
+		
 		DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
 		centerRenderer.setHorizontalAlignment(JLabel.CENTER);
-		setCellRenderer(centerRenderer);
+		setCellRenderer(new MyTableRenderer());
 		//table.setFont(new Font("Tahoma", Font.PLAIN, 16));
 		int lengthOfColumns = setColumnWidth(); 
 		table.getTableHeader().setReorderingAllowed(false);
@@ -121,7 +126,6 @@ public class ReportViewFrame
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		
 		DefaultTableCellRenderer headerRenderer = new DefaultTableCellRenderer();
-		headerRenderer.setBorder(UIManager.getBorder("TableHeader.cellBorder"));
 		headerRenderer.setHorizontalAlignment(JLabel.CENTER);
 		setHeaderRenderer(headerRenderer);
 		
@@ -164,7 +168,12 @@ public class ReportViewFrame
 		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
 		panel.add(scrollPane);
 		
-		new TableCellListener(table, valueCellChangeAction, doubleLeftClickAction, rightClickAction);		
+		new TableCellListener(table, valueCellChangeAction, doubleLeftClickAction, rightClickAction);
+
+		copyRight = new JLabel("<html><b>\u00a9 Naor Dalal</b></html>");
+		copyRight.setLocation(30 , 710);
+		copyRight.setSize(100,30);
+		panel.add(copyRight);
 	}
 
 	private int getRowHeight(int row) 
@@ -218,7 +227,7 @@ public class ReportViewFrame
 		table.getModel().setValueAt(newValue, row, column);
 	}
 	
-	private int setColumnWidth() 
+	public int setColumnWidth() 
     {
 		int width = 0;
         adjustJTableRowSizes(table);

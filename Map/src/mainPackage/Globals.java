@@ -4,6 +4,12 @@ import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.URL;
 import java.security.Key;
 import java.text.DateFormat;
@@ -12,6 +18,13 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.prefs.Preferences;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -32,7 +45,7 @@ import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.xmlbeans.impl.util.Base64;
 
-import Frames.Menu;
+import Frames.FollowUpAndExpediteMenu;
 
 public class Globals {
 
@@ -60,27 +73,27 @@ public class Globals {
 	public String ShortagesItemsPath = "Shortages Items.xlsx";
 	public static String usesPath = "Activity.xlsx";
 	
-	private URL nextPath = Menu.class.getResource("/next.png");
-	private URL clickNextPath = Menu.class.getResource("/clickNext.png");
-	private URL updatePath = Menu.class.getResource("/update.png");
-	private URL clickUpdatePath = Menu.class.getResource("/clickUpdate.png");
-	private URL attachPath = Menu.class.getResource("/attach.png");
-	private URL clickAttachPath = Menu.class.getResource("/clickAttach.png");
-	private URL addPath = Menu.class.getResource("/add.png");
-	private URL clickAddPath = Menu.class.getResource("/clickAdd.png");
-	private URL deletePath = Menu.class.getResource("/delete.png");
-	private URL clickdeletePath = Menu.class.getResource("/clickDelete.png");
-	private URL okPath = Menu.class.getResource("/ok.png");
-	private URL clickOkPath = Menu.class.getResource("/clickOk.png");
-	private URL sendPath = Menu.class.getResource("/send.png");
-	private URL clickSendPath = Menu.class.getResource("/clickSend.png");
-	private URL frameIconPath = Menu.class.getResource("/frameIcon.png");
-	private URL viewIconPath = Menu.class.getResource("/view.png");
-	private URL clickViewIconPath = Menu.class.getResource("/clickView.png");
-	private URL updatePasswordIconPath = Menu.class.getResource("/updatePass.png");
-	private URL clickUpdatePasswordIconPath= Menu.class.getResource("/clickUpdatePass.png");
-	private URL directoryIconPath= Menu.class.getResource("/directory.png");
-	private URL clickDirectoryIconPath= Menu.class.getResource("/clickDirectory.png");
+	private URL nextPath = FollowUpAndExpediteMenu.class.getResource("/next.png");
+	private URL clickNextPath = FollowUpAndExpediteMenu.class.getResource("/clickNext.png");
+	private URL updatePath = FollowUpAndExpediteMenu.class.getResource("/update.png");
+	private URL clickUpdatePath = FollowUpAndExpediteMenu.class.getResource("/clickUpdate.png");
+	private URL attachPath = FollowUpAndExpediteMenu.class.getResource("/attach.png");
+	private URL clickAttachPath = FollowUpAndExpediteMenu.class.getResource("/clickAttach.png");
+	private URL addPath = FollowUpAndExpediteMenu.class.getResource("/add.png");
+	private URL clickAddPath = FollowUpAndExpediteMenu.class.getResource("/clickAdd.png");
+	private URL deletePath = FollowUpAndExpediteMenu.class.getResource("/delete.png");
+	private URL clickdeletePath = FollowUpAndExpediteMenu.class.getResource("/clickDelete.png");
+	private URL okPath = FollowUpAndExpediteMenu.class.getResource("/ok.png");
+	private URL clickOkPath = FollowUpAndExpediteMenu.class.getResource("/clickOk.png");
+	private URL sendPath = FollowUpAndExpediteMenu.class.getResource("/send.png");
+	private URL clickSendPath = FollowUpAndExpediteMenu.class.getResource("/clickSend.png");
+	private URL frameIconPath = FollowUpAndExpediteMenu.class.getResource("/frameIcon.png");
+	private URL viewIconPath = FollowUpAndExpediteMenu.class.getResource("/view.png");
+	private URL clickViewIconPath = FollowUpAndExpediteMenu.class.getResource("/clickView.png");
+	private URL updatePasswordIconPath = FollowUpAndExpediteMenu.class.getResource("/updatePass.png");
+	private URL clickUpdatePasswordIconPath= FollowUpAndExpediteMenu.class.getResource("/clickUpdatePass.png");
+	private URL directoryIconPath= FollowUpAndExpediteMenu.class.getResource("/directory.png");
+	private URL clickDirectoryIconPath= FollowUpAndExpediteMenu.class.getResource("/clickDirectory.png");
 	
 	
 	
@@ -124,10 +137,6 @@ public class Globals {
 	public String noDate = "11/11/19";
 	public String frozenDate = "12/12/19";
 
-	
-
-	
-	
 	public void initTextComponent(JTextComponent text) 
 	{
 		UndoManager undoManager = new UndoManager();

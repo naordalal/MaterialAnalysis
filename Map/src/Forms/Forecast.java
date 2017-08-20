@@ -59,11 +59,11 @@ public class Forecast extends Form
 	public String[] getColumns() 
 	{
 		String [] columns = new String[7];
-		columns[0] = "Id";
-		columns[1] = "Customer";
-		columns[2] = "Catalog Number";
-		columns[3] = "Description";
-		columns[4] = "Quantity";
+		columns[0] = "Customer";
+		columns[1] = "Catalog Number";
+		columns[2] = "Description";
+		columns[3] = "Quantity";
+		columns[4] = "Init Date";
 		columns[5] = "Require Date";
 		columns[6] = "Notes";
 		
@@ -74,11 +74,11 @@ public class Forecast extends Form
 	public String[] getRow() 
 	{
 		String [] row = new String[7];
-		row[0] = Integer.toString(super.getId());
-		row[1] = this.customer;
-		row[2] = super.getCatalogNumber();
-		row[3] = this.description;
-		row[4] = super.getQuantity();
+		row[0] = this.customer;
+		row[1] = super.getCatalogNumber();
+		row[2] = this.description;
+		row[3] = super.getQuantity();
+		row[4] = Globals.dateWithoutHourToString(super.getCreateDate());
 		row[5] = Globals.dateWithoutHourToString(super.getRequestDate());
 		row[6] = this.notes;
 		
@@ -100,16 +100,14 @@ public class Forecast extends Form
 		switch(column)
 		{
 			case 0:
-				break;
-			case 1:
 				this.customer = newValue;
-			case 2:
+			case 1:
 				super.setCatalogNumber(newValue);
 				break;
-			case 3:
+			case 2:
 				this.description = newValue;
 				break;
-			case 4:
+			case 3:
 				if(StringUtils.isNumeric(newValue))
 					super.setQuantity(newValue);
 				else
@@ -140,7 +138,7 @@ public class Forecast extends Form
 	public List<Integer> getInvalidEditableColumns() 
 	{
 		List<Integer> columns = new ArrayList<>();
-		columns.add(0);
+		columns.add(4);
 		return columns;
 	}
 

@@ -66,15 +66,14 @@ public class Shipment extends Form
 	@Override
 	public String[] getColumns() 
 	{
-		String [] columns = new String[8];
-		columns[0] = "Id";
-		columns[1] = "Customer";
-		columns[2] = "Order Number";
-		columns[3] = "Customer Order Number";
-		columns[4] = "Catalog Number";
-		columns[5] = "Description";
-		columns[6] = "Quantity";
-		columns[7] = "Shipment Date";
+		String [] columns = new String[7];
+		columns[0] = "Customer";
+		columns[1] = "Order Number";
+		columns[2] = "Customer Order Number";
+		columns[3] = "Catalog Number";
+		columns[4] = "Description";
+		columns[5] = "Quantity";
+		columns[6] = "Shipment Date";
 		
 		return columns;
 	}
@@ -82,15 +81,14 @@ public class Shipment extends Form
 	@Override
 	public String[] getRow() 
 	{
-		String [] row = new String[8];
-		row[0] = Integer.toString(super.getId());
-		row[1] = this.customer;
-		row[2] = this.orderId;
-		row[3] = this.orderCustomerId;
-		row[4] = super.getCatalogNumber();
-		row[5] = this.description;
-		row[6] = super.getQuantity();
-		row[7] = Globals.dateWithoutHourToString(super.getRequestDate());
+		String [] row = new String[7];
+		row[0] = this.customer;
+		row[1] = this.orderId;
+		row[2] = this.orderCustomerId;
+		row[3] = super.getCatalogNumber();
+		row[4] = this.description;
+		row[5] = super.getQuantity();
+		row[6] = Globals.dateWithoutHourToString(super.getRequestDate());
 		
 		return row;
 	}
@@ -110,28 +108,26 @@ public class Shipment extends Form
 		switch(column)
 		{
 			case 0:
-				break;
-			case 1:
 				this.customer = newValue;
-			case 2:
+			case 1:
 				this.orderId = newValue;
 				break;
-			case 3:
+			case 2:
 				this.orderCustomerId = newValue;
 				break;
-			case 4:
+			case 3:
 				super.setCatalogNumber(newValue);
 				break;
-			case 5:
+			case 4:
 				this.description = newValue;
 				break;
-			case 6:
+			case 5:
 				if(StringUtils.isNumeric(newValue))
 					super.setQuantity(newValue);
 				else
 					throw new Exception("Quantity have to be a numeric value");
 				break;
-			case 7:
+			case 6:
 				Date requestDate;
 				if((requestDate = Globals.isValidDate(newValue)) != null)
 					super.setRequstDate(requestDate);
@@ -149,7 +145,6 @@ public class Shipment extends Form
 	public List<Integer> getInvalidEditableColumns() 
 	{
 		List<Integer> columns = new ArrayList<>();
-		columns.add(0);
 		return columns;
 	}
 }

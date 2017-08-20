@@ -12,21 +12,12 @@ import javax.swing.JLabel;
 
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JPasswordField;
 import javax.swing.JRadioButton;
-import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
-import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
-import javax.swing.UIManager;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
-
 import Senders.ActivitySender;
 import Senders.Sender;
 import mainPackage.Activity;
@@ -57,11 +48,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 
-public class Menu implements ActionListener , DocumentListener{
+public class FollowUpAndExpediteMenu implements ActionListener{
 
-	private JLabel nickNameLabel;
 	private JLabel suppliersFileLabel;
-	private JTextField nickNametext;
 	private JLabel filePath;
 	private JFileChooser suppliersFileChooser;
 	private JButton suplierFileButton;
@@ -79,10 +68,6 @@ public class Menu implements ActionListener , DocumentListener{
 	private JRadioButton beyondRequestDate;
 	private JTextField dateLimited;
 	private JLabel untilDateLabel;
-	private JLabel passwordLabel;
-	private JPasswordField passwordField;
-	private JButton permissionsButton;
-	private JLabel permissionsLabel;
 	private File supplierEmailsFile = null;
 	private JButton addBodyButton;
 	private JButton deleteBodyButton;
@@ -105,17 +90,12 @@ public class Menu implements ActionListener , DocumentListener{
 	private JTextField ccEmailtext;
 	private JButton okButton;
 	private JLabel ccEmailLabel;
-	private JTable usersTable;
-	private JScrollPane scrollPane;
-	private JLabel viewUsersLabel;
-	private JButton viewUsersButton;
 	private JComboBox<String> expediteDateComboBox;
 	private JButton addDateButton;
 	private JButton deleteDateButton;
 	private JLabel dateLabel;
 	private JTextField expediteDateText;
 	private JButton confirmDateButton;
-	private int clickedTimes;
 	private String directoryPath;
 	private JRadioButton usesRadioButton;
 	private JLabel fromLabel;
@@ -130,7 +110,6 @@ public class Menu implements ActionListener , DocumentListener{
 	private JLabel projectNameLabel;
 	private JTextField projectNameText;
 	private JButton confirmProjectNameButton;
-	private JButton updatePassword;
 	private JRadioButton mrpRadioButton;
 	private JRadioButton mrpSimRadioButton;
 	private JLabel bomsQuantityLabel;
@@ -140,28 +119,36 @@ public class Menu implements ActionListener , DocumentListener{
 	private JLabel daysLabel;
 	private JTextField daysText;
 	private CallBack<Integer> callBack;
+	private String userName;
+	private String password;
+	private JLabel followUpDirectoryLabel;
 	
 	
-	public Menu(CallBack<Integer> callBack) 
+	public FollowUpAndExpediteMenu(String userName, String password, CallBack<Integer> callBack) 
 	{
 		this.callBack = callBack;
+		this.userName = userName;
+		this.password = password;
 		initialize();
 	}
 	
 	
-	private void initialize() {
+	private void initialize() 
+	{
 		
 		directoryPath = null;
-		clickedTimes = 0;
 		db = new DataBase();
 		
 		globals = new Globals();
+
+		boolean adminPermission = db.checkAddOrDeletePermission(userName , password);
+		boolean purchasingPermission = db.checkPurchasingPermission(userName , password);
 		
 		frame = new JFrame("Gathering material analysis system");
 		frame.setVisible(true);
 		frame.setLayout(null);
 		frame.getRootPane().setFocusable(true);
-		frame.setBounds(300, 100, 900, 780);
+		frame.setBounds(300, 50, 900, 780);
 		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		frame.addWindowListener(new WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) 
@@ -192,46 +179,6 @@ public class Menu implements ActionListener , DocumentListener{
 		panel.setLayout(null);
 		frame.add(panel);
 		
-		nickNameLabel = new JLabel("<html><u>User Name:</u></html>");
-		nickNameLabel.setLocation(30,30);
-		nickNameLabel.setSize(100,100);
-		panel.add(nickNameLabel);
-		
-		
-		suppliersFileLabel = new JLabel("<html><u>Attach suppliers Email file:</u></html>");
-		suppliersFileLabel.setLocation(30,120);
-		suppliersFileLabel.setSize(150,100);
-		panel.add(suppliersFileLabel);
-		
-		nickNametext = new JTextField();
-		nickNametext.setLocation(130, 70);
-		nickNametext.setSize(150, 20);
-		nickNametext.getDocument().addDocumentListener(this);
-		panel.add(nickNametext);
-		nickNametext.requestFocusInWindow();
-		
-		passwordLabel = new JLabel("<html><u>Password:</u></html>");
-		passwordLabel.setLocation(330, 30);
-		passwordLabel.setSize(90, 100);
-		panel.add(passwordLabel);
-		
-		passwordField = new JPasswordField();
-		passwordField.setLocation(420, 70);
-		passwordField.setSize(150, 20);
-		passwordField.getDocument().addDocumentListener(this);
-		panel.add(passwordField);
-		
-		updatePassword = new JButton();
-		updatePassword.setLocation(330, 100);
-		updatePassword.setSize(50 , 50);
-		updatePassword.addActionListener(this);
-		updatePassword.setIcon(globals.updatePasswordIcon);  
-		updatePassword.setFocusable(false);
-		updatePassword.setContentAreaFilled(false);
-		updatePassword.setPressedIcon(globals.clickUpdatePasswordIcon);
-		updatePassword.setToolTipText("update password");
-		panel.add(updatePassword);
-		
 		JLabel cc = new JLabel("CC:");
 		cc.setLocation(610, 70);
 		cc.setSize(30,20);
@@ -242,6 +189,21 @@ public class Menu implements ActionListener , DocumentListener{
 		emailCC.setLocation(650, 70);
 		emailCC.setSize(100,20);
 		panel.add(emailCC);
+		
+		if(adminPermission || purchasingPermission)
+		{
+			model.removeAllElements();
+			for (String ccEmail : db.getAllCC()) 
+			{
+				model.addElement(ccEmail);
+			}
+			model.setSelectedItem(null);
+			((MultiSelectionComboBox<String>) emailCC).removeAllSelectedItem();
+		}
+		else
+		{
+			model.removeAllElements();
+		}
 
 		addCCButton = new JButton();
 		addCCButton.setLocation(770, 55);
@@ -289,8 +251,14 @@ public class Menu implements ActionListener , DocumentListener{
 		okButton.setToolTipText("OK");
 		panel.add(okButton);
 		
+		
+		suppliersFileLabel = new JLabel("<html><u>Attach suppliers Email file:</u></html>");
+		suppliersFileLabel.setLocation(30,20);
+		suppliersFileLabel.setSize(150,100);
+		panel.add(suppliersFileLabel);
+		
 		suplierFileButton = new JButton();
-		suplierFileButton.setLocation(160 ,  140);
+		suplierFileButton.setLocation(160 ,  45);
 		suplierFileButton.setSize(100, 40);
 		suplierFileButton.setIcon(globals.attachIcon);
 		suplierFileButton.setFocusable(false);
@@ -301,26 +269,32 @@ public class Menu implements ActionListener , DocumentListener{
 		panel.add(suplierFileButton);
 		
 		filePath = new JLabel("");
-		filePath.setLocation(300 , 155);
-		filePath.setSize(250, 20);
+		filePath.setLocation(250 , 60);
+		filePath.setSize(300, 20);
 		panel.add(filePath);
 		
+		followUpDirectoryLabel = new JLabel("<html><u>FollowUp Directory:</u></html>");
+		followUpDirectoryLabel.setLocation(30 , 120);
+		followUpDirectoryLabel.setSize(150, 20);
+		panel.add(followUpDirectoryLabel);
+		
 		followUpDirectoryButton = new JButton();
-		followUpDirectoryButton.setLocation(50 ,  180);
+		followUpDirectoryButton.setLocation(160 ,  110);
 		followUpDirectoryButton.setSize(55, 40);
 		followUpDirectoryButton.setIcon(globals.directoryIcon);
 		followUpDirectoryButton.setFocusable(false);
 		followUpDirectoryButton.setContentAreaFilled(false);
 		followUpDirectoryButton.setPressedIcon(globals.clickDirectoryIcon);
 		followUpDirectoryButton.addActionListener(this);
-		followUpDirectoryButton.setToolTipText("Choose Directory");
-		followUpDirectoryButton.setVisible(false);
+		followUpDirectoryButton.setToolTipText("Choose FollowUp Directory");
+		followUpDirectoryButton.setVisible(adminPermission);
 		panel.add(followUpDirectoryButton);
 		
 		followUpDirectoryPath = new JLabel("");
-		followUpDirectoryPath.setLocation(135, 195);
+		followUpDirectoryPath.setLocation(255, 125);
 		followUpDirectoryPath.setSize(250, 20);
-		followUpDirectoryPath.setVisible(false);
+		followUpDirectoryPath.setText(db.getFollowUpDirectory());
+		followUpDirectoryPath.setVisible(adminPermission);
 		panel.add(followUpDirectoryPath);
 		
 		next = new JButton();
@@ -338,7 +312,7 @@ public class Menu implements ActionListener , DocumentListener{
 		panel.add(next);
 		
 		acceptOrder = new JRadioButton("Accept Order");
-		acceptOrder.setLocation(30, 250);
+		acceptOrder.setLocation(30, 200);
 		acceptOrder.setSize(120,20);
 		acceptOrder.addActionListener(this);
 		acceptOrder.setBackground(null);
@@ -347,77 +321,59 @@ public class Menu implements ActionListener , DocumentListener{
 		
 		
 		noDate = new JRadioButton("Without Due Date");
-		noDate.setLocation(30, 280);
+		noDate.setLocation(30, 230);
 		noDate.setSize(120,20);
 		noDate.addActionListener(this);
 		noDate.setBackground(null);
 		panel.add(noDate);
 		
 		pastDate = new JRadioButton("Past Due Date");
-		pastDate.setLocation(30, 310);
+		pastDate.setLocation(30, 260);
 		pastDate.setSize(100,20);
 		pastDate.addActionListener(this);
 		pastDate.setBackground(null);
 		panel.add(pastDate);
 		
 		futureDate = new JRadioButton("Supply On Time");
-		futureDate.setLocation(30, 340);
+		futureDate.setLocation(30, 290);
 		futureDate.setSize(100,20);
 		futureDate.addActionListener(this);
 		futureDate.setBackground(null);
 		panel.add(futureDate);
 		
 		untilDateLabel = new JLabel("Until:");
-		untilDateLabel.setLocation(160 , 340);
+		untilDateLabel.setLocation(160 , 290);
 		untilDateLabel.setSize(40,20);
 		untilDateLabel.setVisible(false);
 		panel.add(untilDateLabel);
 		
 		dateLimited = new JTextField();
-		dateLimited.setLocation(210, 340);
+		dateLimited.setLocation(210, 290);
 		dateLimited.setSize(100 , 20);
 		dateLimited.setVisible(false);
 		panel.add(dateLimited);
 		
 		beyondRequestDate = new JRadioButton("Orders Beyond Request Date");
-		beyondRequestDate.setLocation(30, 370);
+		beyondRequestDate.setLocation(30, 320);
 		beyondRequestDate.setSize(170,20);
 		beyondRequestDate.addActionListener(this);
 		beyondRequestDate.setBackground(null);
 		panel.add(beyondRequestDate);
 		
 		daysLabel = new JLabel("Days:");
-		daysLabel.setLocation(230 , 370);
+		daysLabel.setLocation(230 , 320);
 		daysLabel.setSize(40,20);
 		daysLabel.setVisible(false);
 		panel.add(daysLabel);
 		
 		daysText = new JTextField();
-		daysText.setLocation(270, 370);
+		daysText.setLocation(270, 320);
 		daysText.setSize(50 , 20);
 		daysText.setVisible(false);
 		panel.add(daysText);
 		
-		permissionsLabel = new JLabel("<html><u>Add User & Admin Permission:</u></html>");
-		permissionsLabel.setLocation(30, 500);
-		permissionsLabel.setSize(150, 100);
-		panel.add(permissionsLabel);
-		
-		
-		permissionsButton = new JButton();
-		permissionsButton.setLocation(200 , 530);
-		permissionsButton.setSize(40 , 40);
-		permissionsButton.addActionListener(this);
-		permissionsButton.setIcon(globals.updateIcon);
-		permissionsButton.setFocusable(false);
-		//next.setOpaque(false);
-		permissionsButton.setContentAreaFilled(false);
-		permissionsButton.setPressedIcon(globals.clickUpdateIcon);
-		permissionsButton.setToolTipText("update permissions for another emplyees");
-		panel.add(permissionsButton);
-		
 		addBodyButton = new JButton();
-		addBodyButton.setLocation(700, 250);
+		addBodyButton.setLocation(700, 200);
 		addBodyButton.setSize(50 , 50);
 		addBodyButton.addActionListener(this);
 		addBodyButton.setIcon(globals.addIcon);
@@ -428,7 +384,7 @@ public class Menu implements ActionListener , DocumentListener{
 		panel.add(addBodyButton);
 		
 		deleteBodyButton = new JButton();
-		deleteBodyButton.setLocation(700, 340);
+		deleteBodyButton.setLocation(700, 290);
 		deleteBodyButton.setSize(50 , 50);
 		deleteBodyButton.addActionListener(this);
 		deleteBodyButton.setIcon(globals.deleteIcon);
@@ -440,51 +396,51 @@ public class Menu implements ActionListener , DocumentListener{
 		
 		JSeparator separator1 = new JSeparator(SwingConstants.VERTICAL);
 		separator1.setBackground(Color.black);
-		separator1.setLocation(350, 250);
+		separator1.setLocation(350, 200);
 		separator1.setSize(10, 140);
 		panel.add(separator1);
 		
 		JSeparator separator2 = new JSeparator(SwingConstants.VERTICAL);
 		separator2.setBackground(Color.black);
-		separator2.setLocation(650, 250);
+		separator2.setLocation(650, 200);
 		separator2.setSize(10, 140);
 		panel.add(separator2);
 		
 		
 		mailTemplateLabel = new JLabel("<html><u>Follow up order report</u></html>");
-		mailTemplateLabel.setLocation(30, 220);
+		mailTemplateLabel.setLocation(30, 170);
 		mailTemplateLabel.setSize(180, 30);
 		panel.add(mailTemplateLabel);
 		
 		addAndDeleteLabel = new JLabel("<html><u>Add or Delete mail template</u></html>");
-		addAndDeleteLabel.setLocation(660, 220);
+		addAndDeleteLabel.setLocation(660, 170);
 		addAndDeleteLabel.setSize(150, 30);
 		panel.add(addAndDeleteLabel);
 		
 		templateLabel = new JLabel("<html><u>View subject and body of mail</u></html>");
-		templateLabel.setLocation(360, 220);
+		templateLabel.setLocation(360, 170);
 		templateLabel.setSize(300, 30);
 		panel.add(templateLabel);
 
 		addLabel = new JLabel("Add:");
-		addLabel.setLocation(660, 260);
+		addLabel.setLocation(660, 210);
 		addLabel.setSize(100, 30);
 		panel.add(addLabel);
 		
 		deleteLabel = new JLabel("Delete:");
-		deleteLabel.setLocation(660, 350);
+		deleteLabel.setLocation(660, 300);
 		deleteLabel.setSize(100, 30);
 		panel.add(deleteLabel);
 		
 		subjectTemplate = new JTextPane();
-		subjectTemplate.setLocation(360 , 250);
+		subjectTemplate.setLocation(360 , 200);
 		subjectTemplate.setSize(280 , 20);
 		subjectTemplate.setEditable(false);
 		subjectTemplate.setVisible(false);
 		panel.add(subjectTemplate);
 		
 		bodyTemplate = new JTextPane();
-		bodyTemplate.setLocation(360 , 290);
+		bodyTemplate.setLocation(360 , 240);
 		bodyTemplate.setSize(280 , 100);
 		bodyTemplate.setEditable(false);
 		bodyTemplate.setVisible(false);
@@ -496,105 +452,45 @@ public class Menu implements ActionListener , DocumentListener{
 		panel.add(copyRight);
 		
 		expediteOrdersLabel = new JLabel("<html><u>Convergence analysis of the control material</u></html>");
-		expediteOrdersLabel.setLocation(30, 380);
+		expediteOrdersLabel.setLocation(30, 350);
 		expediteOrdersLabel.setSize(250, 50);
 		panel.add(expediteOrdersLabel);
 		
 		mrpSimRadioButton = new JRadioButton("MRP-SIM");
-		mrpSimRadioButton.setLocation(30 , 420);
+		mrpSimRadioButton.setLocation(30 , 390);
 		mrpSimRadioButton.setSize(80, 20);
 		mrpSimRadioButton.addActionListener(this);
 		panel.add(mrpSimRadioButton);
 		
 		mrpRadioButton = new JRadioButton("SIM");
-		mrpRadioButton.setLocation(115 , 420);
+		mrpRadioButton.setLocation(115 , 390);
 		mrpRadioButton.setSize(50, 20);
 		mrpRadioButton.addActionListener(this);
 		panel.add(mrpRadioButton);
 		
 		bomsQuantityLabel = new JLabel("Boms quantity:");
-		bomsQuantityLabel.setLocation(40 ,  445);
+		bomsQuantityLabel.setLocation(40 ,  415);
 		bomsQuantityLabel.setSize(80,20);
 		bomsQuantityLabel.setVisible(false);
 		panel.add(bomsQuantityLabel);
 		
 		bomsQuantityText = new JTextField();
-		bomsQuantityText.setLocation(120 ,  445);
+		bomsQuantityText.setLocation(120 ,  415);
 		bomsQuantityText.setSize(60,20);
 		bomsQuantityText.setVisible(false);
 		panel.add(bomsQuantityText);
 					
 		expediteDate = new JRadioButton("Import expedite orders report");
-		expediteDate.setLocation(30 , 475);
+		expediteDate.setLocation(30 , 445);
 		expediteDate.setSize(170, 20);
 		expediteDate.addActionListener(this);
 		panel.add(expediteDate);
 		
 		sendExpediteDateOrders = new JRadioButton("Export expedite orders reports");
-		sendExpediteDateOrders.setLocation(30 , 510);
+		sendExpediteDateOrders.setLocation(30 , 480);
 		sendExpediteDateOrders.setSize(180, 20);
 		sendExpediteDateOrders.addActionListener(this);
-		panel.add(sendExpediteDateOrders);
-		
-		DefaultTableModel model2 = new DefaultTableModel();
-		
-		usersTable = new JTable(model2);
-		model2.addColumn("User");
-		model2.addColumn("Admin");
-		model2.addColumn("Purchasing");
-		model2.addColumn("PP&C");
-		addUsers();
-		usersTable.getColumnModel().getColumn(0).setResizable(false);
-		usersTable.getColumnModel().getColumn(0).setPreferredWidth(130);
-		usersTable.getColumnModel().getColumn(1).setResizable(false);
-		usersTable.getColumnModel().getColumn(1).setPreferredWidth(100);
-		usersTable.getColumnModel().getColumn(2).setResizable(false);
-		usersTable.getColumnModel().getColumn(2).setPreferredWidth(100);
-		usersTable.getColumnModel().getColumn(3).setResizable(false);
-		usersTable.getColumnModel().getColumn(3).setPreferredWidth(100);
-		usersTable.setRowHeight(30);
-		usersTable.setEnabled(false);
-		
-		DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
-		centerRenderer.setHorizontalAlignment(JLabel.CENTER);
-		
-		usersTable.getColumnModel().getColumn(0).setHeaderRenderer(centerRenderer);
-		usersTable.getColumnModel().getColumn(1).setHeaderRenderer(centerRenderer);
-		usersTable.getColumnModel().getColumn(2).setHeaderRenderer(centerRenderer);
-		usersTable.getColumnModel().getColumn(3).setHeaderRenderer(centerRenderer);
-				
-		usersTable.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
-		usersTable.getColumnModel().getColumn(1).setCellRenderer(centerRenderer);
-		usersTable.getColumnModel().getColumn(2).setCellRenderer(centerRenderer);
-		usersTable.getColumnModel().getColumn(3).setCellRenderer(centerRenderer);
-		
-		usersTable.setShowHorizontalLines(false);
-		usersTable.setShowVerticalLines(false);
-		usersTable.getTableHeader().setBorder(UIManager.getBorder("TableHeader.cellBorder"));
-		usersTable.getTableHeader().setReorderingAllowed(false);
-		
-		scrollPane = new JScrollPane(usersTable);
-		scrollPane.setLocation(270, 520);
-		scrollPane.setSize(350,140);
-		scrollPane.setVisible(false);
-		panel.add(scrollPane);
-		
-		
-		viewUsersLabel = new JLabel("<html><u>View users:</u></html>");
-		viewUsersLabel.setLocation(30, 590);
-		viewUsersLabel.setSize(70,20);
-		panel.add(viewUsersLabel);
-		
-		viewUsersButton = new JButton();
-		viewUsersButton.setLocation(105, 575);
-		viewUsersButton.setSize(50 , 50);
-		viewUsersButton.addActionListener(this);
-		viewUsersButton.setIcon(globals.viewIcon);
-		viewUsersButton.setFocusable(false);
-		viewUsersButton.setContentAreaFilled(false);
-		viewUsersButton.setPressedIcon(globals.clickViewIcon);
-		viewUsersButton.setToolTipText("View users details");
-		panel.add(viewUsersButton);
+		panel.add(sendExpediteDateOrders);	
 		
 		/*expediteDate = new JRadioButton("Expedite orders");
 		expediteDate.setLocation(30 , 450);
@@ -604,13 +500,13 @@ public class Menu implements ActionListener , DocumentListener{
 		
 		DefaultComboBoxModel<String> model3 = new DefaultComboBoxModel<String>();
 		expediteDateComboBox = new JComboBox<String>(model3);
-		expediteDateComboBox.setLocation(220, 475);
+		expediteDateComboBox.setLocation(220, 445);
 		expediteDateComboBox.setSize(100,20);
 		expediteDateComboBox.setVisible(false);
 		panel.add(expediteDateComboBox);
 
 		addDateButton = new JButton();
-		addDateButton.setLocation(350, 459);
+		addDateButton.setLocation(350, 429);
 		addDateButton.setSize(50 , 50);
 		addDateButton.addActionListener(this);
 		addDateButton.setIcon(globals.addIcon);
@@ -622,7 +518,7 @@ public class Menu implements ActionListener , DocumentListener{
 		panel.add(addDateButton);
 		
 		deleteDateButton = new JButton();
-		deleteDateButton.setLocation(400, 460);
+		deleteDateButton.setLocation(400, 430);
 		deleteDateButton.setSize(50 , 50);
 		deleteDateButton.addActionListener(this);
 		deleteDateButton.setIcon(globals.deleteIcon);
@@ -634,19 +530,19 @@ public class Menu implements ActionListener , DocumentListener{
 		panel.add(deleteDateButton);
 		
 		dateLabel = new JLabel("Date:");
-		dateLabel.setLocation(480, 470);
+		dateLabel.setLocation(480, 440);
 		dateLabel.setSize(30,30);
 		dateLabel.setVisible(false);
 		panel.add(dateLabel);
 		
 		expediteDateText = new JTextField();
-		expediteDateText.setLocation(520, 475);
+		expediteDateText.setLocation(520, 445);
 		expediteDateText.setSize(150, 20);
 		expediteDateText.setVisible(false);
 		panel.add(expediteDateText);
 		
 		confirmDateButton = new JButton();
-		confirmDateButton.setLocation(670, 460);
+		confirmDateButton.setLocation(670, 430);
 		confirmDateButton.setSize(80 , 40);
 		confirmDateButton.addActionListener(this);
 		confirmDateButton.setVisible(false);
@@ -658,41 +554,41 @@ public class Menu implements ActionListener , DocumentListener{
 		panel.add(confirmDateButton);
 		
 		usesRadioButton = new JRadioButton("Send activity Report");
-		usesRadioButton.setLocation(30, 640);
+		usesRadioButton.setLocation(30, 550);
 		usesRadioButton.setSize(135,20);
 		usesRadioButton.addActionListener(this);
 		usesRadioButton.setBackground(null);
-		usesRadioButton.setVisible(false);
+		usesRadioButton.setVisible(adminPermission);
 		panel.add(usesRadioButton);
 		
 		fromLabel = new JLabel("From:");
-		fromLabel.setLocation(170, 635);
+		fromLabel.setLocation(170, 545);
 		fromLabel.setSize(30,30);
 		fromLabel.setVisible(false);
 		panel.add(fromLabel);
 		
 		
 		fromText = new JTextField();
-		fromText.setLocation(210, 640);
+		fromText.setLocation(210, 550);
 		fromText.setSize(100 , 20);
 		fromText.setVisible(false);
 		panel.add(fromText);
 		
 		
 		untilLabel = new JLabel("Until:");
-		untilLabel.setLocation(320, 635);
+		untilLabel.setLocation(320, 545);
 		untilLabel.setSize(30,30);
 		untilLabel.setVisible(false);
 		panel.add(untilLabel);
 		
 		untilText = new JTextField();
-		untilText.setLocation(360, 640);
+		untilText.setLocation(360, 550);
 		untilText.setSize(100 , 20);
 		untilText.setVisible(false);
 		panel.add(untilText);
 		
 		sendButton = new JButton();
-		sendButton.setLocation(475 , 627);
+		sendButton.setLocation(475 , 537);
 		sendButton.setSize(40 , 40);
 		sendButton.addActionListener(this);
 		sendButton.setIcon(globals.sendIcon);
@@ -706,9 +602,9 @@ public class Menu implements ActionListener , DocumentListener{
 		
 		
 		projectsLabel = new JLabel("<html><u>Projects:</u></html>");
-		projectsLabel.setLocation(30, 680);
+		projectsLabel.setLocation(30, 590);
 		projectsLabel.setSize(50, 20);
-		projectsLabel.setVisible(false);
+		projectsLabel.setVisible(adminPermission);
 		panel.add(projectsLabel);
 		
 		DefaultComboBoxModel<String> model4 = new DefaultComboBoxModel<String>();
@@ -718,16 +614,16 @@ public class Menu implements ActionListener , DocumentListener{
 			model4.addElement(project);
 		}
 		projectsComboBox = new JComboBox<String>(model4);
-		projectsComboBox.setLocation(90, 680);
+		projectsComboBox.setLocation(90, 590);
 		projectsComboBox.setSize(130,20);
-		projectsComboBox.setVisible(false);
+		projectsComboBox.setVisible(adminPermission);
 		projectsComboBox.addActionListener(this);
 		panel.add(projectsComboBox);
 		
 		
 		
 		expediteDirectoryButton = new JButton();
-		expediteDirectoryButton.setLocation(230 , 670);
+		expediteDirectoryButton.setLocation(230 , 580);
 		expediteDirectoryButton.setSize(55, 40);
 		expediteDirectoryButton.setIcon(globals.directoryIcon);
 		expediteDirectoryButton.setFocusable(false);
@@ -735,17 +631,18 @@ public class Menu implements ActionListener , DocumentListener{
 		expediteDirectoryButton.setPressedIcon(globals.clickDirectoryIcon);
 		expediteDirectoryButton.addActionListener(this);
 		expediteDirectoryButton.setToolTipText("Choose Directory");
-		expediteDirectoryButton.setVisible(false);
+		expediteDirectoryButton.setVisible(adminPermission);
 		panel.add(expediteDirectoryButton);
 		
 		expediteDirectoryPath = new JLabel("");
-		expediteDirectoryPath.setLocation(200, 720);
+		expediteDirectoryPath.setLocation(200, 630);
 		expediteDirectoryPath.setSize(250, 20);
-		expediteDirectoryPath.setVisible(false);
+		expediteDirectoryPath.setText(db.getDirectory((String) projectsComboBox.getModel().getSelectedItem()));
+		expediteDirectoryPath.setVisible(adminPermission);
 		panel.add(expediteDirectoryPath);
 		
 		addProjectButton = new JButton();
-		addProjectButton.setLocation(300 , 670);
+		addProjectButton.setLocation(300 , 580);
 		addProjectButton.setSize(40 , 40);
 		addProjectButton.addActionListener(this);
 		addProjectButton.setIcon(globals.addIcon);
@@ -753,11 +650,11 @@ public class Menu implements ActionListener , DocumentListener{
 		addProjectButton.setContentAreaFilled(false);
 		addProjectButton.setPressedIcon(globals.clickAddIcon);
 		addProjectButton.setToolTipText("add project");
-		addProjectButton.setVisible(false);
+		addProjectButton.setVisible(adminPermission);
 		panel.add(addProjectButton);
 		
 		deleteProjectButton = new JButton();
-		deleteProjectButton.setLocation(360 , 670);
+		deleteProjectButton.setLocation(360 , 580);
 		deleteProjectButton.setSize(40 , 40);
 		deleteProjectButton.addActionListener(this);
 		deleteProjectButton.setIcon(globals.deleteIcon);
@@ -765,24 +662,24 @@ public class Menu implements ActionListener , DocumentListener{
 		deleteProjectButton.setContentAreaFilled(false);
 		deleteProjectButton.setPressedIcon(globals.clickDeleteIcon);
 		deleteProjectButton.setToolTipText("delete project");
-		deleteProjectButton.setVisible(false);
+		deleteProjectButton.setVisible(adminPermission);
 		panel.add(deleteProjectButton);
 		
 		projectNameLabel = new JLabel("Project name:");
-		projectNameLabel.setLocation(430, 680);
+		projectNameLabel.setLocation(430, 590);
 		projectNameLabel.setSize(70, 20);
 		projectNameLabel.setVisible(false);
 		panel.add(projectNameLabel);
 		
 		projectNameText = new JTextField();
-		projectNameText.setLocation(510, 680);
+		projectNameText.setLocation(510, 590);
 		projectNameText.setSize(100 , 20);
 		projectNameText.setVisible(false);
 		panel.add(projectNameText);
 		
 		
 		confirmProjectNameButton = new JButton();
-		confirmProjectNameButton.setLocation(640 , 665);
+		confirmProjectNameButton.setLocation(640 , 575);
 		confirmProjectNameButton.setSize(40 , 40);
 		confirmProjectNameButton.addActionListener(this);
 		confirmProjectNameButton.setIcon(globals.okIcon);
@@ -801,7 +698,7 @@ public class Menu implements ActionListener , DocumentListener{
 	public void actionPerformed(ActionEvent evt) {
 		if(evt.getSource() == suplierFileButton)
 		{
-			if(!db.checkPurchasingPermission(nickNametext.getText(), new String(passwordField.getPassword())))
+			if(!db.checkPurchasingPermission(userName, password))
 			{
 				JOptionPane.showConfirmDialog(null, "you don't have a permission","",JOptionPane.PLAIN_MESSAGE);
 				return;
@@ -823,7 +720,7 @@ public class Menu implements ActionListener , DocumentListener{
 		
 		else if(evt.getSource() == followUpDirectoryButton)
 		{
-			if(!db.checkAddOrDeletePermission(nickNametext.getText(), new String(passwordField.getPassword())))
+			if(!db.checkAddOrDeletePermission(userName, password))
 			{
 				JOptionPane.showConfirmDialog(null, "you don't have a permission","",JOptionPane.PLAIN_MESSAGE);
 				return;
@@ -847,7 +744,7 @@ public class Menu implements ActionListener , DocumentListener{
 		}
 		else if(evt.getSource() == expediteDirectoryButton)
 		{
-			if(!db.checkAddOrDeletePermission(nickNametext.getText(), new String(passwordField.getPassword())))
+			if(!db.checkAddOrDeletePermission(userName, password))
 			{
 				JOptionPane.showConfirmDialog(null, "you don't have a permission","",JOptionPane.PLAIN_MESSAGE);
 				return;
@@ -873,27 +770,20 @@ public class Menu implements ActionListener , DocumentListener{
 		else if(evt.getSource() == next)
 		{
 			//open next frame
-			if(!db.checkPurchasingPermission(nickNametext.getText(), new String(passwordField.getPassword())))
+			if(!db.checkPurchasingPermission(userName, password))
 			{
-				if(nickNametext.getText().equals("") || passwordField.getPassword().length == 0 || !expediteDate.isSelected())
+				if(!expediteDate.isSelected())
 				{
 					JOptionPane.showConfirmDialog(null, "please fill all the details","",JOptionPane.PLAIN_MESSAGE);
 					return;
 				}
 			}
-			else if(nickNametext.getText().equals("") || passwordField.getPassword().length == 0 ||
-					(!acceptOrder.isSelected() && !noDate.isSelected() && !pastDate.isSelected() && !futureDate.isSelected() && !beyondRequestDate.isSelected()
+			else if((!acceptOrder.isSelected() && !noDate.isSelected() && !pastDate.isSelected() && !futureDate.isSelected() && !beyondRequestDate.isSelected()
 							&& !expediteDate.isSelected() && !sendExpediteDateOrders.isSelected()))
 				{
 					JOptionPane.showConfirmDialog(null, "please fill all the details","",JOptionPane.PLAIN_MESSAGE);
 					return;
-				}
-				if(!db.checkConnectPermission(nickNametext.getText(), new String(passwordField.getPassword())))
-				{
-					JOptionPane.showConfirmDialog(null, "you don't have a permission","",JOptionPane.PLAIN_MESSAGE);
-					return;
-				}
-				
+				}			
 			if(futureDate.isSelected())
 			{
 				if(dateLimited.getText().equals("") || !isValidDate(dateLimited.getText()))
@@ -1035,7 +925,7 @@ public class Menu implements ActionListener , DocumentListener{
 			
 
 			List<String> selectedCC = ((MultiSelectionComboBox<String>)emailCC).getSelectedItems();
-			String email = db.getEmail(nickNametext.getText() , new String(passwordField.getPassword()));
+			String email = db.getEmail(userName , password);
 			boolean followUp = noDate.isSelected() || pastDate.isSelected() || futureDate.isSelected() || acceptOrder.isSelected() || beyondRequestDate.isSelected();
 			boolean expedite = sendExpediteDateOrders.isSelected();
 			if((followUp || expedite) && !selectedCC.contains(email))
@@ -1050,12 +940,12 @@ public class Menu implements ActionListener , DocumentListener{
 			boolean mrpSim = mrpSimRadioButton.isSelected();
 			int bomsQuantity = bomsQuantityText.getText().trim().equals("") ? 0 : Integer.parseInt(bomsQuantityText.getText().trim());
 			
-			Activity activity = new Activity(nickNametext.getText(), followUp, acceptOrder.isSelected()
+			Activity activity = new Activity(userName, followUp, acceptOrder.isSelected()
 					, noDate.isSelected(), pastDate.isSelected(), futureDate.isSelected(), beyondRequestDate.isSelected() , !followUp, expediteDate.isSelected()
 					, sendExpediteDateOrders.isSelected(), project, null);
 			
-			SenderFrame senderFrame = new SenderFrame(email , new String(passwordField.getPassword()) , supplierEmailsFile , activity , datesList , id 
-					, db.checkPurchasingPermission(nickNametext.getText(), new String(passwordField.getPassword())), mrpSim , bomsQuantity);
+			SenderFrame senderFrame = new SenderFrame(email , password , supplierEmailsFile , activity , datesList , id 
+					, db.checkPurchasingPermission(userName, password), mrpSim , bomsQuantity);
 						
 			senderFrame.setDb(db);
 			
@@ -1072,7 +962,7 @@ public class Menu implements ActionListener , DocumentListener{
 		{
 			if(acceptOrder.isSelected())
 			{
-				if(!db.checkPurchasingPermission(nickNametext.getText(), new String(passwordField.getPassword())))
+				if(!db.checkPurchasingPermission(userName, password))
 				{
 					JOptionPane.showConfirmDialog(null, "you don't have a permission","",JOptionPane.PLAIN_MESSAGE);
 					acceptOrder.setSelected(false);
@@ -1091,7 +981,7 @@ public class Menu implements ActionListener , DocumentListener{
 		{
 			if(noDate.isSelected())
 			{
-				if(!db.checkPurchasingPermission(nickNametext.getText(), new String(passwordField.getPassword())))
+				if(!db.checkPurchasingPermission(userName, password))
 				{
 					JOptionPane.showConfirmDialog(null, "you don't have a permission","",JOptionPane.PLAIN_MESSAGE);
 					noDate.setSelected(false);
@@ -1111,7 +1001,7 @@ public class Menu implements ActionListener , DocumentListener{
 		{
 			if(pastDate.isSelected())
 			{
-				if(!db.checkPurchasingPermission(nickNametext.getText(), new String(passwordField.getPassword())))
+				if(!db.checkPurchasingPermission(userName , password))
 				{
 					JOptionPane.showConfirmDialog(null, "you don't have a permission","",JOptionPane.PLAIN_MESSAGE);
 					pastDate.setSelected(false);
@@ -1131,7 +1021,7 @@ public class Menu implements ActionListener , DocumentListener{
 		{
 			if(futureDate.isSelected())
 			{
-				if(!db.checkPurchasingPermission(nickNametext.getText(), new String(passwordField.getPassword())))
+				if(!db.checkPurchasingPermission(userName, password))
 				{
 					JOptionPane.showConfirmDialog(null, "you don't have a permission","",JOptionPane.PLAIN_MESSAGE);
 					futureDate.setSelected(false);
@@ -1168,7 +1058,7 @@ public class Menu implements ActionListener , DocumentListener{
 		{
 			if(beyondRequestDate.isSelected())
 			{
-				if(!db.checkPurchasingPermission(nickNametext.getText(), new String(passwordField.getPassword())))
+				if(!db.checkPurchasingPermission(userName, password))
 				{
 					JOptionPane.showConfirmDialog(null, "you don't have a permission","",JOptionPane.PLAIN_MESSAGE);
 					beyondRequestDate.setSelected(false);
@@ -1194,41 +1084,16 @@ public class Menu implements ActionListener , DocumentListener{
 			
 			updateTemplateText();
 		}
-		else if(evt.getSource() == permissionsButton)
-		{
-			if(nickNametext.getText().equals("") || passwordField.getPassword().length == 0)
-			{
-				JOptionPane.showConfirmDialog(null, "please fill email and password","",JOptionPane.PLAIN_MESSAGE);
-			}
-			else
-			{
-				if(db.checkAddOrDeletePermission(nickNametext.getText(), new String(passwordField.getPassword())))
-				{
-					MethodType methodTypeOfPermissionFrame = MethodType.methodType(void.class);
-					MethodHandle callbackMethodOfPermissionFrame = null;
-					
-					try {
-						callbackMethodOfPermissionFrame = MethodHandles.lookup().bind(this, "addUsers", methodTypeOfPermissionFrame);
-					} catch (NoSuchMethodException | IllegalAccessException e) {
-						e.printStackTrace();
-					}
-					new PermissionFrame(db , nickNametext.getText() , callbackMethodOfPermissionFrame);
-				}					
-				else
-					JOptionPane.showConfirmDialog(null, "you don't have a permission","",JOptionPane.PLAIN_MESSAGE);
-			}
-		}
 		else if(evt.getSource() == addBodyButton)
 		{
-			if(nickNametext.getText().equals("") || passwordField.getPassword().length == 0 ||
-					(!acceptOrder.isSelected() && !noDate.isSelected() && !pastDate.isSelected() && !futureDate.isSelected() && !beyondRequestDate.isSelected()
+			if((!acceptOrder.isSelected() && !noDate.isSelected() && !pastDate.isSelected() && !futureDate.isSelected() && !beyondRequestDate.isSelected()
 							&& !sendExpediteDateOrders.isSelected()))
 			{
 				JOptionPane.showConfirmDialog(null, "please choose dates and fill email and password","",JOptionPane.PLAIN_MESSAGE);
 			}
 			else 
 			{
-				if(db.checkAddOrDeletePermission(nickNametext.getText(), new String(passwordField.getPassword())))
+				if(db.checkAddOrDeletePermission(userName , password))
 				{
 					if(!bodyTemplate.getText().equals("") || !subjectTemplate.getText().equals(""))
 					{
@@ -1256,15 +1121,14 @@ public class Menu implements ActionListener , DocumentListener{
 		}
 		else if(evt.getSource() == deleteBodyButton)
 		{
-			if(nickNametext.getText().equals("") || passwordField.getPassword().length == 0 ||
-					(!acceptOrder.isSelected() && !noDate.isSelected() && !pastDate.isSelected() && !futureDate.isSelected() && !beyondRequestDate.isSelected()
+			if((!acceptOrder.isSelected() && !noDate.isSelected() && !pastDate.isSelected() && !futureDate.isSelected() && !beyondRequestDate.isSelected()
 							&& !sendExpediteDateOrders.isSelected()))
 			{
 				JOptionPane.showConfirmDialog(null, "please choose dates and fill email and password","",JOptionPane.PLAIN_MESSAGE);
 			}
 			else 
 			{
-				if(db.checkAddOrDeletePermission(nickNametext.getText(), new String(passwordField.getPassword())))
+				if(db.checkAddOrDeletePermission(userName , password))
 				{
 					int id = globals.getDatesId(acceptOrder.isSelected() , noDate.isSelected() , pastDate.isSelected() , futureDate.isSelected()
 							,sendExpediteDateOrders.isSelected() , beyondRequestDate.isSelected());
@@ -1285,14 +1149,7 @@ public class Menu implements ActionListener , DocumentListener{
 			}	
 		}
 		else if(evt.getSource() == expediteDate)
-		{
-			if(!db.checkConnectPermission(nickNametext.getText(), new String(passwordField.getPassword())))
-			{
-				JOptionPane.showConfirmDialog(null, "you don't have a permission","",JOptionPane.PLAIN_MESSAGE);
-				expediteDate.setSelected(false);
-				return;
-			}
-			
+		{		
 			if(acceptOrder.isSelected() || noDate.isSelected() || pastDate.isSelected() || futureDate.isSelected() || beyondRequestDate.isSelected() || sendExpediteDateOrders.isSelected())
 			{
 				JOptionPane.showConfirmDialog(null, "cannot select expedite with follow up option","",JOptionPane.PLAIN_MESSAGE);
@@ -1329,13 +1186,7 @@ public class Menu implements ActionListener , DocumentListener{
 		}
 		else if(evt.getSource() == sendExpediteDateOrders)
 		{
-			if(!db.checkPurchasingPermission(nickNametext.getText(), new String(passwordField.getPassword())))
-			{
-				JOptionPane.showConfirmDialog(null, "you don't have a permission","",JOptionPane.PLAIN_MESSAGE);
-				sendExpediteDateOrders.setSelected(false);
-				return;
-			}
-			
+
 			if(acceptOrder.isSelected() || noDate.isSelected() || pastDate.isSelected() || futureDate.isSelected() || beyondRequestDate.isSelected() || expediteDate.isSelected())
 			{
 				JOptionPane.showConfirmDialog(null, "cannot select expedite with follow up option","",JOptionPane.PLAIN_MESSAGE);
@@ -1418,7 +1269,7 @@ public class Menu implements ActionListener , DocumentListener{
 		}
 		else if(evt.getSource() == addCCButton)
 		{
-			if(!db.checkPurchasingPermission(nickNametext.getText(), new String(passwordField.getPassword())))
+			if(!db.checkPurchasingPermission(userName , password))
 			{
 				JOptionPane.showConfirmDialog(null, "you don't have a permission","",JOptionPane.PLAIN_MESSAGE);
 				return;
@@ -1432,7 +1283,7 @@ public class Menu implements ActionListener , DocumentListener{
 		}
 		else if(evt.getSource() == deleteCCButton)
 		{	
-			if(!db.checkPurchasingPermission(nickNametext.getText(), new String(passwordField.getPassword())))
+			if(!db.checkPurchasingPermission(userName , password))
 			{
 				JOptionPane.showConfirmDialog(null, "you don't have a permission","",JOptionPane.PLAIN_MESSAGE);
 				return;
@@ -1476,35 +1327,8 @@ public class Menu implements ActionListener , DocumentListener{
 			okButton.setVisible(false);
 			return;
 		}
-		else if(evt.getSource() == viewUsersButton)
-		{
-			if(sendButton.isVisible())
-			{
-				JOptionPane.showConfirmDialog(null, "Please unselected send activity report","",JOptionPane.PLAIN_MESSAGE);
-				return;
-			}
-			if(!db.checkAddOrDeletePermission(nickNametext.getText(), new String(passwordField.getPassword())))
-			{
-				JOptionPane.showConfirmDialog(null, "you don't have a permission","",JOptionPane.PLAIN_MESSAGE);
-				scrollPane.setVisible(false);
-				return;
-			}
-			
-			clickedTimes++;
-			if(clickedTimes % 2 != 0)
-				scrollPane.setVisible(true);
-			else
-				scrollPane.setVisible(false);
-		}
 		else if(evt.getSource() == usesRadioButton)
 		{
-			if(scrollPane.isVisible())
-			{
-				JOptionPane.showConfirmDialog(null, "Please close users table","",JOptionPane.PLAIN_MESSAGE);
-				usesRadioButton.setSelected(false);
-				return;
-			}
-			
 			if(usesRadioButton.isSelected())
 			{
 				fromLabel.setVisible(true);
@@ -1534,7 +1358,7 @@ public class Menu implements ActionListener , DocumentListener{
 				return;
 			}
 			
-			String email = db.getEmail(nickNametext.getText() , new String(passwordField.getPassword()));
+			String email = db.getEmail(userName , password);
 			DateFormat sourceFormat = new SimpleDateFormat("dd/MM/yy");	
 			Date fromDate;
 			Date untilDate;
@@ -1575,7 +1399,7 @@ public class Menu implements ActionListener , DocumentListener{
 			}
 			
 			frame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-			Authenticator auth = new SocialAuth("AL-NT/"+email.split("@")[0],new String(passwordField.getPassword()));
+			Authenticator auth = new SocialAuth("AL-NT/"+email.split("@")[0],password);
 			Sender<List<String>> sender = new ActivitySender(email, uses, auth);
 			sender.send();
 			frame.setCursor(Cursor.getDefaultCursor());
@@ -1641,49 +1465,34 @@ public class Menu implements ActionListener , DocumentListener{
 			
 			projectNameText.setText("");
 			
-		}else if(evt.getSource() == updatePassword)
-		{
-			if(!db.checkConnectPermission(nickNametext.getText(), new String(passwordField.getPassword())))
-			{
-				JOptionPane.showConfirmDialog(null, "you don't have a permission","",JOptionPane.PLAIN_MESSAGE);
-				return;
-			}
-			
-			 new UpdatePasswordFrame(nickNametext.getText() , globals , (objects)->{
-				String nickName = nickNametext.getText();
-				passwordField.setText("");
-				updateViews();
-				nickNametext.setText(nickName);
-				return 1;
-				
-			});
 		}
 		else if(evt.getSource() == mrpRadioButton)
 		{
-			if(!db.checkConnectPermission(nickNametext.getText(), new String(passwordField.getPassword())))
-			{
-				JOptionPane.showConfirmDialog(null, "you don't have a permission","",JOptionPane.PLAIN_MESSAGE);
-				mrpRadioButton.setSelected(false);
-				return;
-			}
-			
 			if(mrpSimRadioButton.isSelected())
 			{
 				mrpRadioButton.setSelected(false);
 				JOptionPane.showConfirmDialog(null, "Can't select both types of MRP ","",JOptionPane.PLAIN_MESSAGE);
 				return;
 			}
-				
-		}
-		else if(evt.getSource() == mrpSimRadioButton)
-		{
-			if(!db.checkConnectPermission(nickNametext.getText(), new String(passwordField.getPassword())))
+			
+			if(!mrpRadioButton.isSelected())
 			{
-				JOptionPane.showConfirmDialog(null, "you don't have a permission","",JOptionPane.PLAIN_MESSAGE);
-				mrpSimRadioButton.setSelected(false);
-				return;
+				sendExpediteDateOrders.setSelected(false);
+				expediteDate.setSelected(false);
+				expediteDateComboBox.setVisible(false);
+				expediteDateComboBox.removeAllItems();
+				addDateButton.setVisible(false);
+				deleteDateButton.setVisible(false);
+				dateLabel.setVisible(false);
+				expediteDateText.setVisible(false);
+				confirmDateButton.setVisible(false);		
+				
+				updateTemplateText();
 			}
 			
+		}
+		else if(evt.getSource() == mrpSimRadioButton)
+		{		
 			if(mrpRadioButton.isSelected())
 			{
 				mrpSimRadioButton.setSelected(false);
@@ -1701,6 +1510,18 @@ public class Menu implements ActionListener , DocumentListener{
 				bomsQuantityLabel.setVisible(false);
 				bomsQuantityText.setVisible(false);
 				bomsQuantityText.setText("");
+			
+				sendExpediteDateOrders.setSelected(false);
+				expediteDate.setSelected(false);
+				expediteDateComboBox.setVisible(false);
+				expediteDateComboBox.removeAllItems();
+				addDateButton.setVisible(false);
+				deleteDateButton.setVisible(false);
+				dateLabel.setVisible(false);
+				expediteDateText.setVisible(false);
+				confirmDateButton.setVisible(false);
+				
+				updateTemplateText();
 			}
 				
 		}
@@ -1757,7 +1578,6 @@ public class Menu implements ActionListener , DocumentListener{
 	{
 		db.closeConnection();
 		this.frame.dispose();
-		//System.exit(0);
 		this.callBack.execute();
 	}
 
@@ -1804,176 +1624,6 @@ public class Menu implements ActionListener , DocumentListener{
 			bodyTemplate.setVisible(true);
 		}
 	}
-	
-	private void addUsers() 
-	{
-		DefaultTableModel model =  (DefaultTableModel) usersTable.getModel();
-		
-		for(int i = model.getRowCount() - 1; i >= 0  ; i--)
-			model.removeRow(i);
-		
-		Object [][] users  = db.getAllUsers();
-		
-		if(users == null)
-			return;
-		
-		for (Object[] user : users) 
-		{
-			model.addRow(user);
-		}
-		
-	}
-
-
-	@Override
-	public void changedUpdate(DocumentEvent e) {
-		if(e.getDocument() == nickNametext.getDocument() || e.getDocument() == passwordField.getDocument())
-		{
-			updateViews();
-		}
-		
-	}
-
-
-	@Override
-	public void insertUpdate(DocumentEvent e) {
-		if(e.getDocument() == nickNametext.getDocument() || e.getDocument() == passwordField.getDocument())
-		{
-			updateViews();
-		}
-		
-	}
-
-
-	@Override
-	public void removeUpdate(DocumentEvent e) {
-		if(e.getDocument() == nickNametext.getDocument() || e.getDocument() == passwordField.getDocument())
-		{
-			updateViews();
-		}
-		
-	}
-	
-	private void updateViews()
-	{
-		boolean adminPermission = db.checkAddOrDeletePermission(nickNametext.getText(), new String(passwordField.getPassword()));
-		boolean purchasingPermission = db.checkPurchasingPermission(nickNametext.getText(), new String(passwordField.getPassword()));
-		
-		if(adminPermission)
-		{
-			usesRadioButton.setVisible(true);
-			
-			projectsLabel.setVisible(true);
-			projectsComboBox.setVisible(true);
-			addProjectButton.setVisible(true);
-			deleteProjectButton.setVisible(true);
-			expediteDirectoryButton.setVisible(true);
-			expediteDirectoryPath.setVisible(true);
-			
-			List<String> projects = db.getAllProjects();
-			DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) projectsComboBox.getModel();
-			model.removeAllElements();
-			for (String project : projects) 
-			{
-				model.addElement(project);
-			}
-			
-			expediteDirectoryPath.setText(db.getDirectory((String) model.getSelectedItem()));
-			
-			followUpDirectoryButton.setVisible(true);
-			followUpDirectoryPath.setVisible(true);
-			followUpDirectoryPath.setText(db.getFollowUpDirectory());
-			
-		}
-		else
-		{
-			usesRadioButton.setSelected(false);
-			usesRadioButton.setVisible(false);
-			fromLabel.setVisible(false);
-			fromText.setVisible(false);
-			untilLabel.setVisible(false);
-			untilText.setVisible(false);
-			sendButton.setVisible(false);
-			
-			fromText.setText("");
-			untilText.setText("");
-			
-			projectsLabel.setVisible(false);
-			projectsComboBox.setVisible(false);
-			addProjectButton.setVisible(false);
-			deleteProjectButton.setVisible(false);
-			projectNameLabel.setVisible(false);
-			projectNameText.setVisible(false);
-			confirmProjectNameButton.setVisible(false);
-			expediteDirectoryButton.setVisible(false);
-			expediteDirectoryPath.setVisible(false);
-			followUpDirectoryPath.setVisible(false);
-			followUpDirectoryButton.setVisible(false);
-			projectNameText.setText("");
-		}
-		
-		if(adminPermission || purchasingPermission)
-		{
-			DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) emailCC.getModel();
-			model.removeAllElements();
-			for (String cc : db.getAllCC()) {
-				model.addElement(cc);
-			}
-			model.setSelectedItem(null);
-			((MultiSelectionComboBox<String>) emailCC).removeAllSelectedItem();
-		}
-		else
-		{
-			DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) emailCC.getModel();
-			model.removeAllElements();
-		}
-		
-		scrollPane.setVisible(false);
-		supplierEmailsFile = null;
-		filePath.setText("");
-		acceptOrder.setSelected(false);
-		pastDate.setSelected(false);
-		noDate.setSelected(false);
-		futureDate.setSelected(false);
-		beyondRequestDate.setSelected(false);
-		expediteDate.setSelected(false);
-		sendExpediteDateOrders.setSelected(false);
-		updateTemplateText();
-		untilDateLabel.setVisible(false);
-		dateLimited.setText("");
-		dateLimited.setVisible(false);
-		
-		daysLabel.setVisible(false);
-		daysText.setText("");
-		daysText.setVisible(false);
-		
-		okButton.setVisible(false);
-		ccEmailLabel.setVisible(false);
-		ccEmailtext.setVisible(false);
-		
-		expediteDateComboBox.setVisible(false);
-		addDateButton.setVisible(false);
-		deleteDateButton.setVisible(false);	
-		dateLabel.setVisible(false);
-		expediteDateText.setVisible(false);
-		confirmDateButton.setVisible(false);
-		DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) expediteDateComboBox.getModel();
-		model.removeAllElements();
-		
-		mrpRadioButton.setSelected(false);
-		mrpSimRadioButton.setSelected(false);
-		
-		bomsQuantityLabel.setVisible(false);
-		bomsQuantityText.setVisible(false);
-		bomsQuantityText.setText("");
-		
-		clickedTimes = 0;
-		directoryPath = null;
-		
-	}
-
-	
-	
 	
 	
 	

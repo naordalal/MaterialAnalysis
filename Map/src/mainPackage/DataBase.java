@@ -30,19 +30,26 @@ public class DataBase {
 
 	private Connection c = null;
 	private PreparedStatement stmt = null;
+	private Globals globals;
 	
-	private void connect()
+	public DataBase() 
+	{
+		globals = new Globals();
+	}
+	public boolean connect()
 	{
 		try {
 			Class.forName("org.sqlite.JDBC");
 		    SQLiteConfig config = new SQLiteConfig(); 
 		    config.enforceForeignKeys(true);  
-		    c = DriverManager.getConnection("jdbc:sqlite:"+Globals.con , config.toProperties());
+		    c = DriverManager.getConnection("jdbc:sqlite:"+globals.con , config.toProperties());
 		    c.setAutoCommit(false);
+		    return true;
 			}catch ( Exception e ) {
 			      System.err.println( e.getClass().getName() + ": " + e.getMessage() );
-			      JOptionPane.showConfirmDialog(null, "Can't find DB file \nThe file should be in : " + Globals.con,"",JOptionPane.PLAIN_MESSAGE);
-			      System.exit(0);
+			      JOptionPane.showConfirmDialog(null, "Can't find DB file \nThe file should be in : " + globals.con,"",JOptionPane.PLAIN_MESSAGE);
+			      //System.exit(0);
+			      return false;
 			}
 	}
 	public void closeConnection()
@@ -1430,16 +1437,17 @@ public class DataBase {
 		}
 	}
 	
-	public void addNewProduct(String catalogNumber , String description , String father , String quantity) 
+	public void addNewProduct(String catalogNumber , String customer , String description , String father , String quantity) 
 	{
 		try{
 			
 			connect();
-			stmt = c.prepareStatement("INSERT INTO Tree (CN , description , fatherCN , quantity) VALUES(?,?,?,?)");
+			stmt = c.prepareStatement("INSERT INTO Tree (CN , customer , description , fatherCN , quantity) VALUES(?,?,?,?,?)");
 			stmt.setString(1, catalogNumber);
-			stmt.setString(2, description);
-			stmt.setString(3, father);
-			stmt.setString(3, quantity);
+			stmt.setString(2, customer);
+			stmt.setString(3, description);
+			stmt.setString(4, father);
+			stmt.setString(5, quantity);
 			stmt.executeUpdate();
 			
 			c.commit();
@@ -2118,5 +2126,32 @@ public class DataBase {
 	{
 		return getInitProductsFormDates(FormType.FC , catalogNumber);
 	}
+	
+	public String getCustomerOfCatalogNumber(String catalogNumber) 
+	{
+		String customer = "";
+		try{
+			
+			connect();
+			stmt = c.prepareStatement("SELECT customer FROM Tree");
+			ResultSet rs = stmt.executeQuery();
+			
+			if(rs.next())
+				customer = rs.getString("customer");
+			
+			closeConnection();
+			return customer;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return customer;
+		}
+	}
+	
+	
+	
 
 }
