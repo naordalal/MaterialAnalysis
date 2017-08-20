@@ -131,13 +131,16 @@ public class ReportViewFrame
 		
 		table.setBorder(new AbstractBorder() 
 		{
+			private static final long serialVersionUID = 1L;
+
 			@Override
-			public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+			public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) 
+			{
 				 g.setColor(Color.RED);
 				 String lastVal = "";
-				 for (int rowIndex = 0 ; rowIndex < content.length ; rowIndex++) 
+				 for (int rowIndex = 0 ; rowIndex < table.getRowCount() ; rowIndex++) 
 				 {
-					String [] row = content[rowIndex];
+					String [] row = getRow(rowIndex);
 					int rowHeight = getRowHeight(rowIndex);
 					if(!lastVal.equals(row[0]))
 					{
@@ -174,6 +177,15 @@ public class ReportViewFrame
 		copyRight.setLocation(30 , 710);
 		copyRight.setSize(100,30);
 		panel.add(copyRight);
+	}
+
+	private String[] getRow(int rowIndex) 
+	{
+		String [] row = new String[table.getColumnCount()];
+		for(int columnIndex = 0 ; columnIndex < row.length ; columnIndex ++)
+			row[columnIndex] = (String) table.getValueAt(rowIndex, columnIndex);
+		
+		return row;
 	}
 
 	private int getRowHeight(int row) 

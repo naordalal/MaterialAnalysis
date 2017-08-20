@@ -112,13 +112,9 @@ public class AddForecastFrame extends KeyAdapter implements ActionListener
 		
 		DefaultComboBoxModel<String> model = new DefaultComboBoxModel<String>();
 		List<String> catalogNumbers = productPerDescription.keySet().stream().collect(Collectors.toList());
-		catalogNumbers.add("aaaa");
-		catalogNumbers.add("bbbb");
-		catalogNumbers.add("cccc");
 		catalogNumberComboBox = new FilterCombo(catalogNumbers , model);
 		catalogNumberComboBox.setLocation(120, 60);
 		catalogNumberComboBox.setSize(150, 20);
-		//catalogNumberComboBox.setSelectedIndex(-1);
 		catalogNumberComboBox.addActionListener(this);
 		     
 		panel.add(catalogNumberComboBox);
