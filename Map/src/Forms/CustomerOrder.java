@@ -17,6 +17,11 @@ public class CustomerOrder extends Form{
 	private String price;
 	private String customerOrderNumber;
 
+	public CustomerOrder() 
+	{
+		super();
+	}
+	
 	public CustomerOrder(int id , String customer , String orderNumber , String customerOrderNumber , String catalogNumber , String description , String quantity , String price , Date orderDate , Date guaranteedDate) 
 	{
 		super(id , catalogNumber, quantity,orderDate, guaranteedDate);
@@ -175,6 +180,18 @@ public class CustomerOrder extends Form{
 	{
 		List<Integer> columns = new ArrayList<>();
 		return columns;
+	}
+
+	@Override
+	public boolean isNeedRequireDate() 
+	{
+		return true;
+	}
+
+	@Override
+	public boolean isNeedInit() 
+	{
+		return true;
 	}
 
 }

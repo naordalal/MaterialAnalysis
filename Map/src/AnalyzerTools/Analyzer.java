@@ -233,6 +233,8 @@ public class Analyzer
 	{
 		
 		Map<MonthDate,Map<String,ProductColumn>> map = new HashMap<MonthDate,Map<String,ProductColumn>>();
+		Map<MonthDate,Map<String,ProductColumn>> helpedMap = new HashMap<MonthDate,Map<String,ProductColumn>>();
+		
 		Map<String,String> catalogNumbers = db.getAllCatalogNumbersPerDescription(userName);
 		
 		MonthDate maximumDate = db.getMaximumForecastDate();
@@ -259,24 +261,29 @@ public class Analyzer
 				int indexOfCurrentMonth = monthToCalculate.indexOf(monthDate);
 				if(indexOfCurrentMonth != 0)
 				{
-					ProductColumn previousProductColumn = map.get(monthToCalculate.get(indexOfCurrentMonth - 1)).get(catalogNumber);
+					ProductColumn previousProductColumn = helpedMap.get(monthToCalculate.get(indexOfCurrentMonth - 1)).get(catalogNumber);
+					
 					previousOpenCustomerOrder = previousProductColumn.getOpenCustomerOrder();
 					previousWorkOrderAfterSupplied = previousProductColumn.getWorkOrderAfterSupplied();
 					previousMaterialAvailability = previousProductColumn.getMaterialAvailability();
+					System.out.println(previousOpenCustomerOrder);
 				}
 
-				Pair<String,Integer> fatherCatalogNumberAndQuantityToAssociate = db.getFather(catalogNumber);
+				List<Pair<String, Integer>> fathersCatalogNumberAndQuantityToAssociate = db.getFathers(catalogNumber);
 				double materialAvailabilityFix = 0;
-				if(fatherCatalogNumberAndQuantityToAssociate.getLeft() != null)
+				for (Pair<String, Integer> fatherCatalogNumberAndQuantityToAssociate : fathersCatalogNumberAndQuantityToAssociate) 
 				{
-					String fatherCatalogNumber = fatherCatalogNumberAndQuantityToAssociate.getLeft();
-					QuantityPerDate fatherSupplied = db.getProductShipmentQuantityOnDate(fatherCatalogNumber , monthDate);
-					QuantityPerDate fatherWorkOrder = db.getProductWOQuantityOnDate(fatherCatalogNumber , monthDate);
-					
-					int quantityToAssociate = fatherCatalogNumberAndQuantityToAssociate.getRight();
-					customerOrders.setQuantity(customerOrders.getQuantity() + quantityToAssociate * fatherWorkOrder.getQuantity());
-					supplied.setQuantity(supplied.getQuantity() + quantityToAssociate * fatherSupplied.getQuantity());
-					materialAvailabilityFix = quantityToAssociate * fatherWorkOrder.getQuantity();
+					if(fatherCatalogNumberAndQuantityToAssociate.getLeft() != null)
+					{
+						String fatherCatalogNumber = fatherCatalogNumberAndQuantityToAssociate.getLeft();
+						QuantityPerDate fatherSupplied = db.getProductShipmentQuantityOnDate(fatherCatalogNumber , monthDate);
+						QuantityPerDate fatherWorkOrder = db.getProductWOQuantityOnDate(fatherCatalogNumber , monthDate);
+						
+						int quantityToAssociate = fatherCatalogNumberAndQuantityToAssociate.getRight();
+						customerOrders.setQuantity(customerOrders.getQuantity() + quantityToAssociate * fatherWorkOrder.getQuantity());
+						supplied.setQuantity(supplied.getQuantity() + quantityToAssociate * fatherSupplied.getQuantity());
+						materialAvailabilityFix = quantityToAssociate * fatherWorkOrder.getQuantity();
+					}
 				}
 				
 				materialAvailability = forecast.getQuantity() + previousMaterialAvailability - workOrder.getQuantity() + materialAvailabilityFix;
@@ -286,6 +293,9 @@ public class Analyzer
 				ProductColumn productColumn = new ProductColumn(descendantCatalogNumber, catalogNumbers.get(descendantCatalogNumber), forecast.getQuantity(), materialAvailability, workOrder.getQuantity()
 						, workOrderAfterSupplied, customerOrders.getQuantity(), supplied.getQuantity(), openCustomerOrder);
 				
+				ProductColumn patriarchsProductColumn = new ProductColumn(catalogNumber, catalogNumbers.get(catalogNumber), forecast.getQuantity(), materialAvailability, workOrder.getQuantity()
+						, workOrderAfterSupplied, customerOrders.getQuantity(), supplied.getQuantity(), openCustomerOrder);
+				
 				if(map.containsKey(monthDate))
 				{
 					if(map.get(monthDate).containsKey(descendantCatalogNumber))
@@ -293,12 +303,25 @@ public class Analyzer
 					else
 						map.get(monthDate).put(descendantCatalogNumber, productColumn);
 				}
-					
 				else
 				{
 					Map<String,ProductColumn> productPerProductColumn = new HashMap<String,ProductColumn>();
 					productPerProductColumn.put(descendantCatalogNumber, productColumn);
 					map.put(monthDate, productPerProductColumn);
+				}
+				
+				if(helpedMap.containsKey(monthDate))
+				{
+					if(helpedMap.get(monthDate).containsKey(catalogNumber))
+						helpedMap.get(monthDate).get(catalogNumber).addProductColumn(patriarchsProductColumn);
+					else
+						helpedMap.get(monthDate).put(catalogNumber, patriarchsProductColumn);
+				}
+				else
+				{
+					Map<String,ProductColumn> productPerProductColumn = new HashMap<String,ProductColumn>();
+					productPerProductColumn.put(catalogNumber, patriarchsProductColumn);
+					helpedMap.put(monthDate, productPerProductColumn);
 				}
 			}
 		}

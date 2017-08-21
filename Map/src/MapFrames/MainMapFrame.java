@@ -7,6 +7,8 @@ import java.awt.event.WindowAdapter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -21,8 +23,11 @@ import AnalyzerTools.MonthDate;
 import AnalyzerTools.ProductColumn;
 import Components.TableCellListener;
 import Forms.Form;
+import Forms.Tree;
 import MainPackage.CallBack;
+import MainPackage.DataBase;
 import MainPackage.Globals;
+import MainPackage.Globals.FormType;
 
 public class MainMapFrame implements ActionListener 
 {
@@ -33,14 +38,18 @@ public class MainMapFrame implements ActionListener
 	private JButton mapButton;
 	private JButton addForecastButton;
 	private JButton addProductButton;
+	private JButton initProductButton;
 	private Analyzer analyzer;
 	private String userName;
 	private JLabel copyRight;
+	private JButton treeViewButton;
+	private DataBase db;
 
 	public MainMapFrame(String userName, CallBack<Integer> callBack) 
 	{
 		this.callBack = callBack;
 		analyzer = new Analyzer();
+		db = new DataBase();
 		this.userName = userName;
 		initialize();
 	}
@@ -53,7 +62,7 @@ public class MainMapFrame implements ActionListener
 		frame.setVisible(true);
 		frame.setLayout(null);
 		frame.getRootPane().setFocusable(true);
-		frame.setBounds(400, 100, 500, 500);
+		frame.setBounds(400, 100, 505, 500);
 		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		frame.addWindowListener(new WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) 
@@ -78,27 +87,39 @@ public class MainMapFrame implements ActionListener
 		
 		panel = new JPanel();
 		panel.setLocation(0 , 0);
-		panel.setSize(500, 500);
+		panel.setSize(505, 500);
 		panel.setLayout(null);
 		frame.add(panel);
 		
 		mapButton = new JButton("<html><b>Map View</b></html>");
-		mapButton.setLocation(30 , 30);
+		mapButton.setLocation(20 , 30);
 		mapButton.setSize(100, 60);
 		mapButton.addActionListener(this);
 		panel.add(mapButton);
 		
 		addForecastButton = new JButton("<html><b>Add Forecast</b></html>");
-		addForecastButton.setLocation(150 , 30);
+		addForecastButton.setLocation(140 , 30);
 		addForecastButton.setSize(100, 60);
 		addForecastButton.addActionListener(this);
 		panel.add(addForecastButton);
 		
 		addProductButton = new JButton("<html><b>Add Product</b></html>");
-		addProductButton.setLocation(270 , 30);
+		addProductButton.setLocation(260 , 30);
 		addProductButton.setSize(100, 60);
 		addProductButton.addActionListener(this);
 		panel.add(addProductButton);
+		
+		initProductButton = new JButton("<html><b>Init Product</b></html>");
+		initProductButton.setLocation(380 , 30);
+		initProductButton.setSize(100, 60);
+		initProductButton.addActionListener(this);
+		panel.add(initProductButton);
+		
+		treeViewButton = new JButton("<html><b>Tree View</b></html>");
+		treeViewButton.setLocation(20 , 100);
+		treeViewButton.setSize(100, 60);
+		treeViewButton.addActionListener(this);
+		panel.add(treeViewButton);
 		
 		copyRight = new JLabel("<html><b>\u00a9 Naor Dalal</b></html>");
 		copyRight.setLocation(30 , 430);
@@ -118,7 +139,7 @@ public class MainMapFrame implements ActionListener
 			boolean canEdit = false;
 			ReportViewFrame mapFrame = new ReportViewFrame(columns, rows, canEdit , new ArrayList<Integer>());
 			
-			mapFrame.setCallBacks(getValueCellChangeAction(), getDoubleLeftClickAction(map, mapFrame), getRightClickAction());
+			mapFrame.setCallBacks(null , getMapDoubleLeftClickAction(map, mapFrame), null);
 			
 			mapFrame.show();
 
@@ -131,38 +152,44 @@ public class MainMapFrame implements ActionListener
 		{
 			new AddProductFrame(userName);
 		}
-		
-	}
-	
-	public CallBack<Object> getValueCellChangeAction()
-	{
-		CallBack<Object> valueCellChangeAction = new CallBack<Object>()
+		else if(event.getSource() == initProductButton)
 		{
-			@Override
-			public Object execute(Object... objects) 
-			{
-		        return null;
-			}
-		};
-		
-		return valueCellChangeAction;
-	}
-	
-	public CallBack<Object> getRightClickAction()
-	{
-		CallBack<Object> rightClickAction = new CallBack<Object>()
+			List<FormType> formsType = new ArrayList<>();
+			formsType.add(FormType.FC);
+			formsType.add(FormType.WO);
+			formsType.add(FormType.PO);
+			formsType.add(FormType.SHIPMENT);
+			new InitProductFrame(userName, formsType);
+		}
+		else if(event.getSource() == treeViewButton)
 		{
-			@Override
-			public Object execute(Object... objects) 
+			List<Tree> trees = db.getAllTrees(userName);
+			String [] columns;
+			String [][] rows;
+			
+			List<Integer> invalidEditableColumns = new ArrayList<Integer>();
+			if(trees.size() > 0)
 			{
-				return null;
+				columns = trees.get(0).getColumns();
+				invalidEditableColumns = trees.get(0).getInvalidEditableColumns();
+				rows = trees.stream().map(t -> t.getRow()).toArray(String[][]::new);
 			}
-		};
+			else
+			{
+				columns = new String [0];
+				rows = new String[0][0];
+			}
+			
+			boolean canEdit = true;
+			ReportViewFrame treeFrame = new ReportViewFrame(columns, rows, canEdit, invalidEditableColumns);
+			treeFrame.setCallBacks(getTreeValueCellChangeAction(treeFrame, trees), null, null);
+			
+			treeFrame.show();
+		}
 		
-		return rightClickAction;
 	}
-	
-	public CallBack<Object> getDoubleLeftClickAction(Map<MonthDate, Map<String, ProductColumn>> map , ReportViewFrame mapFrame)
+		
+	public CallBack<Object> getMapDoubleLeftClickAction(Map<MonthDate, Map<String, ProductColumn>> map , ReportViewFrame mapFrame)
 	{
 		CallBack<Object> doubleLeftClickAction = new CallBack<Object>()
 		{
@@ -230,5 +257,39 @@ public class MainMapFrame implements ActionListener
 		};
 		
 		return doubleLeftClickAction;
+	}
+	
+	public CallBack<Object> getTreeValueCellChangeAction(ReportViewFrame treeFrame , List<Tree> trees)
+	{
+		CallBack<Object> valueCellChangeAction = new CallBack<Object>()
+		{
+			@Override
+			public Object execute(Object... objects) 
+			{
+				TableCellListener tcl = (TableCellListener)objects[0];
+				int row = tcl.getRow();
+				int column = tcl.getColumn();
+				String newValue = (String) tcl.getNewValue();
+				String oldValue = (String) tcl.getOldValue();
+				Tree tree = trees.get(row);
+				try
+				{
+					tree.updateValue(userName , column , newValue);
+				} 
+				catch (Exception e) 
+				{
+					treeFrame.updateCellValue(row,column,oldValue);
+					JOptionPane.showConfirmDialog(null, e.getMessage() ,"Error",JOptionPane.PLAIN_MESSAGE);
+					return e;
+				}
+							
+				treeFrame.refresh(db.getAllTrees(userName).stream().map(t -> t.getRow()).toArray(String[][]::new));
+				treeFrame.setColumnWidth();
+				
+				return null;
+			}
+		};
+		
+		return valueCellChangeAction;
 	}
 }

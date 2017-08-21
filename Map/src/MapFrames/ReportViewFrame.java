@@ -220,9 +220,14 @@ public class ReportViewFrame
 
 	public void refresh(String[][] rows) 
 	{
-		for(int row = 0 ; row < content.length ; row++)
-			for(int column = 0 ; column < content[row].length ; column++)
-				table.getModel().setValueAt(rows[row][column], row, column);
+		for(int rowIndex = content.length - 1 ; rowIndex >= 0 ; rowIndex --)
+				removeRow(rowIndex);
+		
+		DefaultTableModel model = (DefaultTableModel)table.getModel();
+		for(int row = 0 ; row < rows.length ; row++)
+				model.addRow(rows[row]);
+
+		this.content = rows;
 		
 	}
 
@@ -286,6 +291,13 @@ public class ReportViewFrame
         col.setWidth(width);
         return width;
     }
+
+	public void removeRow(int row) 
+	{
+		int modelIndex = table.convertRowIndexToModel(row); 
+        DefaultTableModel model = (DefaultTableModel)table.getModel();
+        model.removeRow(modelIndex);
+	}
     
 
 }

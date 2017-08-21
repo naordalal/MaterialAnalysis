@@ -3,12 +3,19 @@ package Forms;
 import java.util.Date;
 import java.util.List;
 
+import MainPackage.Globals.FormType;
+
 public abstract class Form 
 {
 	private int id;
 	private String catalogNumber;
 	private String quantity;
 	private Date requestDate , createDate;
+	
+	public Form() 
+	{
+		
+	}
 	
 	public Form(int id , String catalogNumber , String quantity , Date createDate , Date requestDate) 
 	{
@@ -76,4 +83,30 @@ public abstract class Form
 	public abstract void updateValue(int column, String newValue) throws Exception;
 	
 	public abstract List<Integer> getInvalidEditableColumns();
+
+	public static boolean isNeedRequireDate(String className) 
+	{
+		try {
+			Class<? extends Form> form = (Class<? extends Form>) Class.forName(className);
+			return form.newInstance().isNeedRequireDate();
+		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
+	public static boolean isNeedInit(String className) 
+	{
+		try {
+			Class<? extends Form> form = (Class<? extends Form>) Class.forName(className);
+			return form.newInstance().isNeedInit();
+		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
+	public abstract boolean isNeedRequireDate();
+	
+	public abstract boolean isNeedInit();
 }

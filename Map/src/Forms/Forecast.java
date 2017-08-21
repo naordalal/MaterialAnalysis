@@ -16,6 +16,11 @@ public class Forecast extends Form
 	private String description;
 	private String notes;
 
+	public Forecast() 
+	{
+		super();
+	}
+	
 	public Forecast(int id , String customer , String catalogNumber , String quantity , Date initDate , Date requireDate , String description , String notes) 
 	{
 		super(id , catalogNumber, quantity, initDate, requireDate);
@@ -140,6 +145,18 @@ public class Forecast extends Form
 		List<Integer> columns = new ArrayList<>();
 		columns.add(4);
 		return columns;
+	}
+
+	@Override
+	public boolean isNeedRequireDate() 
+	{
+		return true;
+	}
+
+	@Override
+	public boolean isNeedInit() 
+	{
+		return true;
 	}
 
 }

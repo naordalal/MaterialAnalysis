@@ -23,6 +23,7 @@ import AnalyzerTools.QuantityPerDate;
 import Forms.CustomerOrder;
 import Forms.Forecast;
 import Forms.Shipment;
+import Forms.Tree;
 import Forms.WorkOrder;
 import MainPackage.Globals;
 import MainPackage.Globals.FormType;
@@ -1327,7 +1328,6 @@ public class DataBase {
 				try {
 					c.rollback();
 				} catch (SQLException e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 				closeConnection();
@@ -1344,7 +1344,7 @@ public class DataBase {
 			connect();
 			for (String customer : customers) 
 			{
-				stmt = (userName == null) ? c.prepareStatement("SELECT CN,description FROM Tree") : c.prepareStatement("SELECT CN,description FROM Tree where customer = ?");
+				stmt = (userName == null) ? c.prepareStatement("SELECT distinct CN,description FROM Tree") : c.prepareStatement("SELECT distinct CN,description FROM Tree where customer = ?");
 				if(userName != null)
 					stmt.setString(1, customer);
 				ResultSet rs = stmt.executeQuery();
@@ -1440,8 +1440,9 @@ public class DataBase {
 		return getProductFormQuantityOnDate(catalogNumber , monthDate , FormType.FC);
 	}
 	
-	public Pair<String,Integer> getFather(String catalogNumber) 
+	public List<Pair<String,Integer>> getFathers(String catalogNumber) 
 	{
+		List<Pair<String,Integer>> fathers = new ArrayList<>();
 		Pair<String,Integer> father;
 		try{
 			
@@ -1450,7 +1451,7 @@ public class DataBase {
 			stmt.setString(1, catalogNumber);
 			ResultSet rs = stmt.executeQuery();
 			
-			if(rs.next())
+			while(rs.next())
 			{
 				String fatherCatalogNumber = rs.getString("fatherCN");
 				if(fatherCatalogNumber == null || fatherCatalogNumber.trim().equals(""))
@@ -1463,19 +1464,19 @@ public class DataBase {
 					else
 						father = new Pair<String,Integer>(fatherCatalogNumber, 0);
 				}
+				
+				fathers.add(father);
 			}
-			else
-				father = new Pair<String,Integer>(null, null);
 			
 			closeConnection();
-			return father;
+			return fathers;
 		
 		}
 		catch(Exception e)
 		{
 			e.printStackTrace();
 			closeConnection();
-			return new Pair<String,Integer>(null, null);
+			return new ArrayList<>();
 		}
 	}
 	
@@ -1515,9 +1516,10 @@ public class DataBase {
 			
 			connect();
 			stmt = c.prepareStatement("UPDATE Tree SET alias = ? where CN = ?");
-			stmt.setString(1, catalogNumber);
-			stmt.setString(2, alias);
+			stmt.setString(1, alias);
+			stmt.setString(2, catalogNumber);
 			stmt.executeUpdate();
+			
 			
 			c.commit();
 			closeConnection();
@@ -1540,7 +1542,7 @@ public class DataBase {
 		try{
 			
 			connect();
-			stmt = c.prepareStatement("UPDATE Tree SET quantity = ? where CN = ? and fatherCN = ?");
+			stmt = c.prepareStatement("UPDATE Tree SET quantity = ? where CN = ? AND fatherCN = ?");
 			stmt.setString(1, quantity);
 			stmt.setString(2, catalogNumber);
 			stmt.setString(3, father);
@@ -1734,7 +1736,7 @@ public class DataBase {
 			connect();
 			while(!done)
 			{
-				stmt = c.prepareStatement("SELECT alias FROM Tree where CN = ?");
+				stmt = c.prepareStatement("SELECT distinct alias FROM Tree where CN = ?");
 				stmt.setString(1, descendantCatalogNumber);
 				ResultSet rs = stmt.executeQuery();
 				
@@ -2176,7 +2178,7 @@ public class DataBase {
 		try{
 			
 			connect();
-			stmt = c.prepareStatement("SELECT customer FROM Tree where CN = ?");
+			stmt = c.prepareStatement("SELECT distinct customer FROM Tree where CN = ?");
 			stmt.setString(1, catalogNumber);
 			ResultSet rs = stmt.executeQuery();
 			
@@ -2240,7 +2242,7 @@ public class DataBase {
 		try{
 			
 			connect();
-			stmt = c.prepareStatement("SELECT CN FROM Tree where customer = ?");
+			stmt = c.prepareStatement("SELECT distinct CN FROM Tree where customer = ?");
 			stmt.setString(1, customer);
 			ResultSet rs = stmt.executeQuery();
 			
@@ -2262,7 +2264,81 @@ public class DataBase {
 		}
 		
 	}
+	public List<Tree> getAllTrees(String userName) 
+	{
+		List<Tree> trees = new ArrayList<>();
+		
+		for (String catalogNumber : getAllCatalogNumbers(userName)) 
+		{
+			try{
+				
+				connect();
+				stmt = c.prepareStatement("SELECT distinct * FROM Tree where CN = ?");
+				stmt.setString(1, catalogNumber);
+				ResultSet rs = stmt.executeQuery();
+				
+				while(rs.next())
+				{
+					String customer = rs.getString("customer");
+					String description = rs.getString("description");
+					String fatherCN = rs.getString("fatherCN");
+					String quantity = rs.getString("quantity"); 
+					String alias = rs.getString("alias");
+					Tree tree = new Tree(catalogNumber, customer, description, fatherCN, quantity, alias);
+					
+					trees.add(tree);
+				}
+				
+				closeConnection();
+			
+			}
+			catch(Exception e)
+			{
+				e.printStackTrace();
+				closeConnection();
+				return new ArrayList<>();
+			}
+		}
+		
+		return trees;
+	}
 	
+	public void updateDescription(String catalogNumber, String description) 
+	{
+		try{
+			
+			connect();
+			stmt = c.prepareStatement("UPDATE Tree SET description = ? where CN = ?");
+			stmt.setString(1, description);
+			stmt.setString(2, catalogNumber);
+			stmt.executeUpdate();
+			
+			c.commit();
+			closeConnection();
+		
+		}
+		catch(Exception e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			e.printStackTrace();
+			closeConnection();
+		}
+		
+	}
+
+	
+	public void updateTree(String catalogNumber, String description, String fatherCN, String quantity, String alias) 
+	{
+		updateAlias(catalogNumber, alias);
+		updateQuantityToAssociate(catalogNumber, fatherCN, quantity);
+		updateDescription(catalogNumber , description);
+		
+	}
+		
 	
 	
 

@@ -20,6 +20,7 @@ import javax.swing.KeyStroke;
 
 import org.apache.poi.ss.usermodel.Font;
 
+import Components.MultiSelectionComboBox;
 import MainPackage.DataBase;
 import MainPackage.Globals;
 
@@ -37,18 +38,14 @@ public class AddProductFrame implements ActionListener
 	private JLabel descriptionLabel;
 	private JTextArea descriptionText;
 	private JLabel fatherLabel;
-	private JComboBox<String> fatherComboBox;
-	private JLabel quantityLabel;
-	private JTextField quantityText;
+	private MultiSelectionComboBox<String> fatherComboBox;
 	private JButton addProductButton;
 	private JLabel copyRight;
-	private String currentFatherCatalogNumber;
 	
 	public AddProductFrame(String userName) 
 	{
 		this.userName = userName;
 		db = new DataBase();
-		this.currentFatherCatalogNumber = "";
 		initialize();
 	}
 
@@ -134,24 +131,11 @@ public class AddProductFrame implements ActionListener
 		
 		model.setSelectedItem(null);
 		
-		fatherComboBox = new JComboBox<String>(model);
+		fatherComboBox = new MultiSelectionComboBox<String>(model);
 		fatherComboBox.setLocation(150, 310);
 		fatherComboBox.setSize(150, 20);
-		fatherComboBox.addActionListener(this);
 		panel.add(fatherComboBox);
-		
-		quantityLabel = new JLabel("<html><u>Quantity:</u></html>");
-		quantityLabel.setLocation(30, 340);
-		quantityLabel.setSize(100,100);
-		quantityLabel.setVisible(false);
-		panel.add(quantityLabel);
-		
-		quantityText = new JTextField();
-		quantityText.setLocation(150, 380);
-		quantityText.setSize(150, 20);
-		quantityText.setVisible(false);
-		panel.add(quantityText);
-		
+			
 		addProductButton = new JButton();
 		addProductButton.setLocation(200, 420);
 		addProductButton.setSize(80 , 40);
@@ -188,34 +172,6 @@ public class AddProductFrame implements ActionListener
 				fatherComboBoxModel.setSelectedItem(null);
 			}
 		}
-		else if(event.getSource() == fatherComboBox)
-		{
-			DefaultComboBoxModel<String> fatherComboBoxModel = (DefaultComboBoxModel<String>) fatherComboBox.getModel();
-			if(fatherComboBoxModel.getSelectedItem() != null)
-			{
-				if(currentFatherCatalogNumber.equals(fatherComboBoxModel.getSelectedItem()))
-				{
-					fatherComboBoxModel.setSelectedItem(null);	
-					quantityLabel.setVisible(false);
-					quantityText.setVisible(false);
-					quantityText.setText("");
-					currentFatherCatalogNumber = "";
-				}
-				else
-				{
-					quantityLabel.setVisible(true);
-					quantityText.setVisible(true);
-					currentFatherCatalogNumber = (String) fatherComboBoxModel.getSelectedItem();
-				}
-			}
-			else
-			{
-				quantityLabel.setVisible(false);
-				quantityText.setVisible(false);
-				quantityText.setText("");
-				currentFatherCatalogNumber = "";
-			}
-		}
 		else if(event.getSource() == addProductButton)
 		{			
 			if(catalogNumberText.getText().trim().equals(""))
@@ -230,25 +186,46 @@ public class AddProductFrame implements ActionListener
 				return;
 			}
 			
-			DefaultComboBoxModel<String> fatherComboBoxModel = (DefaultComboBoxModel<String>) fatherComboBox.getModel();
-			if(fatherComboBoxModel.getSelectedItem() != null)
-			{
-				if(!org.apache.commons.lang3.StringUtils.isNumeric(quantityText.getText().trim()))
-				{
-					JOptionPane.showConfirmDialog(null, "Please enter a valid quantity","",JOptionPane.PLAIN_MESSAGE);
-					return;
-				}
-			}
-			
 			String catalogNumber = catalogNumberText.getText().trim();
 			DefaultComboBoxModel<String> customerComboBoxModel = (DefaultComboBoxModel<String>) customerComboBox.getModel();
 			String customer = (String) customerComboBoxModel.getSelectedItem();
 			String description = descriptionText.getText().trim();
-			String father = (fatherComboBoxModel.getSelectedItem() == null) ? null : (String) fatherComboBoxModel.getSelectedItem();
-			String quantity = (fatherComboBoxModel.getSelectedItem() == null) ? "0" : quantityText.getText().trim();
 			
-			db.addNewProduct(catalogNumber, customer, description, father, quantity);
+			List<String> fathers = fatherComboBox.getSelectedItems();
+			
+			if(fathers.size() > 0)
+			{				
+				for (String father : fatherComboBox.getSelectedItems()) 
+				{
+					boolean validInput = false;
+					String quantity = "";
+					while(!validInput)
+					{
+						quantity = JOptionPane.showInputDialog(null , "Enter quantity for " + father , "Quantity To Associate" , JOptionPane.OK_OPTION);
+						if(quantity == null || !org.apache.commons.lang3.StringUtils.isNumeric(quantity.trim()))
+						{
+							JOptionPane.showConfirmDialog(null, "Please enter a valid quantity","",JOptionPane.PLAIN_MESSAGE);
+							continue;	
+						}
+						
+						validInput = true;
+					}
+					
+					db.addNewProduct(catalogNumber, customer, description, father, quantity.trim());
+				}
+			}
+			else
+				db.addNewProduct(catalogNumber, customer, description, "", "0");
+
+			
 			JOptionPane.showConfirmDialog(null, "Added successfully","",JOptionPane.PLAIN_MESSAGE);
+			
+			catalogNumberText.setText("");
+			fatherComboBox.removeAllSelectedItem();
+			fatherComboBox.setSelectedIndex(-1);
+			descriptionText.setText("");
+			
+			catalogNumberText.requestFocusInWindow();
 			
 		}
 		

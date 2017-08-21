@@ -15,6 +15,11 @@ public class Shipment extends Form
 	private String description;
 	private String orderCustomerId;
 	
+	public Shipment() 
+	{
+		super();
+	}
+	
 	public Shipment(int id , String customer , String orderId , String orderCustomerId , String catalogNumber , String quantity , Date shipmentDate , String description) 
 	{
 		super(id , catalogNumber,quantity,shipmentDate,shipmentDate);
@@ -146,5 +151,17 @@ public class Shipment extends Form
 	{
 		List<Integer> columns = new ArrayList<>();
 		return columns;
+	}
+
+	@Override
+	public boolean isNeedRequireDate() 
+	{
+		return false;
+	}
+
+	@Override
+	public boolean isNeedInit() 
+	{
+		return false;
 	}
 }

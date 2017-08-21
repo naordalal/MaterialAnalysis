@@ -20,6 +20,7 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 
+import Forms.Forecast;
 import MainPackage.DataBase;
 import MainPackage.Globals;
 import MainPackage.Globals.FormType;
@@ -172,14 +173,14 @@ public class LoginFrame implements ActionListener
 				try 
 				{
 					UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-					//new LoginFrame();
+					new LoginFrame();
 					//new AddProductFrame("1");
-					List<FormType> formsType = new ArrayList<>();
+					/*List<FormType> formsType = new ArrayList<>();
 					formsType.add(FormType.FC);
 					formsType.add(FormType.WO);
 					formsType.add(FormType.PO);
 					formsType.add(FormType.SHIPMENT);
-					new InitProductFrame("1", formsType);
+					new InitProductFrame("1", formsType);*/
 				} 
 				catch (Exception e) 
 				{

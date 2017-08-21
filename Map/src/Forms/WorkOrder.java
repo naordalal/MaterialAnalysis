@@ -15,6 +15,11 @@ public class WorkOrder extends Form
 	private String customer;
 	private String description;
 
+	public WorkOrder()
+	{
+		super();
+	}
+	
 	public WorkOrder(int id , String woNumber , String catalogNumber , String quantity , String customer , Date date , String description)
 	{
 		super(id , catalogNumber, quantity, date , date);
@@ -131,6 +136,18 @@ public class WorkOrder extends Form
 	{
 		List<Integer> columns = new ArrayList<>();
 		return columns;
+	}
+
+	@Override
+	public boolean isNeedRequireDate() 
+	{
+		return false;
+	}
+
+	@Override
+	public boolean isNeedInit() 
+	{
+		return true;
 	}
 
 }

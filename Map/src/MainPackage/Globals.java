@@ -46,6 +46,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.xmlbeans.impl.util.Base64;
 
 import FollowUpAndExpediteFrames.FollowUpAndExpediteMenu;
+import MainPackage.Globals.FormType;
 
 public class Globals {
 
@@ -566,6 +567,24 @@ public class Globals {
 				return "Shipments";
 			case FC:
 				return "Forecast";
+			default:
+				return "";
+		}
+	}
+
+
+	public String getClassName(FormType type)
+	{
+		switch(type)
+		{
+			case PO:
+				return "Forms.CustomerOrder";
+			case WO:
+				return "Forms.WorkOrder";
+			case SHIPMENT:
+				return "Forms.Shipment";
+			case FC:
+				return "Forms.Forecast";
 			default:
 				return "";
 		}
