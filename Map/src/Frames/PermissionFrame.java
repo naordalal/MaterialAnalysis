@@ -20,8 +20,8 @@ import javax.swing.KeyStroke;
 
 import org.apache.poi.ss.usermodel.Font;
 
-import mainPackage.DataBase;
-import mainPackage.Globals;
+import MainPackage.DataBase;
+import MainPackage.Globals;
 
 
 public class PermissionFrame implements ActionListener{

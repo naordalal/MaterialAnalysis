@@ -19,9 +19,9 @@ import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import mainPackage.Activity;
-import mainPackage.Globals;
-import mainPackage.noValidEmailException;
+import MainPackage.Activity;
+import MainPackage.Globals;
+import MainPackage.noValidEmailException;
 
 public class ActivitySender extends Sender<List<String>>
 {

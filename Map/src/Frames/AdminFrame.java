@@ -21,8 +21,8 @@ import javax.swing.UIManager;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
-import mainPackage.DataBase;
-import mainPackage.Globals;
+import MainPackage.DataBase;
+import MainPackage.Globals;
 
 public class AdminFrame implements ActionListener 
 {

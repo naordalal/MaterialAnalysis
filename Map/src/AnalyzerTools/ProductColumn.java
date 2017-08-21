@@ -1,6 +1,6 @@
 package AnalyzerTools;
 
-import mainPackage.Globals.FormType;
+import MainPackage.Globals.FormType;
 
 public class ProductColumn 
 {

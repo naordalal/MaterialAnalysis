@@ -7,7 +7,7 @@ import javax.mail.*;
 import javax.mail.internet.*;
 import com.google.common.base.CharMatcher;
 
-import mainPackage.noValidEmailException;
+import MainPackage.noValidEmailException;
 
 import javax.activation.*;
 

@@ -17,10 +17,10 @@ import Forms.Forecast;
 import Forms.Form;
 import Forms.Shipment;
 import Forms.WorkOrder;
-import mainPackage.DataBase;
-import mainPackage.Globals;
-import mainPackage.Globals.FormType;
-import mainPackage.Pair;
+import MainPackage.DataBase;
+import MainPackage.Globals;
+import MainPackage.Pair;
+import MainPackage.Globals.FormType;
 
 public class Analyzer 
 {

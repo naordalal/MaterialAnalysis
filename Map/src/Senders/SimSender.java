@@ -31,11 +31,11 @@ import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import mainPackage.Excel;
-import mainPackage.Globals;
-import mainPackage.Pair;
-import mainPackage.SimGlobals;
-import mainPackage.noValidEmailException;
+import MainPackage.Excel;
+import MainPackage.Globals;
+import MainPackage.Pair;
+import MainPackage.SimGlobals;
+import MainPackage.noValidEmailException;
 
 public class SimSender extends Sender{
 

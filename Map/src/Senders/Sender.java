@@ -18,8 +18,8 @@ import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import mainPackage.Globals;
-import mainPackage.noValidEmailException;
+import MainPackage.Globals;
+import MainPackage.noValidEmailException;
 
 public abstract class Sender<T>
 {

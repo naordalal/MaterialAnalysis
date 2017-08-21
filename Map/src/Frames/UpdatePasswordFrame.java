@@ -14,9 +14,9 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.KeyStroke;
 
-import mainPackage.CallBack;
-import mainPackage.DataBase;
-import mainPackage.Globals;
+import MainPackage.CallBack;
+import MainPackage.DataBase;
+import MainPackage.Globals;
 
 public class UpdatePasswordFrame implements ActionListener
 {

@@ -4,7 +4,7 @@ import java.text.DateFormatSymbols;
 import java.util.Date;
 import java.util.Locale;
 
-import mainPackage.Globals;
+import MainPackage.Globals;
 
 public class MonthDate extends Date
 {

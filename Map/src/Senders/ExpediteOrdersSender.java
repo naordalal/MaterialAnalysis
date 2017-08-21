@@ -30,10 +30,10 @@ import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import mainPackage.Excel;
-import mainPackage.Globals;
-import mainPackage.Pair;
-import mainPackage.noValidEmailException;
+import MainPackage.Excel;
+import MainPackage.Globals;
+import MainPackage.Pair;
+import MainPackage.noValidEmailException;
 
 public class ExpediteOrdersSender extends Sender
 {

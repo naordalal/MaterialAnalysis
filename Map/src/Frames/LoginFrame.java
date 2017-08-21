@@ -18,8 +18,8 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 
-import mainPackage.DataBase;
-import mainPackage.Globals;
+import MainPackage.DataBase;
+import MainPackage.Globals;
 
 public class LoginFrame implements ActionListener 
 {

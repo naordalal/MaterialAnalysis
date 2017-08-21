@@ -7,7 +7,7 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
 import AnalyzerTools.Analyzer;
-import mainPackage.Globals;
+import MainPackage.Globals;
 
 public class Forecast extends Form
 {

@@ -15,10 +15,12 @@ import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 
-import mainPackage.CallBack;
-import mainPackage.DataBase;
-import mainPackage.Globals;
-import mainPackage.Globals.FormType;
+import FollowUpAndExpediteFrames.FollowUpAndExpediteMenu;
+import MainPackage.CallBack;
+import MainPackage.DataBase;
+import MainPackage.Globals;
+import MainPackage.Globals.FormType;
+import MapFrames.MainMapFrame;
 
 public class SelectionWindowFrame implements ActionListener 
 {
