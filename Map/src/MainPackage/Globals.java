@@ -554,4 +554,21 @@ public class Globals {
 		return parseDate;
 	}
 	
+	public String FormTypeToString(FormType type)
+	{
+		switch(type)
+		{
+			case PO:
+				return "Customer Order";
+			case WO:
+				return "Work Order";
+			case SHIPMENT:
+				return "Shipments";
+			case FC:
+				return "Forecast";
+			default:
+				return "";
+		}
+	}
+	
 }

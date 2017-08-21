@@ -1,45 +1,26 @@
 package MapFrames;
 
-import java.awt.Component;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.RenderingHints.Key;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.swing.AbstractAction;
-import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
-import javax.swing.event.CaretEvent;
-import javax.swing.event.CaretListener;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.JTextComponent;
-
 import org.apache.poi.ss.usermodel.Font;
 
 import AnalyzerTools.Analyzer;
@@ -66,9 +47,11 @@ public class AddForecastFrame extends KeyAdapter implements ActionListener
 	private Map<String, String> productPerDescription;
 	private String currentCatalogNumber;
 	private JLabel copyRight;
+	private String userName;
 	
-	public AddForecastFrame() 
+	public AddForecastFrame(String userName) 
 	{
+		this.userName = userName;
 		analyzer = new Analyzer();
 		db = new DataBase();
 		initialize();
@@ -77,7 +60,7 @@ public class AddForecastFrame extends KeyAdapter implements ActionListener
 	private void initialize() 
 	{
 		globals = new Globals();
-		productPerDescription = db.getAllCatalogNumbers();
+		productPerDescription = db.getAllCatalogNumbersPerDescription(userName);
 		currentCatalogNumber = "";
 		
 		frame = new JFrame("New Forecast");

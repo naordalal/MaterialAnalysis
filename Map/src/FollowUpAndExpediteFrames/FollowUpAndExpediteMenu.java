@@ -19,11 +19,11 @@ import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 
+import Components.MultiSelectionComboBox;
 import MainPackage.Activity;
 import MainPackage.CallBack;
 import MainPackage.DataBase;
 import MainPackage.Globals;
-import MainPackage.MultiSelectionComboBox;
 import MainPackage.SocialAuth;
 import Senders.ActivitySender;
 import Senders.Sender;

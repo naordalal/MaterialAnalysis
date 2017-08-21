@@ -126,7 +126,7 @@ public class SelectionWindowFrame implements ActionListener
 		}
 		else if(event.getSource() == mapButton)
 		{
-			new MainMapFrame(userName , password , new CallBack<Integer>() {
+			new MainMapFrame(userName , new CallBack<Integer>() {
 				
 				@Override
 				public Integer execute(Object... objects) {

@@ -36,7 +36,7 @@ public class Analyzer
 	public void addNewFC(String customer , String catalogNumber , String quantity , String initDate , String requireDate , String description , String notes)
 	{
 		db.addFC(customer, catalogNumber, quantity, initDate, requireDate, description , notes);
-		updateProductQuantities(catalogNumber);
+		updateProductQuantities(catalogNumber , FormType.FC);
 	}
 	
 	public void updateFC(int id , String customer , String catalogNumber , String quantity , String initDate , String requireDate , String description , String notes)
@@ -44,7 +44,7 @@ public class Analyzer
 		int remainder = Integer.parseInt(getForecast(id).getQuantity()) - Integer.parseInt(quantity);
 		boolean successUpdate = db.updateFC(id,customer, catalogNumber, quantity, initDate, requireDate, description , notes);
 		if(remainder != 0 && successUpdate)
-			updateProductQuantities(catalogNumber);
+			updateProductQuantities(catalogNumber , FormType.FC);
 	}
 	
 	public void removeFC(int id)
@@ -101,16 +101,43 @@ public class Analyzer
 		db.cleanProductQuantityPerDate(catalogNumber , FormType.SHIPMENT);
 		db.cleanProductQuantityPerDate(catalogNumber , FormType.FC);
 		
-		updateProductQuantities(db.getAllFC(catalogNumber), db.getAllProductsFCQuantityPerDate(catalogNumber),db.getInitProductsFCQuantityPerDate(catalogNumber),db.getInitProductsFCDates(catalogNumber) , FormType.FC);
-		updateProductQuantities(db.getAllWO(catalogNumber), db.getAllProductsWOQuantityPerDate(catalogNumber),db.getInitProductsWOQuantityPerDate(catalogNumber),db.getInitProductsWODates(catalogNumber) , FormType.FC);
-		updateProductQuantities(db.getAllPO(catalogNumber), db.getAllProductsPOQuantityPerDate(catalogNumber),db.getInitProductsPOQuantityPerDate(catalogNumber),db.getInitProductsPODates(catalogNumber) , FormType.FC);
-		updateProductQuantities(db.getAllShipments(catalogNumber), db.getAllProductsShipmentQuantityPerDate(catalogNumber),db.getInitProductsShipmentsQuantityPerDate(catalogNumber),db.getInitProductsShipmentsDates(catalogNumber) , FormType.FC);
-		
+		updateProductQuantities(catalogNumber);
+	}
+	
+	public void addNewInitProductCustomerOrders (String catalogNumber, String initDate, String quantity, String requireDate, FormType type)
+	{
+		db.addNewInitProductCustomerOrders(catalogNumber, initDate, quantity, requireDate, type);
+		updateProductQuantities(catalogNumber , type);
+	}
+	
+	public void updateProductQuantities(String catalogNumber , FormType type)
+	{
+		switch (type) 
+		{
+		case PO:
+			updateProductQuantities(db.getAllPO(catalogNumber), db.getAllProductsPOQuantityPerDate(catalogNumber),db.getInitProductsPOQuantityPerDate(catalogNumber),db.getInitProductsPODates(catalogNumber) , FormType.PO);
+			return;
+		case WO:
+			updateProductQuantities(db.getAllWO(catalogNumber), db.getAllProductsWOQuantityPerDate(catalogNumber),db.getInitProductsWOQuantityPerDate(catalogNumber),db.getInitProductsWODates(catalogNumber) , FormType.WO);
+			return;
+		case SHIPMENT:
+			updateProductQuantities(db.getAllShipments(catalogNumber), db.getAllProductsShipmentQuantityPerDate(catalogNumber),db.getInitProductsShipmentsQuantityPerDate(catalogNumber),db.getInitProductsShipmentsDates(catalogNumber) , FormType.SHIPMENT);
+			return;
+		case FC:
+			updateProductQuantities(db.getAllFC(catalogNumber), db.getAllProductsFCQuantityPerDate(catalogNumber),db.getInitProductsFCQuantityPerDate(catalogNumber),db.getInitProductsFCDates(catalogNumber) , FormType.FC);
+			return;
+		default:
+			return;
+		}
+
 	}
 	
 	public void updateProductQuantities(String catalogNumber)
 	{
-		updateProductQuantities(db.getAllFC(catalogNumber), db.getAllProductsFCQuantityPerDate(catalogNumber),db.getInitProductsFCQuantityPerDate(catalogNumber),db.getInitProductsFCDates(catalogNumber) , FormType.FC);
+		updateProductQuantities(catalogNumber , FormType.FC);
+		updateProductQuantities(catalogNumber , FormType.WO);
+		updateProductQuantities(catalogNumber , FormType.PO);
+		updateProductQuantities(catalogNumber , FormType.SHIPMENT);
 	}
 	
 
@@ -202,11 +229,11 @@ public class Analyzer
 	    
 	}
 	
-	public Map<MonthDate,Map<String,ProductColumn>> calculateMap()
+	public Map<MonthDate,Map<String,ProductColumn>> calculateMap(String userName)
 	{
 		
 		Map<MonthDate,Map<String,ProductColumn>> map = new HashMap<MonthDate,Map<String,ProductColumn>>();
-		Map<String,String> catalogNumbers = db.getAllCatalogNumbers();
+		Map<String,String> catalogNumbers = db.getAllCatalogNumbersPerDescription(userName);
 		
 		MonthDate maximumDate = db.getMaximumForecastDate();
 		MonthDate minimumDate = db.getMinimumInitDate();
@@ -355,7 +382,8 @@ public class Analyzer
 		if(type == null)
 			return null;
 		
-		switch (type) {
+		switch (type) 
+		{
 		case PO:
 			return getAllCustomerOrdersOnMonth(product, date);
 		case WO:

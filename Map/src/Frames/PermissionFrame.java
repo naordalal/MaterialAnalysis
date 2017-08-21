@@ -4,8 +4,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.lang.invoke.MethodHandle;
+import java.util.List;
 
 import javax.swing.AbstractAction;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -20,6 +22,8 @@ import javax.swing.KeyStroke;
 
 import org.apache.poi.ss.usermodel.Font;
 
+import Components.MultiSelectionComboBox;
+import Components.MyComboBoxRenderer;
 import MainPackage.DataBase;
 import MainPackage.Globals;
 
@@ -46,6 +50,8 @@ public class PermissionFrame implements ActionListener{
 	private MethodHandle callbackMethodOfMenu;
 	private JLabel nickNameLabel;
 	private JTextField nickNameText;
+	private JLabel projectsPermissionLabel;
+	private MultiSelectionComboBox<String> projectsPermissionComboBox;
 	
 	public PermissionFrame(DataBase db , String from, MethodHandle callbackMethodOfMenu)
 	{
@@ -167,6 +173,22 @@ public class PermissionFrame implements ActionListener{
 		purchasing.addActionListener(this);
 		panel.add(purchasing);
 		
+		projectsPermissionLabel = new JLabel("Projects:");
+		projectsPermissionLabel.setSize(100 , 20);
+		projectsPermissionLabel.setVisible(false);
+		panel.add(projectsPermissionLabel);
+		
+		DefaultComboBoxModel<String> model = new DefaultComboBoxModel<String>();
+		List<String> projects = db.getAllProjects();
+		for (String project : projects)
+			model.addElement(project);
+		
+		model.setSelectedItem(null);
+		projectsPermissionComboBox = new MultiSelectionComboBox<>(model);
+		projectsPermissionComboBox.setSize(150, 20);
+		projectsPermissionComboBox.setVisible(false);
+		panel.add(projectsPermissionComboBox);
+		
 		signatureLabel = new JLabel("Signature:");
 		signatureLabel.setSize(100 , 20);
 		signatureLabel.setVisible(false);
@@ -208,8 +230,11 @@ public class PermissionFrame implements ActionListener{
 			permission.setLocation(25, 150);
 			purchasing.setLocation(150,150);
 			
-			signatureLabel.setLocation(30, 180);
-			signatureText.setLocation(100, 185);
+			signatureLabel.setLocation(30, 220);
+			signatureText.setLocation(100, 225);
+			
+			projectsPermissionLabel.setLocation(30, 180);
+			projectsPermissionComboBox.setLocation(90, 180);
 			
 			emailLabel.setVisible(true);
 			emailText.setVisible(true);
@@ -226,13 +251,16 @@ public class PermissionFrame implements ActionListener{
 			purchasing.setSelected(false);
 			purchasing.setVisible(true);
 			
+			projectsPermissionLabel.setVisible(true);
+			projectsPermissionComboBox.setVisible(true);
+			
 			signatureText.setText("");
 			
 			nickNameText.requestFocusInWindow();
 			
 			if(!okButton.isVisible())
 			{
-				okButton.setLocation(225, 420);
+				okButton.setLocation(225, 425);
 				okButton.setVisible(true);				
 			}
 			
@@ -259,11 +287,15 @@ public class PermissionFrame implements ActionListener{
 			signatureLabel.setVisible(false);
 			signatureText.setVisible(false);
 			
+			projectsPermissionLabel.setVisible(false);
+			projectsPermissionComboBox.setVisible(false);
+			projectsPermissionComboBox.removeAllSelectedItem();
+			
 			nickNameText.requestFocusInWindow();
 			
 			if(!okButton.isVisible())
 			{
-				okButton.setLocation(225, 400);
+				okButton.setLocation(225, 425);
 				okButton.setVisible(true);				
 			}
 		}
@@ -282,6 +314,8 @@ public class PermissionFrame implements ActionListener{
 					if(db.addUser(nickNameText.getText() , emailText.getText(), new String(passwordField.getPassword()), permission.isSelected() 
 							,purchasingPermission,signatureText.getText()))
 					{
+						db.addCustomersToUser(nickNameText.getText(), projectsPermissionComboBox.getSelectedItems());
+						
 						JOptionPane.showConfirmDialog(null, "success","",JOptionPane.PLAIN_MESSAGE);
 						try {
 							callbackMethodOfMenu.invokeExact();
@@ -302,6 +336,9 @@ public class PermissionFrame implements ActionListener{
 					signatureText.setText("");
 					signatureLabel.setVisible(false);
 					signatureText.setVisible(false);
+					projectsPermissionLabel.setVisible(false);
+					projectsPermissionComboBox.setVisible(false);
+					projectsPermissionComboBox.removeAllSelectedItem();
 					nickNameText.requestFocusInWindow();
 				}
 			}

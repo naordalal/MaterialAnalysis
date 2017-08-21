@@ -1,4 +1,4 @@
-package MainPackage;
+package Components;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -68,6 +68,7 @@ public class SelectionManager implements ActionListener
 	public void removeAllSelectedItem() 
 	{
 		selectedItems.clear();
+		combo.setSelectedItem(null);
 	}
 
 	public void removeItem(Object item) 

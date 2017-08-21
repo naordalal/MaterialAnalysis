@@ -32,17 +32,16 @@ public class MainMapFrame implements ActionListener
 	private JPanel panel;
 	private JButton mapButton;
 	private JButton addForecastButton;
+	private JButton addProductButton;
 	private Analyzer analyzer;
 	private String userName;
-	private String password;
 	private JLabel copyRight;
 
-	public MainMapFrame(String userName, String password, CallBack<Integer> callBack) 
+	public MainMapFrame(String userName, CallBack<Integer> callBack) 
 	{
 		this.callBack = callBack;
 		analyzer = new Analyzer();
 		this.userName = userName;
-		this.password = password;
 		initialize();
 	}
 
@@ -95,6 +94,12 @@ public class MainMapFrame implements ActionListener
 		addForecastButton.addActionListener(this);
 		panel.add(addForecastButton);
 		
+		addProductButton = new JButton("<html><b>Add Product</b></html>");
+		addProductButton.setLocation(270 , 30);
+		addProductButton.setSize(100, 60);
+		addProductButton.addActionListener(this);
+		panel.add(addProductButton);
+		
 		copyRight = new JLabel("<html><b>\u00a9 Naor Dalal</b></html>");
 		copyRight.setLocation(30 , 430);
 		copyRight.setSize(100,30);
@@ -106,7 +111,7 @@ public class MainMapFrame implements ActionListener
 	{
 		if(event.getSource() == mapButton)
 		{
-			Map<MonthDate, Map<String, ProductColumn>> map = analyzer.calculateMap();
+			Map<MonthDate, Map<String, ProductColumn>> map = analyzer.calculateMap(userName);
 			String [] columns = analyzer.getColumns(map);
 			String [][] rows = analyzer.getRows(map);
 			
@@ -120,7 +125,11 @@ public class MainMapFrame implements ActionListener
 		}
 		else if(event.getSource() == addForecastButton)
 		{
-			new AddForecastFrame();
+			new AddForecastFrame(userName);
+		}
+		else if(event.getSource() == addProductButton)
+		{
+			new AddProductFrame(userName);
 		}
 		
 	}
@@ -203,7 +212,7 @@ public class MainMapFrame implements ActionListener
 						try 
 						{
 							updateForm.updateValue(column , newValue);
-							mapFrame.refresh(analyzer.getRows(analyzer.calculateMap()));
+							mapFrame.refresh(analyzer.getRows(analyzer.calculateMap(userName)));
 							reportViewFrame.setColumnWidth();
 							return null;
 						} catch (Exception e) 

@@ -5,6 +5,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
@@ -20,6 +22,9 @@ import javax.swing.UIManager;
 
 import MainPackage.DataBase;
 import MainPackage.Globals;
+import MainPackage.Globals.FormType;
+import MapFrames.AddProductFrame;
+import MapFrames.InitProductFrame;
 
 public class LoginFrame implements ActionListener 
 {
@@ -167,8 +172,14 @@ public class LoginFrame implements ActionListener
 				try 
 				{
 					UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-					new LoginFrame();
-					//new AddForecastFrame();
+					//new LoginFrame();
+					//new AddProductFrame("1");
+					List<FormType> formsType = new ArrayList<>();
+					formsType.add(FormType.FC);
+					formsType.add(FormType.WO);
+					formsType.add(FormType.PO);
+					formsType.add(FormType.SHIPMENT);
+					new InitProductFrame("1", formsType);
 				} 
 				catch (Exception e) 
 				{

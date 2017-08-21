@@ -65,6 +65,7 @@ public abstract class Form
 	{
 		this.id = id;
 	}
+
 	
 	public abstract String [] getColumns();
 

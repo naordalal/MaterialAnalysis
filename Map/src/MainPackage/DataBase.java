@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -197,6 +198,40 @@ public class DataBase {
 			closeConnection();
 			return false;
 		} 
+	}
+	
+	public boolean addCustomersToUser(String nickName , List<String> customers)
+	{
+		try
+		{
+			connect();
+			
+			for (String customer : customers) 
+			{
+				stmt = c.prepareStatement("INSERT INTO UsersPerCustomer (user , customer) VALUES (?,?)");
+				stmt.setString(1, nickName);
+				stmt.setString(2, customer);
+				stmt.executeUpdate();
+			}
+			
+			c.commit();
+			
+			closeConnection();
+			return true;
+			
+		}
+		catch(Exception e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			
+			e.printStackTrace();
+			closeConnection();
+			return false;
+		}
 	}
 	
 	public boolean deleteUser (String ID)
@@ -1153,11 +1188,6 @@ public class DataBase {
 			stmt.setString(1, catalogNumber);
 			stmt.executeUpdate();
 			
-			stmt = c.prepareStatement("INSERT INTO " + tableName2 +" (CN , initDate) VALUES(?,?)");
-			stmt.setString(1, catalogNumber);
-			stmt.setString(2, Globals.dateToSqlFormatString(Globals.getTodayDate()));
-			stmt.executeUpdate();
-			
 			c.commit();
 			
 			closeConnection();
@@ -1286,35 +1316,47 @@ public class DataBase {
 				if(date != null)
 					stmt.setString(2, Globals.dateToSqlFormatString(date));
 				
-				stmt.executeQuery();	
+				stmt.executeUpdate();
+				c.commit();
 				closeConnection();
 			
 			}
 			catch(Exception e)
 			{
 				e.printStackTrace();
+				try {
+					c.rollback();
+				} catch (SQLException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 				closeConnection();
 			}
 		}
 		
 	}
-	public Map<String, String> getAllCatalogNumbers() 
+	public Map<String, String> getAllCatalogNumbersPerDescription(String userName) 
 	{
 		Map<String, String> catalogNumbers = new HashMap<String,String>();
+		List<String> customers = (userName == null) ? getAllProjects() : getCustomersOfUser(userName);
 		try{
 			
 			connect();
-			//stmt = c.prepareStatement("SELECT CN,description FROM shipments UNION SELECT CN,description FROM customerOrders"
-				//	+ "SELECT CN,description FROM UNION workOrder UNION SELECT CN,description FROM forecast");
-			stmt = c.prepareStatement("SELECT CN,description FROM Tree");
-			ResultSet rs = stmt.executeQuery();
-			
-			while(rs.next())
+			for (String customer : customers) 
 			{
-				String catalogNumber = rs.getString("CN");
-				String description = rs.getString("description");
-				catalogNumbers.put(catalogNumber,description);
+				stmt = (userName == null) ? c.prepareStatement("SELECT CN,description FROM Tree") : c.prepareStatement("SELECT CN,description FROM Tree where customer = ?");
+				if(userName != null)
+					stmt.setString(1, customer);
+				ResultSet rs = stmt.executeQuery();
+				
+				while(rs.next())
+				{
+					String catalogNumber = rs.getString("CN");
+					String description = rs.getString("description");
+					catalogNumbers.put(catalogNumber,description);
+				}
 			}
+
 			
 			closeConnection();
 			return catalogNumbers;
@@ -1724,7 +1766,7 @@ public class DataBase {
 	public List<String> getAllPatriarchsCatalogNumber(String catalogNumber) 
 	{
 		List<String> patriarchsCatalogNumber = new ArrayList<>();
-		for (String cn : getAllCatalogNumbers().keySet()) 
+		for (String cn : getAllCatalogNumbersPerDescription(null).keySet()) 
 		{
 			if(getDescendantCatalogNumber(cn).trim().equals(catalogNumber))
 				patriarchsCatalogNumber.add(cn);
@@ -1757,12 +1799,13 @@ public class DataBase {
 		
 		try
 		{
-			connect();			
-			stmt = c.prepareStatement("UPDATE " + tableName + " SET quantity = ? , requireDate = ? where CN = ? AND initDate = ?");
-			stmt.setString(1, quantity);
-			stmt.setString(2, Globals.parseDateToSqlFormatString(requireDate));
-			stmt.setString(3, catalogNumber);
-			stmt.setString(4, Globals.parseDateToSqlFormatString(initDate));
+			connect();		
+			
+			stmt = c.prepareStatement("INSERT INTO " + tableName +" (CN , quantity , initDate ,requireDate) VALUES(?,?,?,?)");
+			stmt.setString(1, catalogNumber);
+			stmt.setString(2, quantity);
+			stmt.setString(3, Globals.parseDateToSqlFormatString(initDate));
+			stmt.setString(4, Globals.parseDateToSqlFormatString(requireDate));
 			stmt.executeUpdate();
 			
 			c.commit();
@@ -2008,7 +2051,7 @@ public class DataBase {
 			if(catalogNumber != null)
 				stmt.setString(1, catalogNumber);
 			ResultSet rs = stmt.executeQuery();
-			
+
 			while(rs.next())
 			{
 				catalogNumber = (catalogNumber == null) ? rs.getString("CN") : catalogNumber;
@@ -2133,7 +2176,8 @@ public class DataBase {
 		try{
 			
 			connect();
-			stmt = c.prepareStatement("SELECT customer FROM Tree");
+			stmt = c.prepareStatement("SELECT customer FROM Tree where CN = ?");
+			stmt.setString(1, catalogNumber);
 			ResultSet rs = stmt.executeQuery();
 			
 			if(rs.next())
@@ -2149,6 +2193,74 @@ public class DataBase {
 			closeConnection();
 			return customer;
 		}
+	}
+	
+	public List<String> getCustomersOfUser(String userName) 
+	{
+		List<String> customers = new ArrayList<>();
+		try{
+			
+			connect();
+			stmt = c.prepareStatement("SELECT customer FROM UsersPerCustomer where user = ?");
+			stmt.setString(1, userName);
+			ResultSet rs = stmt.executeQuery();
+			
+			while(rs.next())
+			{
+				String customer = rs.getString("customer");
+				customers.add(customer);
+			}
+			
+			closeConnection();
+			return customers;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return new ArrayList<>();
+		}
+		
+	}
+	public List<String> getAllCatalogNumbers(String userName)
+	{
+		List<String> catalogNumbers = new ArrayList<>();
+		List<String> customers = getCustomersOfUser(userName);
+		
+		for (String customer : customers) 
+			catalogNumbers.addAll(getAllCatlogNumberOfCustomer(customer));
+		
+		return catalogNumbers;
+	}
+	
+	public List<String> getAllCatlogNumberOfCustomer(String customer) 
+	{
+		List<String> catalogNumbers = new ArrayList<>();
+		try{
+			
+			connect();
+			stmt = c.prepareStatement("SELECT CN FROM Tree where customer = ?");
+			stmt.setString(1, customer);
+			ResultSet rs = stmt.executeQuery();
+			
+			while(rs.next())
+			{
+				String catalogNumber = rs.getString("CN");
+				catalogNumbers.add(catalogNumber);
+			}
+			
+			closeConnection();
+			return catalogNumbers;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return new ArrayList<>();
+		}
+		
 	}
 	
 	
