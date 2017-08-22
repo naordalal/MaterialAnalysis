@@ -173,12 +173,13 @@ public class AddProductFrame implements ActionListener
 			DefaultComboBoxModel<String> catalogNumberComboBoxModel = (DefaultComboBoxModel<String>) catalogNumberComboBox.getModel();
 			DefaultComboBoxModel<String> customerComboBoxModel = (DefaultComboBoxModel<String>) customerComboBox.getModel();
 			customerComboBox.removeAllItems();
+			String catalogNumber =  (catalogNumberComboBoxModel.getSelectedItem() == null) ? "" : (String) catalogNumberComboBoxModel.getSelectedItem();
+			String customerName = db.getCustomerOfCatalogNumber(catalogNumber);
 			
-			if(catalogNumberComboBoxModel.getSelectedItem() != null)
+			if(customerName != null && !customerName.equals(""))
 			{
 				
-				String catalogNumber = (String) catalogNumberComboBoxModel.getSelectedItem();
-				customerComboBoxModel.addElement(db.getCustomerOfCatalogNumber(catalogNumber));
+				customerComboBoxModel.addElement(customerName);
 				
 				List<Tree> trees = db.getAllTrees(userName, catalogNumber);
 				if(trees.isEmpty())

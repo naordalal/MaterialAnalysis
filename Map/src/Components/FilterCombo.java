@@ -175,11 +175,11 @@ public class FilterCombo extends JComboBox<String> implements KeyListener, Focus
 	            {
 	            	if(!clearWhenFocusLost)
 	            	{
-	            		tc.setText(lastText);
+	            		setText(lastText);
 	            	}
 	            	else if(model.getSelectedItem() == null)
 	            	{
-	            		tc.setText("");
+	            		setText("");
 	            		baseValues.stream().forEach(cn -> addElement(cn));
 	            		model.setSelectedItem(null);
 	            	}
