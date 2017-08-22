@@ -266,7 +266,6 @@ public class Analyzer
 					previousOpenCustomerOrder = previousProductColumn.getOpenCustomerOrder();
 					previousWorkOrderAfterSupplied = previousProductColumn.getWorkOrderAfterSupplied();
 					previousMaterialAvailability = previousProductColumn.getMaterialAvailability();
-					System.out.println(previousOpenCustomerOrder);
 				}
 
 				List<Pair<String, Integer>> fathersCatalogNumberAndQuantityToAssociate = db.getFathers(catalogNumber);
@@ -423,5 +422,16 @@ public class Analyzer
 	public String getProductOnRow(JTable table, int row) 
 	{
 		return (String) table.getValueAt(row, 0);
+	}
+
+	public List<Integer> getFilterColumns() 
+	{
+		List<Integer> filterColumns = new ArrayList<>();
+		filterColumns.add(0);
+		filterColumns.add(1);
+		filterColumns.add(2);
+		
+		return filterColumns;
+
 	}
 }

@@ -109,4 +109,6 @@ public abstract class Form
 	public abstract boolean isNeedRequireDate();
 	
 	public abstract boolean isNeedInit();
+	
+	public abstract List<Integer> getFilterColumns(); 
 }

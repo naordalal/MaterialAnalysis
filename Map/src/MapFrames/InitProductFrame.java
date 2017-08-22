@@ -65,7 +65,7 @@ public class InitProductFrame implements ActionListener
 	{
 		this.currentTypeIndex = 0;
 		
-		frame = new JFrame("New Forecast");
+		frame = new JFrame("Init Product");
 		frame.setVisible(true);
 		frame.setLayout(null);
 		frame.getRootPane().setFocusable(true);
@@ -224,4 +224,5 @@ public class InitProductFrame implements ActionListener
 			
 		}
 	}
+	
 }

@@ -8,7 +8,6 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -2264,11 +2263,19 @@ public class DataBase {
 		}
 		
 	}
-	public List<Tree> getAllTrees(String userName) 
+	public List<Tree> getAllTrees(String userName , String cn) 
 	{
 		List<Tree> trees = new ArrayList<>();
+		List<String> catalogNumbers;
+		if(cn != null)
+		{
+			catalogNumbers = new ArrayList<>();
+			catalogNumbers.add(cn);
+		}
+		else
+			catalogNumbers = getAllCatalogNumbers(userName);
 		
-		for (String catalogNumber : getAllCatalogNumbers(userName)) 
+		for (String catalogNumber : catalogNumbers) 
 		{
 			try{
 				
@@ -2331,11 +2338,84 @@ public class DataBase {
 	}
 
 	
-	public void updateTree(String catalogNumber, String description, String fatherCN, String quantity, String alias) 
+	public void updateTree(String catalogNumber, String description, String fatherCN, String newFatherCN , String quantity, String alias) 
 	{
 		updateAlias(catalogNumber, alias);
 		updateQuantityToAssociate(catalogNumber, fatherCN, quantity);
 		updateDescription(catalogNumber , description);
+		updateFather(catalogNumber, fatherCN, newFatherCN);
+		
+	}
+	
+	public void updateFather(String catalogNumber, String fatherCN , String newFatherCN) 
+	{
+		try{
+			
+			connect();
+			stmt = c.prepareStatement("UPDATE Tree SET fatherCN = ? WHERE CN = ? AND fatherCN = ?");
+			stmt.setString(1, newFatherCN);
+			stmt.setString(2, catalogNumber);
+			stmt.setString(3, fatherCN);
+			stmt.executeUpdate();
+			
+			c.commit();
+			
+			if(newFatherCN == null || newFatherCN.equals(""))
+			{
+				stmt = c.prepareStatement("SELECT COUNT(*) AS rowsCount FROM Tree where CN = ?");
+				stmt.setString(1, catalogNumber);
+				ResultSet rs = stmt.executeQuery();
+				
+				if(rs.next())
+				{
+					int count = rs.getInt("rowsCount");
+					if(count > 1)
+					{
+						closeConnection();
+						removeCatalogNumber(catalogNumber , newFatherCN);
+					}
+				}
+			}
+			
+			closeConnection();
+		
+		}
+		catch(Exception e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			e.printStackTrace();
+			closeConnection();
+		}
+	}
+	
+	public void removeCatalogNumber(String catalogNumber, String fatherCN) 
+	{
+		try{
+			
+			connect();
+			stmt = c.prepareStatement("DELETE FROM Tree WHERE CN = ? AND fatherCN = ?");
+			stmt.setString(1, catalogNumber);
+			stmt.setString(2, fatherCN);
+			stmt.executeUpdate();
+			
+			c.commit();
+			closeConnection();
+		
+		}
+		catch(Exception e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			e.printStackTrace();
+			closeConnection();
+		}
 		
 	}
 		

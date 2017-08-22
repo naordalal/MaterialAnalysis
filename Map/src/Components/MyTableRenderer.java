@@ -27,7 +27,6 @@ public class MyTableRenderer extends DefaultTableCellRenderer
         else
         {
         	currentComponent.setBackground(table.getBackground());
-        	currentComponent.setForeground(table.getForeground());
         	currentComponent.setForeground(Color.black);
         }
         return currentComponent;

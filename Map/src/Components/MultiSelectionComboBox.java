@@ -1,5 +1,6 @@
 package Components;
 
+import java.awt.event.ActionListener;
 import java.util.List;
 
 import javax.swing.DefaultComboBoxModel;
@@ -23,13 +24,21 @@ public class MultiSelectionComboBox<T> extends JComboBox<T>
         manager = new SelectionManager();
 
         BasicComboBoxRenderer renderer = new MyComboBoxRenderer(manager);
-        this.addActionListener(manager);
+        super.addActionListener(manager);
         this.setRenderer(renderer);      
     }
+	
+	@Override
+	public void addActionListener(ActionListener l) 
+	{
+		this.removeActionListener(manager);
+		super.addActionListener(l);
+		super.addActionListener(manager);
+	}
     
     @Override 
     public void setPopupVisible(boolean v) {
-
+    	
       }
     
     

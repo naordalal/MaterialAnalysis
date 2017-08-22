@@ -28,6 +28,7 @@ import MainPackage.CallBack;
 import MainPackage.DataBase;
 import MainPackage.Globals;
 import MainPackage.Globals.FormType;
+import MainPackage.Message;
 
 public class MainMapFrame implements ActionListener 
 {
@@ -137,7 +138,12 @@ public class MainMapFrame implements ActionListener
 			String [][] rows = analyzer.getRows(map);
 			
 			boolean canEdit = false;
-			ReportViewFrame mapFrame = new ReportViewFrame(columns, rows, canEdit , new ArrayList<Integer>());
+			ReportViewFrame mapFrame = new ReportViewFrame("Map View" , columns, rows, canEdit , new ArrayList<Integer>());
+			
+			List<Integer> filterColumns = analyzer.getFilterColumns();
+			List<String> filterNames = new ArrayList<>();
+			filterColumns.stream().forEach(col -> filterNames.add(columns[col] + ": "));
+			mapFrame.setFilters(filterColumns, filterNames);
 			
 			mapFrame.setCallBacks(null , getMapDoubleLeftClickAction(map, mapFrame), null);
 			
@@ -163,7 +169,7 @@ public class MainMapFrame implements ActionListener
 		}
 		else if(event.getSource() == treeViewButton)
 		{
-			List<Tree> trees = db.getAllTrees(userName);
+			List<Tree> trees = db.getAllTrees(userName , null);
 			String [] columns;
 			String [][] rows;
 			
@@ -181,9 +187,14 @@ public class MainMapFrame implements ActionListener
 			}
 			
 			boolean canEdit = true;
-			ReportViewFrame treeFrame = new ReportViewFrame(columns, rows, canEdit, invalidEditableColumns);
+			ReportViewFrame treeFrame = new ReportViewFrame("Tree View" , columns, rows, canEdit, invalidEditableColumns);
 			treeFrame.setCallBacks(getTreeValueCellChangeAction(treeFrame, trees), null, null);
 			
+			List<Integer> filterColumns = Tree.getFilterColumns();
+			List<String> filterNames = new ArrayList<>();
+			if(trees.size() > 0)
+				filterColumns.stream().forEach(col -> filterNames.add(columns[col] + ": "));
+			treeFrame.setFilters(filterColumns, filterNames);
 			treeFrame.show();
 		}
 		
@@ -222,7 +233,12 @@ public class MainMapFrame implements ActionListener
 				}
 				
 				boolean canEdit = forms.get(0).canEdit();
-				ReportViewFrame reportViewFrame = new ReportViewFrame(columns, rows, canEdit , forms.get(0).getInvalidEditableColumns());
+				ReportViewFrame reportViewFrame = new ReportViewFrame("Reports View" , columns, rows, canEdit , forms.get(0).getInvalidEditableColumns());
+				
+				List<Integer> filterColumns = forms.get(0).getFilterColumns();
+				List<String> filterNames = new ArrayList<>();
+				filterColumns.stream().forEach(col -> filterNames.add(columns[col] + ": "));
+				reportViewFrame.setFilters(filterColumns, filterNames);
 				
 				CallBack<Object> valueCellChangeAction = new CallBack<Object>()
 				{
@@ -272,9 +288,10 @@ public class MainMapFrame implements ActionListener
 				String newValue = (String) tcl.getNewValue();
 				String oldValue = (String) tcl.getOldValue();
 				Tree tree = trees.get(row);
+				Message message;
 				try
 				{
-					tree.updateValue(userName , column , newValue);
+					message = tree.updateValue(userName , column , newValue);
 				} 
 				catch (Exception e) 
 				{
@@ -282,8 +299,30 @@ public class MainMapFrame implements ActionListener
 					JOptionPane.showConfirmDialog(null, e.getMessage() ,"Error",JOptionPane.PLAIN_MESSAGE);
 					return e;
 				}
-							
-				treeFrame.refresh(db.getAllTrees(userName).stream().map(t -> t.getRow()).toArray(String[][]::new));
+				
+				while(message != null)
+				{
+					boolean validInput = false;
+					while(!validInput)
+					{
+						String answer = JOptionPane.showInputDialog(null ,message.getMessage(), "" , JOptionPane.OK_OPTION);
+						if(answer != null)
+						{
+							try 
+							{
+								message = tree.updateValue(userName , message.getColumn() , answer.trim());
+								validInput = true;
+							} catch (Exception e) 
+							{
+								JOptionPane.showConfirmDialog(null, e.getMessage() ,"Error",JOptionPane.PLAIN_MESSAGE);
+							}
+						}
+
+					}
+						
+				}
+										
+				treeFrame.refresh(db.getAllTrees(userName , null).stream().map(t -> t.getRow()).toArray(String[][]::new));
 				treeFrame.setColumnWidth();
 				
 				return null;

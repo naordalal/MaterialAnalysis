@@ -96,7 +96,8 @@ public class AddForecastFrame extends KeyAdapter implements ActionListener
 		
 		DefaultComboBoxModel<String> model = new DefaultComboBoxModel<String>();
 		List<String> catalogNumbers = productPerDescription.keySet().stream().collect(Collectors.toList());
-		catalogNumberComboBox = new FilterCombo(catalogNumbers , model);
+		boolean clearWhenFocusLost = true;
+		catalogNumberComboBox = new FilterCombo(catalogNumbers , model , clearWhenFocusLost);
 		catalogNumberComboBox.setLocation(120, 60);
 		catalogNumberComboBox.setSize(150, 20);
 		catalogNumberComboBox.addActionListener(this);
@@ -195,13 +196,15 @@ public class AddForecastFrame extends KeyAdapter implements ActionListener
 		else if(event.getSource() == catalogNumberComboBox)
 		{
 			String catalogNumber = (String)catalogNumberComboBox.getModel().getSelectedItem();
-			if(currentCatalogNumber.equals(catalogNumber) || catalogNumber == null)
+			if(catalogNumber == null || currentCatalogNumber.equals(catalogNumber))
 			{
 				currentCatalogNumber = "";
 				catalogNumberComboBox.setSelectedIndex(-1);
 			}
 			else
+			{
 				currentCatalogNumber = catalogNumber;
+			}
 		}
 		
 	}

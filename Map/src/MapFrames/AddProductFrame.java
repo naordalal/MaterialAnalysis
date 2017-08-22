@@ -3,7 +3,9 @@ package MapFrames;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.swing.AbstractAction;
 import javax.swing.DefaultComboBoxModel;
@@ -12,15 +14,19 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 
 import org.apache.poi.ss.usermodel.Font;
 
+import Components.FilterCombo;
 import Components.MultiSelectionComboBox;
+import Forms.Tree;
 import MainPackage.DataBase;
 import MainPackage.Globals;
 
@@ -32,7 +38,7 @@ public class AddProductFrame implements ActionListener
 	private JPanel panel;
 	private String userName;
 	private JLabel catalogNumberLabel;
-	private JTextField catalogNumberText;
+	private FilterCombo catalogNumberComboBox;
 	private JLabel customerLabel;
 	private JComboBox<String> customerComboBox;
 	private JLabel descriptionLabel;
@@ -83,17 +89,21 @@ public class AddProductFrame implements ActionListener
 		catalogNumberLabel.setSize(100,100);
 		panel.add(catalogNumberLabel);
 		
-		catalogNumberText = new JTextField();
-		catalogNumberText.setLocation(150, 60);
-		catalogNumberText.setSize(150, 20);
-		panel.add(catalogNumberText);
+		DefaultComboBoxModel<String> model = new DefaultComboBoxModel<String>();
+		List<String> catalogNumbers = db.getAllCatalogNumbers(userName);
+		boolean clearWhenFocusLost = false;
+		catalogNumberComboBox = new FilterCombo(catalogNumbers, model, clearWhenFocusLost);
+		catalogNumberComboBox.setLocation(150, 60);
+		catalogNumberComboBox.setSize(150, 20);
+		catalogNumberComboBox.addActionListener(this);
+		panel.add(catalogNumberComboBox);
 		
 		customerLabel = new JLabel("<html><u>Customer:</u></html>");
 		customerLabel.setLocation(30,90);
 		customerLabel.setSize(100,100);
 		panel.add(customerLabel);
 		
-		DefaultComboBoxModel<String> model = new DefaultComboBoxModel<String>();
+		model = new DefaultComboBoxModel<String>();
 		List<String> customers = db.getCustomersOfUser(userName);
 		for (String customer : customers) 
 		{
@@ -125,7 +135,7 @@ public class AddProductFrame implements ActionListener
 		panel.add(fatherLabel);
 		
 		model = new DefaultComboBoxModel<String>();
-		List<String> catalogNumbers = db.getAllCatlogNumberOfCustomer((String) customerComboBox.getModel().getSelectedItem());
+		catalogNumbers = db.getAllCatlogNumberOfCustomer((String) customerComboBox.getModel().getSelectedItem());
 		for (String catalogNumber : catalogNumbers) 
 			model.addElement(catalogNumber);
 		
@@ -146,7 +156,7 @@ public class AddProductFrame implements ActionListener
 		addProductButton.setPressedIcon(globals.clickOkIcon);
 		addProductButton.setToolTipText("OK");
 		panel.add(addProductButton);
-		
+			
 		copyRight = new JLabel("<html><b>\u00a9 Naor Dalal</b></html>");
 		copyRight.setLocation(30 , 430);
 		copyRight.setSize(100,30);
@@ -158,23 +168,78 @@ public class AddProductFrame implements ActionListener
 	@Override
 	public void actionPerformed(ActionEvent event) 
 	{
-		if(event.getSource() == customerComboBox)
+		if(event.getSource() == catalogNumberComboBox)
+		{
+			DefaultComboBoxModel<String> catalogNumberComboBoxModel = (DefaultComboBoxModel<String>) catalogNumberComboBox.getModel();
+			DefaultComboBoxModel<String> customerComboBoxModel = (DefaultComboBoxModel<String>) customerComboBox.getModel();
+			customerComboBox.removeAllItems();
+			
+			if(catalogNumberComboBoxModel.getSelectedItem() != null)
+			{
+				
+				String catalogNumber = (String) catalogNumberComboBoxModel.getSelectedItem();
+				customerComboBoxModel.addElement(db.getCustomerOfCatalogNumber(catalogNumber));
+				
+				List<Tree> trees = db.getAllTrees(userName, catalogNumber);
+				if(trees.isEmpty())
+					return;
+				descriptionText.setText(trees.get(0).getDescription());
+				descriptionText.setEnabled(false);
+				
+				List<String> fathers = trees.stream().map(tree -> tree.getFatherCN()).collect(Collectors.toList());
+				List<String> fatherCatalogNumbers = db.getAllCatalogNumbers(userName);
+				fatherCatalogNumbers.removeAll(fathers);
+				fatherCatalogNumbers.remove(catalogNumber);
+				DefaultComboBoxModel<String> fatherComboBoxModel = (DefaultComboBoxModel<String>) fatherComboBox.getModel();
+				fatherComboBox.removeAllItems();				
+				for (String fatherCatalogNumber : fatherCatalogNumbers) 
+				{
+					fatherComboBoxModel.addElement(fatherCatalogNumber);
+				}
+				
+				customerComboBox.setEnabled(false);
+			}
+			else
+			{
+				List<String> customers = db.getCustomersOfUser(userName);
+				for (String customer : customers) 
+				{
+					customerComboBoxModel.addElement(customer);
+				}
+				
+				customerComboBox.setEnabled(true);
+				
+				descriptionText.setText("");
+				descriptionText.setEnabled(true);
+				DefaultComboBoxModel<String> fatherComboBoxModel = (DefaultComboBoxModel<String>) fatherComboBox.getModel();
+				fatherComboBox.removeAllItems();
+				List<String> fatherCatalogNumbers = db.getAllCatalogNumbers(userName);
+				for (String fatherCatalogNumber : fatherCatalogNumbers) 
+				{
+					fatherComboBoxModel.addElement(fatherCatalogNumber);
+				}
+			}
+		}
+		else if(event.getSource() == customerComboBox)
 		{
 			DefaultComboBoxModel<String> customerComboBoxModel = (DefaultComboBoxModel<String>) customerComboBox.getModel();
 			if(customerComboBoxModel.getSelectedItem() != null)
 			{
 				List<String> catalogNumbers = db.getAllCatlogNumberOfCustomer((String) customerComboBoxModel.getSelectedItem());
+				String catalogNumber = catalogNumberComboBox.getText();
+				
+				catalogNumbers.remove(catalogNumber.trim());
 				DefaultComboBoxModel<String> fatherComboBoxModel = (DefaultComboBoxModel<String>) fatherComboBox.getModel();
-				fatherComboBoxModel.removeAllElements();
-				for (String catalogNumber : catalogNumbers) 
-					fatherComboBoxModel.addElement(catalogNumber);
+				fatherComboBox.removeAllItems();
+				for (String cn : catalogNumbers) 
+					fatherComboBoxModel.addElement(cn);
 				
 				fatherComboBoxModel.setSelectedItem(null);
 			}
 		}
 		else if(event.getSource() == addProductButton)
 		{			
-			if(catalogNumberText.getText().trim().equals(""))
+			if(catalogNumberComboBox.getText().trim().equals(""))
 			{
 				JOptionPane.showConfirmDialog(null, "Please enter a catalog number","",JOptionPane.PLAIN_MESSAGE);
 				return;
@@ -186,7 +251,7 @@ public class AddProductFrame implements ActionListener
 				return;
 			}
 			
-			String catalogNumber = catalogNumberText.getText().trim();
+			String catalogNumber = catalogNumberComboBox.getText().trim();
 			DefaultComboBoxModel<String> customerComboBoxModel = (DefaultComboBoxModel<String>) customerComboBox.getModel();
 			String customer = (String) customerComboBoxModel.getSelectedItem();
 			String description = descriptionText.getText().trim();
@@ -220,12 +285,14 @@ public class AddProductFrame implements ActionListener
 			
 			JOptionPane.showConfirmDialog(null, "Added successfully","",JOptionPane.PLAIN_MESSAGE);
 			
-			catalogNumberText.setText("");
+			catalogNumberComboBox.clear();
 			fatherComboBox.removeAllSelectedItem();
-			fatherComboBox.setSelectedIndex(-1);
+			fatherComboBox.getModel().setSelectedItem(null);
 			descriptionText.setText("");
+			descriptionText.setEnabled(true);
+			customerComboBox.setEnabled(true);
 			
-			catalogNumberText.requestFocusInWindow();
+			catalogNumberComboBox.requestFocusInWindow();
 			
 		}
 		

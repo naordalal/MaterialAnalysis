@@ -25,7 +25,7 @@ public class SelectionManager implements ActionListener
         	return;
         if(!fromClick)
         	return;
-        // Toggle the selection state for item.  
+ 
         if (selectedItems.contains(item)) 
             selectedItems.remove(item);
         else
@@ -68,7 +68,8 @@ public class SelectionManager implements ActionListener
 	public void removeAllSelectedItem() 
 	{
 		selectedItems.clear();
-		combo.setSelectedItem(null);
+		if(combo != null)
+			combo.setSelectedItem(null);
 	}
 
 	public void removeItem(Object item) 
@@ -76,17 +77,20 @@ public class SelectionManager implements ActionListener
 		 if(selectedItems.size() == 1)
 		 {
 			 fromClick = false;	
-			 combo.setSelectedItem(null);
+			 if(combo != null)
+				 combo.setSelectedItem(null);
 			 selectedItems.remove(item);
 		 }
 	    else
 	    {
 	    	fromClick = false;
 	        selectedItems.remove(item);
-	        combo.setSelectedItem(getFirstSelectedElementInItemsList());
+	        if(combo != null)
+	        	combo.setSelectedItem(getFirstSelectedElementInItemsList());
 	    }
 		 
-		 ((DefaultComboBoxModel)combo.getModel()).removeElement(item);
+		 if(combo != null)
+			 ((DefaultComboBoxModel)combo.getModel()).removeElement(item);
 		 
      	fromClick = true;
 

@@ -2,13 +2,24 @@ package MapFrames;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.ComponentOrientation;
+import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Insets;
+import java.awt.LayoutManager;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import javax.sound.midi.ControllerEventListener;
 import javax.swing.AbstractAction;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -25,15 +36,17 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 
+import Components.MultiSelectionComboBox;
 import Components.MyJTable;
 import Components.MyTableRenderer;
 import Components.TableCellListener;
 import MainPackage.CallBack;
 import MainPackage.Globals;
 
-public class ReportViewFrame 
+public class ReportViewFrame implements ActionListener 
 {
-	protected static final int padding = 16;
+	private static final int maximumFilters = 3;
+	
 	private JFrame frame;
 	private Globals globals;
 	private JPanel panel;
@@ -47,16 +60,32 @@ public class ReportViewFrame
 	private boolean canEdit;
 	private List<Integer> invalidEditableColumns;
 	private JLabel copyRight;
+	private List<Integer> filterColumns;
+	private List<String> filterNames;
+	private String frameName;
+	private JLabel[] filterLabels;
+	private MultiSelectionComboBox<String>[] filterComboBoxs;
+	private JPanel filterPanel;
 
-	public ReportViewFrame(String [] columns , String [][] content , boolean canEdit , List<Integer> invalidEditableColumns) 
+	public ReportViewFrame(String frameName , String [] columns , String [][] content , boolean canEdit , List<Integer> invalidEditableColumns) 
 	{
+		this.frameName = frameName;
 		this.columns = columns;
 		this.content = content;
 		this.globals = new Globals();
 		this.canEdit = canEdit;
 		this.invalidEditableColumns = invalidEditableColumns;
+		this.filterColumns = new ArrayList<>();
+		this.filterNames = new ArrayList<>();
 	}
 
+	public void setFilters(List<Integer> filterColumns , List<String> filterNames)
+	{
+		int size = Math.min(Math.min(filterColumns.size(), filterNames.size()) , maximumFilters);
+		this.filterColumns.addAll(filterColumns.subList(0, size));
+		this.filterNames.addAll(filterNames.subList(0, size));
+	}
+	
 	public void setCallBacks(CallBack<Object> valueCellChangeAction , CallBack<Object> doubleLeftClickAction ,CallBack<Object> rightClickAction)
 	{
 		this.valueCellChangeAction = valueCellChangeAction;
@@ -72,7 +101,7 @@ public class ReportViewFrame
 	private void initialize() 
 	{
 		
-		frame = new JFrame("MAP VIEW");
+		frame = new JFrame(frameName);
 		frame.setVisible(true);
 		frame.setLayout(null);
 		frame.getRootPane().setFocusable(true);
@@ -91,15 +120,27 @@ public class ReportViewFrame
 	            }
 	        });
 		
+		int yPanelLocation = 0;
+		if(filterColumns.size() > 0)
+		{
+			yPanelLocation = 30;
+			FlowLayout flowLayout = new FlowLayout();
+			flowLayout.setAlignment(FlowLayout.LEADING);
+			filterPanel = new JPanel();
+			filterPanel.setLocation(0 , 0);
+			filterPanel.setSize(900, yPanelLocation);
+			filterPanel.setLayout(flowLayout);
+			frame.add(filterPanel);
+		}
+		
 		panel = new JPanel();
-		panel.setLocation(0 , 0);
-		panel.setSize(900, 780);
+		panel.setLocation(0 , yPanelLocation);
+		panel.setSize(900, 630);
 		panel.setLayout(null);
 		frame.add(panel);
 		
 		DefaultTableModel model = new DefaultTableModel();
-		
-		
+				
 		table = new MyJTable(model , canEdit);
 		if(canEdit)
 			invalidEditableColumns.stream().forEach(column -> table.addInvalidEditableColumn(column));
@@ -164,11 +205,44 @@ public class ReportViewFrame
 		panel.add(scrollPane);
 		
 		new TableCellListener(table, valueCellChangeAction, doubleLeftClickAction, rightClickAction);
+		
+		
+		filterLabels = new JLabel[filterColumns.size()];
+		filterComboBoxs= new MultiSelectionComboBox[filterColumns.size()];
+		
+		for(int index = 0 ; index < filterLabels.length ; index ++)
+		{
+			filterLabels[index] = new JLabel(filterNames.get(index));
+			filterPanel.add(filterLabels[index]);
+			
+			DefaultComboBoxModel<String> comboBoxModel = new DefaultComboBoxModel<>();
+			filterComboBoxs[index] = new MultiSelectionComboBox<String>(comboBoxModel);
+			updateFilterComboBoxValues(index);
+			filterComboBoxs[index].addActionListener(this);
+			filterPanel.add(filterComboBoxs[index]);
+		}
 
 		copyRight = new JLabel("<html><b>\u00a9 Naor Dalal</b></html>");
 		copyRight.setLocation(30 , 710);
 		copyRight.setSize(100,30);
 		panel.add(copyRight);
+	}
+
+	private void updateFilterComboBoxValues(int index) 
+	{
+		DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) filterComboBoxs[index].getModel();
+		filterComboBoxs[index].hidePopup();
+		filterComboBoxs[index].removeAllItems();
+
+		for(int row = 0 ; row < table.getRowCount() ; row++)
+		{
+			String value = (String) table.getValueAt(row , filterColumns.get(index));
+			if(model.getIndexOf(value) < 0)
+				model.addElement(value);
+		}
+		
+		filterComboBoxs[index].removeAllSelectedItem();
+		
 	}
 
 	private String[] getRow(int rowIndex) 
@@ -212,15 +286,19 @@ public class ReportViewFrame
 	{
 		for(int index = 0 ; index < columns.length ; index++)
 			model.addColumn(columns[index]);	
-		
+	
+		createContent(model);
+	}
+	
+	private void createContent(DefaultTableModel model)
+	{		
 		for(int index = 0 ; index < content.length ; index++)
-			model.addRow(content[index]);	
-		
+			model.addRow(content[index]);
 	}
 
 	public void refresh(String[][] rows) 
 	{
-		for(int rowIndex = content.length - 1 ; rowIndex >= 0 ; rowIndex --)
+		for(int rowIndex = 	table.getRowCount() - 1 ; rowIndex >= 0 ; rowIndex --)
 				removeRow(rowIndex);
 		
 		DefaultTableModel model = (DefaultTableModel)table.getModel();
@@ -228,12 +306,12 @@ public class ReportViewFrame
 				model.addRow(rows[row]);
 
 		this.content = rows;
-		
 	}
 
 	public void updateCellValue(int row, int column, String newValue) 
 	{
 		table.getModel().setValueAt(newValue, row, column);
+		content[row][column] = newValue;
 	}
 	
 	public int setColumnWidth() 
@@ -297,6 +375,36 @@ public class ReportViewFrame
 		int modelIndex = table.convertRowIndexToModel(row); 
         DefaultTableModel model = (DefaultTableModel)table.getModel();
         model.removeRow(modelIndex);
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent event) 
+	{
+		int actionComboBoxIndex = -1;	
+		for(int rowIndex = 	table.getRowCount() - 1 ; rowIndex >= 0 ; rowIndex --)
+			removeRow(rowIndex);
+			
+		DefaultTableModel model = (DefaultTableModel)table.getModel();
+		
+		for(int row = 0 ; row < content.length  ; row ++)
+		{
+			boolean filterRow = true;
+			for (int comboxIndex = 0 ; comboxIndex < filterComboBoxs.length ; comboxIndex++) 
+			{
+				MultiSelectionComboBox<String> comboBox = filterComboBoxs[comboxIndex];
+				if(comboBox == event.getSource())
+					actionComboBoxIndex = comboxIndex;
+				List<String> selectionItems = comboBox.getSelectedItems().stream().map(item -> item.trim().toLowerCase()).collect(Collectors.toList());
+				
+				int column = filterColumns.get(comboxIndex);
+				if(selectionItems.size() > 0 && !selectionItems.contains(content[row][column].trim().toLowerCase()))
+					filterRow = false;
+			}
+			
+			if(filterRow)
+				model.addRow(content[row]);
+		}
+
 	}
     
 

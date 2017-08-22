@@ -164,4 +164,18 @@ public class Shipment extends Form
 	{
 		return false;
 	}
+	
+	@Override
+	public List<Integer> getFilterColumns() 
+	{
+		List<Integer> filterColumns = new ArrayList<>();
+		filterColumns.add(0);
+		filterColumns.add(1);
+		filterColumns.add(2);
+		filterColumns.add(3);
+		filterColumns.add(4);
+		
+		return filterColumns;
+
+	}
 }
