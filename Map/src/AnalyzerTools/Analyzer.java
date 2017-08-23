@@ -374,6 +374,7 @@ public class Analyzer
 					{
 						List<String> row = new ArrayList<>();
 						row.add(product);
+						row.add(db.getCustomerOfCatalogNumber(product));
 						row.add(productColumn.getDescription());
 						row.add(productColumn.getColumn(i));
 						rows.add(row);
@@ -396,6 +397,7 @@ public class Analyzer
 	{
 		List<String> columns = new ArrayList<>();
 		columns.add("Catalog Number");
+		columns.add("Customer");
 		columns.add("Description");
 		columns.add("Category");
 		List<MonthDate> months = map.keySet().stream().collect(Collectors.toList());
@@ -437,6 +439,7 @@ public class Analyzer
 		filterColumns.add(0);
 		filterColumns.add(1);
 		filterColumns.add(2);
+		filterColumns.add(3);
 		
 		return filterColumns;
 

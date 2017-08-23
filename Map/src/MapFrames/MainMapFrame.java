@@ -1,5 +1,6 @@
 package MapFrames;
 
+import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -247,7 +248,7 @@ public class MainMapFrame implements ActionListener
 			public Object execute(Object... objects) 
 			{
 				TableCellListener tcl = (TableCellListener)objects[0];
-				int row = tcl.getRow();
+				int row = mapFrame.getOriginalRowNumber(tcl.getRow());
 				int column = tcl.getColumn();
 				if(column < Analyzer.ConstantColumnsCount)
 					return null;
@@ -279,13 +280,14 @@ public class MainMapFrame implements ActionListener
 				filterColumns.stream().forEach(col -> filterNames.add(columns[col] + ": "));
 				reportViewFrame.setFilters(filterColumns, filterNames);
 				
+
 				CallBack<Object> valueCellChangeAction = new CallBack<Object>()
 				{
 					@Override
 					public Object execute(Object... objects) 
 					{
 						TableCellListener tcl = (TableCellListener)objects[0];
-						int row = tcl.getRow();
+						int row = reportViewFrame.getOriginalRowNumber(tcl.getRow());
 						int column = tcl.getColumn();
 						String newValue = (String) tcl.getNewValue();
 						String oldValue = (String) tcl.getOldValue();
@@ -320,9 +322,9 @@ public class MainMapFrame implements ActionListener
 		{
 			@Override
 			public Object execute(Object... objects) 
-			{
+			{			
 				TableCellListener tcl = (TableCellListener)objects[0];
-				int row = tcl.getRow();
+				int row = treeFrame.getOriginalRowNumber(tcl.getRow());
 				int column = tcl.getColumn();
 				String newValue = (String) tcl.getNewValue();
 				String oldValue = (String) tcl.getOldValue();
@@ -362,8 +364,6 @@ public class MainMapFrame implements ActionListener
 				}
 								
 				List<Tree> newTrees = db.getAllTrees(userName , null);
-				trees.clear();
-				trees.addAll(newTrees);
 				treeFrame.refresh(newTrees.stream().map(t -> t.getRow()).toArray(String[][]::new));
 				treeFrame.setColumnWidth();
 				
@@ -383,7 +383,7 @@ public class MainMapFrame implements ActionListener
 			public Object execute(Object... objects) 
 			{
 				TableCellListener tcl = (TableCellListener)objects[0];
-				int row = tcl.getRow();
+				int row = productInitFrame.getOriginalRowNumber(tcl.getRow());
 				int column = tcl.getColumn();
 				String newValue = (String) tcl.getNewValue();
 				String oldValue = (String) tcl.getOldValue();
@@ -401,8 +401,6 @@ public class MainMapFrame implements ActionListener
 				}
 							
 				List<ProductInit> newProductsInit = db.getAllProductsInit(userName);
-				productsInit.clear();
-				productsInit.addAll(newProductsInit);
 				productInitFrame.refresh(newProductsInit.stream().map(t -> t.getRow()).toArray(String[][]::new));
 				productInitFrame.setColumnWidth();
 				

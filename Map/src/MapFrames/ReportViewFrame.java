@@ -2,24 +2,20 @@ package MapFrames;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.ComponentOrientation;
 import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Insets;
-import java.awt.LayoutManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
-import javax.sound.midi.ControllerEventListener;
 import javax.swing.AbstractAction;
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -45,7 +41,7 @@ import MainPackage.Globals;
 
 public class ReportViewFrame implements ActionListener 
 {
-	private static final int maximumFilters = 3;
+	private static final int maximumFilters = 4;
 	
 	private JFrame frame;
 	private Globals globals;
@@ -66,8 +62,10 @@ public class ReportViewFrame implements ActionListener
 	private JLabel[] filterLabels;
 	private MultiSelectionComboBox<String>[] filterComboBoxs;
 	private JPanel filterPanel;
+	private Map<Integer,Integer> currentRowPerOriginalRow;
 
-	public ReportViewFrame(String frameName , String [] columns , String [][] content , boolean canEdit , List<Integer> invalidEditableColumns) 
+
+	public ReportViewFrame(String frameName , String [] columns , String [][] content ,  boolean canEdit , List<Integer> invalidEditableColumns) 
 	{
 		this.frameName = frameName;
 		this.columns = columns;
@@ -77,6 +75,9 @@ public class ReportViewFrame implements ActionListener
 		this.invalidEditableColumns = invalidEditableColumns;
 		this.filterColumns = new ArrayList<>();
 		this.filterNames = new ArrayList<>();
+		this.currentRowPerOriginalRow = new HashMap<>();
+		for (int row = 0 ; row < content.length ; row ++)
+			currentRowPerOriginalRow.put(row, row);
 	}
 
 	public void setFilters(List<Integer> filterColumns , List<String> filterNames)
@@ -85,7 +86,7 @@ public class ReportViewFrame implements ActionListener
 		this.filterColumns.addAll(filterColumns.subList(0, size));
 		this.filterNames.addAll(filterNames.subList(0, size));
 	}
-	
+		
 	public void setCallBacks(CallBack<Object> valueCellChangeAction , CallBack<Object> doubleLeftClickAction ,CallBack<Object> rightClickAction)
 	{
 		this.valueCellChangeAction = valueCellChangeAction;
@@ -301,10 +302,20 @@ public class ReportViewFrame implements ActionListener
 		for(int rowIndex = 	table.getRowCount() - 1 ; rowIndex >= 0 ; rowIndex --)
 				removeRow(rowIndex);
 		
+		currentRowPerOriginalRow.clear();
 		DefaultTableModel model = (DefaultTableModel)table.getModel();
 		for(int row = 0 ; row < rows.length ; row++)
-				model.addRow(rows[row]);
+		{
+			model.addRow(rows[row]);
+			currentRowPerOriginalRow.put(row, row);
+		}
 
+		for (int comboxIndex = 0 ; comboxIndex < filterComboBoxs.length ; comboxIndex++) 
+		{
+			MultiSelectionComboBox<String> comboBox = filterComboBoxs[comboxIndex];
+			comboBox.removeAllSelectedItem();
+		}
+		
 		this.content = rows;
 	}
 
@@ -379,8 +390,7 @@ public class ReportViewFrame implements ActionListener
 
 	@Override
 	public void actionPerformed(ActionEvent event) 
-	{
-		int actionComboBoxIndex = -1;	
+	{	
 		for(int rowIndex = 	table.getRowCount() - 1 ; rowIndex >= 0 ; rowIndex --)
 			removeRow(rowIndex);
 			
@@ -392,8 +402,6 @@ public class ReportViewFrame implements ActionListener
 			for (int comboxIndex = 0 ; comboxIndex < filterComboBoxs.length ; comboxIndex++) 
 			{
 				MultiSelectionComboBox<String> comboBox = filterComboBoxs[comboxIndex];
-				if(comboBox == event.getSource())
-					actionComboBoxIndex = comboxIndex;
 				List<String> selectionItems = comboBox.getSelectedItems().stream().map(item -> item.trim().toLowerCase()).collect(Collectors.toList());
 				
 				int column = filterColumns.get(comboxIndex);
@@ -402,9 +410,17 @@ public class ReportViewFrame implements ActionListener
 			}
 			
 			if(filterRow)
+			{
 				model.addRow(content[row]);
+				currentRowPerOriginalRow.put(model.getRowCount() - 1 , row);
+			}
 		}
 
+	}
+
+	public int getOriginalRowNumber(int row) 
+	{
+		return currentRowPerOriginalRow.get(row);
 	}
     
 

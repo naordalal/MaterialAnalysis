@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 
 import AnalyzerTools.Analyzer;
 import MainPackage.Globals;
@@ -113,7 +114,7 @@ public class Forecast extends Form
 				this.description = newValue;
 				break;
 			case 3:
-				if(StringUtils.isNumeric(newValue))
+				if(NumberUtils.isCreatable(newValue))
 					super.setQuantity(newValue);
 				else
 					throw new Exception("Quantity have to be a numeric value");

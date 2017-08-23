@@ -166,7 +166,7 @@ public class AddForecastFrame extends KeyAdapter implements ActionListener
 				return;
 			}
 			
-			if(!org.apache.commons.lang3.StringUtils.isNumeric(quantityText.getText().trim()))
+			if(!org.apache.commons.lang3.math.NumberUtils.isCreatable(quantityText.getText().trim()))
 			{
 				JOptionPane.showConfirmDialog(null, "Please enter a valid quantity","",JOptionPane.PLAIN_MESSAGE);
 				return;

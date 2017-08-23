@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import AnalyzerTools.Analyzer;
 import MainPackage.DataBase;
 import MainPackage.Globals;
 import MainPackage.Globals.FormType;
@@ -110,7 +111,7 @@ public class ProductInit
 			case 1 : 
 				return;
 			case 2:
-				if(!org.apache.commons.lang3.StringUtils.isNumeric(newValue.trim()))
+				if(!org.apache.commons.lang3.math.NumberUtils.isCreatable(newValue.trim()))
 					throw new Exception("Quantity have to be a numeric value");
 				this.quantity = newValue;
 				break;
@@ -127,6 +128,8 @@ public class ProductInit
 		}
 
 		db.updateInitProduct(catalogNumber , quantity , initDate , previousRequireDate , requireDate , type);
+		Analyzer analyzer = new Analyzer();
+		analyzer.updateProductQuantities(catalogNumber , type);
 	}
 	
 	public List<Integer> getInvalidEditableColumns()

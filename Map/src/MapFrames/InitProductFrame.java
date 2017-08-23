@@ -53,7 +53,10 @@ public class InitProductFrame implements ActionListener
 		this.userName = userName;
 		globals = new Globals();
 		this.formsTypeThatNeedInit = formsType.stream().filter(type -> Form.isNeedInit(globals.getClassName(type))).collect(Collectors.toList());
+		List<FormType> formsTypeThatNeedInitThanNotNeedRequireDate = formsTypeThatNeedInit.stream().filter(type -> !Form.isNeedRequireDate(globals.getClassName(type))).collect(Collectors.toList());
 		
+		this.formsTypeThatNeedInit.removeAll(formsTypeThatNeedInitThanNotNeedRequireDate);
+		this.formsTypeThatNeedInit.addAll(formsTypeThatNeedInitThanNotNeedRequireDate);
 		formsType.removeAll(formsTypeThatNeedInit);
 		this.formsTypeThatNotNeedInit = formsType;
 		
@@ -180,7 +183,7 @@ public class InitProductFrame implements ActionListener
 	{
 		if(event.getSource() == addInitButton)
 		{
-			if(!org.apache.commons.lang3.StringUtils.isNumeric(quantityText.getText().trim()))
+			if(!org.apache.commons.lang3.math.NumberUtils.isCreatable(quantityText.getText().trim()))
 			{
 				JOptionPane.showConfirmDialog(null, "Please enter a valid quantity","",JOptionPane.PLAIN_MESSAGE);
 				return;
