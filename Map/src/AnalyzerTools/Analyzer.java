@@ -269,20 +269,27 @@ public class Analyzer
 				}
 
 				List<Pair<String, Integer>> fathersCatalogNumberAndQuantityToAssociate = db.getFathers(catalogNumber);
+								
 				double materialAvailabilityFix = 0;
 				for (Pair<String, Integer> fatherCatalogNumberAndQuantityToAssociate : fathersCatalogNumberAndQuantityToAssociate) 
 				{
-					if(fatherCatalogNumberAndQuantityToAssociate.getLeft() != null)
+					List<String> patriarchsFatherCatalogNumber = db.getAllDescendantCatalogNumber(fatherCatalogNumberAndQuantityToAssociate.getLeft());
+					patriarchsFatherCatalogNumber.add(fatherCatalogNumberAndQuantityToAssociate.getLeft());
+					
+					for (String fatherCatalogNumber : patriarchsFatherCatalogNumber) 
 					{
-						String fatherCatalogNumber = fatherCatalogNumberAndQuantityToAssociate.getLeft();
-						QuantityPerDate fatherSupplied = db.getProductShipmentQuantityOnDate(fatherCatalogNumber , monthDate);
-						QuantityPerDate fatherWorkOrder = db.getProductWOQuantityOnDate(fatherCatalogNumber , monthDate);
-						
-						int quantityToAssociate = fatherCatalogNumberAndQuantityToAssociate.getRight();
-						customerOrders.setQuantity(customerOrders.getQuantity() + quantityToAssociate * fatherWorkOrder.getQuantity());
-						supplied.setQuantity(supplied.getQuantity() + quantityToAssociate * fatherSupplied.getQuantity());
-						materialAvailabilityFix = quantityToAssociate * fatherWorkOrder.getQuantity();
+						if(fatherCatalogNumberAndQuantityToAssociate.getLeft() != null)
+						{
+							QuantityPerDate fatherSupplied = db.getProductShipmentQuantityOnDate(fatherCatalogNumber , monthDate);
+							QuantityPerDate fatherWorkOrder = db.getProductWOQuantityOnDate(fatherCatalogNumber , monthDate);
+							
+							int quantityToAssociate = fatherCatalogNumberAndQuantityToAssociate.getRight();
+							customerOrders.setQuantity(customerOrders.getQuantity() + quantityToAssociate * fatherWorkOrder.getQuantity());
+							supplied.setQuantity(supplied.getQuantity() + quantityToAssociate * fatherSupplied.getQuantity());
+							materialAvailabilityFix += quantityToAssociate * fatherWorkOrder.getQuantity();
+						}
 					}
+					
 				}
 				
 				materialAvailability = forecast.getQuantity() + previousMaterialAvailability - workOrder.getQuantity() + materialAvailabilityFix;

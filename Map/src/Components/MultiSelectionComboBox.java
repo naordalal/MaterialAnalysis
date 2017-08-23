@@ -69,5 +69,17 @@ public class MultiSelectionComboBox<T> extends JComboBox<T>
 	public void removeItem(Object item) {	
 		manager.removeItem(item);
 	}
+
+	public void setModelSelectedItem() 
+	{
+		manager.setModelSelectedItem();
+		
+	}
+	
+	public void removeSelectedItem(Object item)
+	{
+		manager.removeSelectedItem(item);
+	}
+
 	
 }

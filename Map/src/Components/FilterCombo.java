@@ -77,7 +77,7 @@ public class FilterCombo extends JComboBox<String> implements KeyListener, Focus
 		if (containsValue.size() > 0) 
 		{
 	        for (String s: containsValue)
-	            this.addElement(s);
+	            this.model.addElement(s);
 	    }
 		
 		this.showPopup();		
@@ -210,6 +210,12 @@ public class FilterCombo extends JComboBox<String> implements KeyListener, Focus
 		{
 			this.addActionListener(actionListener);
 		}
+	}
+
+	public void setBaseValues(List<String> newBaseValues) 
+	{
+		this.baseValues = newBaseValues;
+		
 	}
 
 

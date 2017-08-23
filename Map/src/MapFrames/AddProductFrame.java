@@ -172,6 +172,7 @@ public class AddProductFrame implements ActionListener
 		{
 			DefaultComboBoxModel<String> catalogNumberComboBoxModel = (DefaultComboBoxModel<String>) catalogNumberComboBox.getModel();
 			DefaultComboBoxModel<String> customerComboBoxModel = (DefaultComboBoxModel<String>) customerComboBox.getModel();
+			
 			customerComboBox.removeAllItems();
 			String catalogNumber =  (catalogNumberComboBoxModel.getSelectedItem() == null) ? "" : (String) catalogNumberComboBoxModel.getSelectedItem();
 			String customerName = db.getCustomerOfCatalogNumber(catalogNumber);
@@ -212,6 +213,7 @@ public class AddProductFrame implements ActionListener
 				
 				descriptionText.setText("");
 				descriptionText.setEnabled(true);
+				
 				DefaultComboBoxModel<String> fatherComboBoxModel = (DefaultComboBoxModel<String>) fatherComboBox.getModel();
 				fatherComboBox.removeAllItems();
 				List<String> fatherCatalogNumbers = db.getAllCatalogNumbers(userName);
@@ -287,6 +289,7 @@ public class AddProductFrame implements ActionListener
 			JOptionPane.showConfirmDialog(null, "Added successfully","",JOptionPane.PLAIN_MESSAGE);
 			
 			catalogNumberComboBox.clear();
+			catalogNumberComboBox.setBaseValues(db.getAllCatalogNumbers(userName));
 			fatherComboBox.removeAllSelectedItem();
 			fatherComboBox.getModel().setSelectedItem(null);
 			descriptionText.setText("");

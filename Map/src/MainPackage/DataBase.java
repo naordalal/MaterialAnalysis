@@ -43,12 +43,12 @@ public class DataBase {
 			Class.forName("org.sqlite.JDBC");
 		    SQLiteConfig config = new SQLiteConfig(); 
 		    config.enforceForeignKeys(true);  
-		    c = DriverManager.getConnection("jdbc:sqlite:"+globals.con , config.toProperties());
+		    c = DriverManager.getConnection("jdbc:sqlite:"+Globals.con , config.toProperties());
 		    c.setAutoCommit(false);
 		    return true;
 			}catch ( Exception e ) {
 			      System.err.println( e.getClass().getName() + ": " + e.getMessage() );
-			      JOptionPane.showConfirmDialog(null, "Can't find DB file \nThe file should be in : " + globals.con,"",JOptionPane.PLAIN_MESSAGE);
+			      JOptionPane.showConfirmDialog(null, "Can't find DB file \nThe file should be in : " + Globals.con,"",JOptionPane.PLAIN_MESSAGE);
 			      //System.exit(0);
 			      return false;
 			}
@@ -258,6 +258,7 @@ public class DataBase {
 				e1.printStackTrace();
 			}
 			closeConnection();
+			e.printStackTrace();
 			return false;
 		}
 	}
@@ -1764,6 +1765,50 @@ public class DataBase {
 		}
 	}
 	
+	public List<String> getAllDescendantCatalogNumber(String catalogNumber)
+	{
+		List<String> catalogNumbers = new ArrayList<>();
+		String descendantCatalogNumber = catalogNumber;
+		boolean done = false;
+		try{
+			
+			connect();
+			while(!done)
+			{
+				stmt = c.prepareStatement("SELECT distinct alias FROM Tree where CN = ?");
+				stmt.setString(1, descendantCatalogNumber);
+				ResultSet rs = stmt.executeQuery();
+				
+				if(rs.next())
+				{
+					String alias = rs.getString("alias");
+					if(alias == null || alias.trim().equals(""))
+						done = true;
+					else
+					{
+						descendantCatalogNumber = alias;
+						catalogNumbers.add(descendantCatalogNumber);
+					}
+						
+				}
+				else
+					done = true;
+			}
+			
+			
+			closeConnection();
+			return catalogNumbers;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return new ArrayList<>();
+		}
+	}
+	
+	
 	public List<String> getAllPatriarchsCatalogNumber(String catalogNumber) 
 	{
 		List<String> patriarchsCatalogNumber = new ArrayList<>();
@@ -2373,6 +2418,7 @@ public class DataBase {
 					{
 						closeConnection();
 						removeCatalogNumber(catalogNumber , newFatherCN);
+						connect();
 					}
 				}
 			}
@@ -2417,6 +2463,96 @@ public class DataBase {
 			closeConnection();
 		}
 		
+	}
+	public User getUser(String nickName) 
+	{
+		User user = null;
+		try
+		{
+			connect();
+			stmt = c.prepareStatement("SELECT * FROM Permissions where nickName = ?");
+			stmt.setString(1, nickName);
+			
+			ResultSet rs = stmt.executeQuery();
+			
+			String email;
+			boolean adminPermission , purchasingPermission;
+			if(rs.next())
+			{
+				email = rs.getString("ID");
+				adminPermission =  rs.getBoolean("permission");
+				purchasingPermission =  adminPermission || rs.getBoolean("purchasing");
+			}
+			else 
+			{
+				closeConnection();
+				return null;
+			}
+				
+			closeConnection();
+			
+			List<String> customers = getCustomersOfUser(nickName);
+			String signature = getSignature(nickName);
+			user = new User(nickName, email, adminPermission, purchasingPermission, signature , customers);
+
+			return user;
+		
+		}catch(SQLException e)
+		{
+			closeConnection();
+			return null;
+		}
+		
+	}
+	public boolean updateUser(String nickName, String email, boolean adminPermission, boolean purchasingPermission, String signature
+			, List<String> customers) 
+	{
+		String password = getPassword(email);
+		if(password == null)
+			return false;
+		if(deleteUser(nickName))
+		{
+			if(addUser(nickName, email, password, adminPermission, purchasingPermission, signature))
+				return addCustomersToUser(nickName, customers);
+		}
+		
+		return false;
+	}
+	
+	private String getPassword(String email) 
+	{
+		String password = null;
+		try
+		{
+			connect();
+			stmt = c.prepareStatement("SELECT password FROM Permissions where ID = ?");
+			stmt.setString(1, email);
+			
+			ResultSet rs = stmt.executeQuery();
+			
+			if(rs.next())
+			{
+				String encryptedPassword = rs.getString("password");
+				try 
+				{
+					password = Globals.decrypt(encryptedPassword);
+				} 
+				catch (Exception e) 
+				{
+					password = null;
+				}
+			}
+			else 
+				password =  null;
+			
+			closeConnection();
+			
+			return password;
+		}catch(SQLException e)
+		{
+			return null;
+		}
+
 	}
 		
 	

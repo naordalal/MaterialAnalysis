@@ -34,13 +34,14 @@ public class SelectionManager implements ActionListener
         if(selectedItems.size() == 0)
         	combo.setSelectedItem(null);
         else
-        	combo.setSelectedItem(getFirstSelectedElementInItemsList());
+        	combo.setSelectedItem(getFirstSelectedElementInItemsList((DefaultComboBoxModel<String>)combo.getModel()));
+        
+        
         
     }
 
-    private Object getFirstSelectedElementInItemsList() 
+    public Object getFirstSelectedElementInItemsList(DefaultComboBoxModel<String> model) 
     {
-    	DefaultComboBoxModel<Object> model = ((DefaultComboBoxModel)combo.getModel());
     	List<Object> ccList = new ArrayList<Object>();
 		for(int i =0 ; i < model.getSize() ; i++)
 			ccList.add(model.getElementAt(i));
@@ -86,7 +87,7 @@ public class SelectionManager implements ActionListener
 	    	fromClick = false;
 	        selectedItems.remove(item);
 	        if(combo != null)
-	        	combo.setSelectedItem(getFirstSelectedElementInItemsList());
+	        	combo.setSelectedItem(getFirstSelectedElementInItemsList((DefaultComboBoxModel<String>) combo.getModel()));
 	    }
 		 
 		 if(combo != null)
@@ -94,6 +95,22 @@ public class SelectionManager implements ActionListener
 		 
      	fromClick = true;
 
+	}
+
+	public void setModelSelectedItem()
+	{
+		if (combo == null) 
+			return;
+		if(selectedItems.size() == 0)
+        	combo.setSelectedItem(null);
+        else
+        	combo.setSelectedItem(getFirstSelectedElementInItemsList((DefaultComboBoxModel<String>) combo.getModel()));
+		
+	}
+	
+	public void removeSelectedItem(Object item)
+	{
+		selectedItems.remove(item);
 	}
 	
 }

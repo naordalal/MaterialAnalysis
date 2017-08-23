@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.lang.invoke.MethodHandle;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.AbstractAction;
@@ -22,10 +23,12 @@ import javax.swing.KeyStroke;
 
 import org.apache.poi.ss.usermodel.Font;
 
+import Components.FilterCombo;
 import Components.MultiSelectionComboBox;
 import Components.MyComboBoxRenderer;
 import MainPackage.DataBase;
 import MainPackage.Globals;
+import MainPackage.User;
 
 
 public class PermissionFrame implements ActionListener{
@@ -49,7 +52,7 @@ public class PermissionFrame implements ActionListener{
 	private String from;
 	private MethodHandle callbackMethodOfMenu;
 	private JLabel nickNameLabel;
-	private JTextField nickNameText;
+	private FilterCombo nickNameComboBox;
 	private JLabel projectsPermissionLabel;
 	private MultiSelectionComboBox<String> projectsPermissionComboBox;
 	
@@ -125,10 +128,19 @@ public class PermissionFrame implements ActionListener{
 		nickNameLabel.setVisible(false);
 		panel.add(nickNameLabel);
 		
-		nickNameText = new JTextField();
-		nickNameText.setSize(150, 20);
-		nickNameText.setVisible(false);
-		panel.add(nickNameText);
+		Object[][] users = db.getAllUsers();
+		List<String> nickNames = new ArrayList<>();
+		for (Object[] user : users) 
+		{
+			nickNames.add((String) user[0]);
+		}
+		DefaultComboBoxModel<String> nickNameComboBoxModel = new DefaultComboBoxModel<String>();
+		boolean clearWhenFocusLost = false;
+		nickNameComboBox = new FilterCombo(nickNames , nickNameComboBoxModel , clearWhenFocusLost);
+		nickNameComboBox.setSize(150, 20);
+		nickNameComboBox.setVisible(false);
+		nickNameComboBox.addActionListener(this);
+		panel.add(nickNameComboBox);
 		
 		emailLabel = new JLabel("Email:");
 		emailLabel.setSize(40,100);
@@ -220,8 +232,8 @@ public class PermissionFrame implements ActionListener{
 			emailText.setText("");
 			
 			nickNameLabel.setLocation(30 , 20);
-			nickNameText.setLocation(90 , 60);
-			nickNameText.setText("");
+			nickNameComboBox.setLocation(90 , 60);
+			nickNameComboBox.setText("");
 			
 			passwordLabel.setLocation(30 , 70);
 			passwordField.setLocation(90 , 110);
@@ -240,7 +252,7 @@ public class PermissionFrame implements ActionListener{
 			emailText.setVisible(true);
 			
 			nickNameLabel.setVisible(true);
-			nickNameText.setVisible(true);
+			nickNameComboBox.setVisible(true);
 			
 			passwordLabel.setVisible(true);
 			passwordField.setVisible(true);
@@ -256,7 +268,7 @@ public class PermissionFrame implements ActionListener{
 			
 			signatureText.setText("");
 			
-			nickNameText.requestFocusInWindow();
+			nickNameComboBox.requestFocusInWindow();
 			
 			if(!okButton.isVisible())
 			{
@@ -269,13 +281,13 @@ public class PermissionFrame implements ActionListener{
 		else if(e.getSource() == deleteButton)
 		{
 			nickNameLabel.setLocation(280, 20);
-			nickNameText.setLocation(320 , 60);
-			nickNameText.setText("");
+			nickNameComboBox.setLocation(320 , 60);
+			nickNameComboBox.setText("");
 
 			passwordLabel.setVisible(false);
 			passwordField.setVisible(false);
 			
-			nickNameText.setVisible(true);
+			nickNameComboBox.setVisible(true);
 			nickNameLabel.setVisible(true);
 			
 			emailLabel.setVisible(false);
@@ -291,7 +303,7 @@ public class PermissionFrame implements ActionListener{
 			projectsPermissionComboBox.setVisible(false);
 			projectsPermissionComboBox.removeAllSelectedItem();
 			
-			nickNameText.requestFocusInWindow();
+			nickNameComboBox.requestFocusInWindow();
 			
 			if(!okButton.isVisible())
 			{
@@ -303,60 +315,83 @@ public class PermissionFrame implements ActionListener{
 		{
 			if(passwordField.isVisible())
 			{
-				if(nickNameText.getText().equals("") || emailText.getText().equals("") || passwordField.getPassword().length == 0)
+				if(nickNameComboBox.getText().equals("") || emailText.getText().equals(""))
 				{
-					JOptionPane.showConfirmDialog(null, "please fill nick Name & email & password","",JOptionPane.PLAIN_MESSAGE);
+					JOptionPane.showConfirmDialog(null, "please fill nick Name & email","",JOptionPane.PLAIN_MESSAGE);
+				}
+				else if(passwordField.isEnabled() && passwordField.getPassword().length == 0)
+				{
+					JOptionPane.showConfirmDialog(null, "please fill password","",JOptionPane.PLAIN_MESSAGE);
 				}
 				else
 				{
 					boolean purchasingPermission = (permission.isSelected()) ? true : (purchasing.isSelected());
 					
-					if(db.addUser(nickNameText.getText() , emailText.getText(), new String(passwordField.getPassword()), permission.isSelected() 
-							,purchasingPermission,signatureText.getText()))
+					if(passwordField.isEnabled())
 					{
-						db.addCustomersToUser(nickNameText.getText(), projectsPermissionComboBox.getSelectedItems());
-						
-						JOptionPane.showConfirmDialog(null, "success","",JOptionPane.PLAIN_MESSAGE);
-						try {
-							callbackMethodOfMenu.invokeExact();
-						} catch (Throwable e1) {
-							e1.printStackTrace();
+						if(db.addUser(nickNameComboBox.getText() , emailText.getText(), new String(passwordField.getPassword()), permission.isSelected() 
+								,purchasingPermission,signatureText.getText()))
+						{
+							db.addCustomersToUser(nickNameComboBox.getText(), projectsPermissionComboBox.getSelectedItems());
+							
+							JOptionPane.showConfirmDialog(null, "success","",JOptionPane.PLAIN_MESSAGE);
+							try {
+								callbackMethodOfMenu.invokeExact();
+							} catch (Throwable e1) {
+								e1.printStackTrace();
+							}
 						}
+						else
+						{
+							JOptionPane.showConfirmDialog(null, "Fail , There is another user with a same userName or Email","",JOptionPane.PLAIN_MESSAGE);
+						}	
 					}
 					else
 					{
-						JOptionPane.showConfirmDialog(null, "Fail , There is another user with a same userName or Email","",JOptionPane.PLAIN_MESSAGE);
+						if(db.updateUser(nickNameComboBox.getText() , emailText.getText() , permission.isSelected() 
+							,purchasingPermission,signatureText.getText() , projectsPermissionComboBox.getSelectedItems()))
+						{
+							
+							JOptionPane.showConfirmDialog(null, "success","",JOptionPane.PLAIN_MESSAGE);
+							try {
+								callbackMethodOfMenu.invokeExact();
+							} catch (Throwable e1) {
+								e1.printStackTrace();
+							}
+						}
+						else
+						{
+							JOptionPane.showConfirmDialog(null, "Fail , There is another user with a same userName or Email","",JOptionPane.PLAIN_MESSAGE);
+						}	
 					}
 					
 					emailText.setText("");
 					passwordField.setText("");
-					nickNameText.setText("");
+					nickNameComboBox.setText("");
 					permission.setSelected(false);
 					purchasing.setSelected(false);
 					signatureText.setText("");
 					signatureLabel.setVisible(false);
 					signatureText.setVisible(false);
-					projectsPermissionLabel.setVisible(false);
-					projectsPermissionComboBox.setVisible(false);
 					projectsPermissionComboBox.removeAllSelectedItem();
-					nickNameText.requestFocusInWindow();
+					nickNameComboBox.requestFocusInWindow();
 				}
 			}
 			else
 			{
-				if(nickNameText.getText().equals(""))
+				if(nickNameComboBox.getText().equals(""))
 				{
 					JOptionPane.showConfirmDialog(null, "please fill userName","",JOptionPane.PLAIN_MESSAGE);
 				}
 				else
 				{
-					if(nickNameText.getText().equals(from))
+					if(nickNameComboBox.getText().equals(from))
 					{
 						JOptionPane.showConfirmDialog(null, "Can not remove yourself","",JOptionPane.PLAIN_MESSAGE);
 						return;
 					}
 					
-					if(db.deleteUser(nickNameText.getText()))
+					if(db.deleteUser(nickNameComboBox.getText()))
 					{
 						JOptionPane.showConfirmDialog(null, "success","",JOptionPane.PLAIN_MESSAGE);
 						try {
@@ -372,13 +407,16 @@ public class PermissionFrame implements ActionListener{
 					
 					emailText.setText("");
 					passwordField.setText("");
-					nickNameText.setText("");
+					nickNameComboBox.setText("");
 					permission.setSelected(false);
 					purchasing.setSelected(false);
 					signatureText.setText("");
 					signatureLabel.setVisible(false);
 					signatureText.setVisible(false);
-					nickNameText.requestFocusInWindow();
+					projectsPermissionLabel.setVisible(false);
+					projectsPermissionComboBox.setVisible(false);
+					projectsPermissionComboBox.removeAllSelectedItem();
+					nickNameComboBox.requestFocusInWindow();
 					
 				}
 			}
@@ -412,6 +450,59 @@ public class PermissionFrame implements ActionListener{
 					purchasing.setSelected(false);
 					return;
 				}
+			}
+		}
+		else if(e.getSource() == nickNameComboBox)
+		{
+			DefaultComboBoxModel<String> projectsPermissionComboBoxModel = (DefaultComboBoxModel<String>) projectsPermissionComboBox.getModel();
+			DefaultComboBoxModel<String> nickNameComboBoxModel = (DefaultComboBoxModel<String>) nickNameComboBox.getModel();
+			String nickName =  (nickNameComboBoxModel.getSelectedItem() == null) ? "" : (String) nickNameComboBoxModel.getSelectedItem();
+			User user = db.getUser(nickName);
+			
+			if(user != null)
+			{
+				emailText.setText(user.getEmail());
+				passwordField.setText("");
+				permission.setSelected(user.isAdminPermission());
+				purchasing.setSelected(user.isPurchasingPermission());
+				projectsPermissionComboBox.removeAllSelectedItem();
+
+				if(user.isAdminPermission() || user.isPurchasingPermission())
+				{
+					signatureText.setText(user.getSignature());
+					signatureText.setVisible(true);
+				}
+				
+				projectsPermissionComboBox.removeAllItems();
+				List<String> allCustomers = db.getAllProjects();
+				for (String customer : allCustomers) 
+				{
+					if(user.getCustomers().contains(customer))
+						projectsPermissionComboBox.addItem(customer);
+					else
+						projectsPermissionComboBoxModel.addElement(customer);
+				}
+				
+				if(user.getCustomers().size() == 0)
+				{
+					projectsPermissionComboBox.removeSelectedItem(allCustomers.get(0));
+					projectsPermissionComboBox.setSelectedItem(null);
+				}
+				
+				passwordField.setEnabled(false);
+				
+			}
+			else
+			{
+				emailText.setText("");
+				passwordField.setText("");
+				permission.setSelected(false);
+				purchasing.setSelected(false);
+				projectsPermissionComboBox.removeAllSelectedItem();
+				signatureText.setText("");
+				signatureText.setVisible(false);
+				
+				passwordField.setEnabled(true);
 			}
 		}
 		
