@@ -368,6 +368,14 @@ public class PermissionFrame implements ActionListener{
 					emailText.setText("");
 					passwordField.setText("");
 					nickNameComboBox.setText("");
+					Object[][] users = db.getAllUsers();
+					List<String> nickNames = new ArrayList<>();
+					for (Object[] user : users) 
+					{
+						nickNames.add((String) user[0]);
+					}
+					nickNameComboBox.setBaseValues(nickNames);
+					
 					permission.setSelected(false);
 					purchasing.setSelected(false);
 					signatureText.setText("");
@@ -408,6 +416,13 @@ public class PermissionFrame implements ActionListener{
 					emailText.setText("");
 					passwordField.setText("");
 					nickNameComboBox.setText("");
+					Object[][] users = db.getAllUsers();
+					List<String> nickNames = new ArrayList<>();
+					for (Object[] user : users) 
+					{
+						nickNames.add((String) user[0]);
+					}
+					nickNameComboBox.setBaseValues(nickNames);
 					permission.setSelected(false);
 					purchasing.setSelected(false);
 					signatureText.setText("");

@@ -47,6 +47,8 @@ public class AddProductFrame implements ActionListener
 	private MultiSelectionComboBox<String> fatherComboBox;
 	private JButton addProductButton;
 	private JLabel copyRight;
+	private JLabel aliasLabel;
+	private FilterCombo aliasComboBox;
 	
 	public AddProductFrame(String userName) 
 	{
@@ -145,7 +147,21 @@ public class AddProductFrame implements ActionListener
 		fatherComboBox.setLocation(150, 310);
 		fatherComboBox.setSize(150, 20);
 		panel.add(fatherComboBox);
-			
+		
+		aliasLabel = new JLabel("<html><u>Rev:</u></html>");
+		aliasLabel.setLocation(30, 320);
+		aliasLabel.setSize(120,100);
+		aliasLabel.setVisible(false);
+		panel.add(aliasLabel);
+		
+		model = new DefaultComboBoxModel<String>();
+		clearWhenFocusLost = true;
+		aliasComboBox = new FilterCombo(model , clearWhenFocusLost);
+		aliasComboBox.setLocation(150, 360);
+		aliasComboBox.setSize(150, 20);
+		aliasComboBox.setVisible(false);
+		panel.add(aliasComboBox);
+		
 		addProductButton = new JButton();
 		addProductButton.setLocation(200, 420);
 		addProductButton.setSize(80 , 40);
@@ -189,7 +205,7 @@ public class AddProductFrame implements ActionListener
 				descriptionText.setEnabled(false);
 				
 				List<String> fathers = trees.stream().map(tree -> tree.getFatherCN()).collect(Collectors.toList());
-				List<String> fatherCatalogNumbers = db.getAllCatalogNumbers(userName);
+				List<String> fatherCatalogNumbers = db.getAllCatlogNumberOfCustomer(customerName);
 				fatherCatalogNumbers.removeAll(fathers);
 				fatherCatalogNumbers.remove(catalogNumber);
 				DefaultComboBoxModel<String> fatherComboBoxModel = (DefaultComboBoxModel<String>) fatherComboBox.getModel();
@@ -199,7 +215,17 @@ public class AddProductFrame implements ActionListener
 					fatherComboBoxModel.addElement(fatherCatalogNumber);
 				}
 				
+				fatherComboBox.removeAllSelectedItem();
+				
 				customerComboBox.setEnabled(false);
+				
+				String alias = db.getDescendantCatalogNumber(catalogNumber);
+				alias = (alias == catalogNumber) ? "" : alias;
+				aliasLabel.setVisible(true);
+				aliasComboBox.setBaseValues(fatherCatalogNumbers);
+				aliasComboBox.setSelectedItem(alias);
+				aliasComboBox.setVisible(true);
+				
 			}
 			else
 			{
@@ -216,11 +242,17 @@ public class AddProductFrame implements ActionListener
 				
 				DefaultComboBoxModel<String> fatherComboBoxModel = (DefaultComboBoxModel<String>) fatherComboBox.getModel();
 				fatherComboBox.removeAllItems();
-				List<String> fatherCatalogNumbers = db.getAllCatalogNumbers(userName);
+				List<String> fatherCatalogNumbers = db.getAllCatlogNumberOfCustomer((String) customerComboBox.getSelectedItem());
 				for (String fatherCatalogNumber : fatherCatalogNumbers) 
 				{
 					fatherComboBoxModel.addElement(fatherCatalogNumber);
 				}
+				
+				fatherComboBox.removeAllSelectedItem();
+				
+				aliasLabel.setVisible(false);
+				aliasComboBox.setVisible(false);
+				aliasComboBox.removeAllItems();
 			}
 		}
 		else if(event.getSource() == customerComboBox)
@@ -236,9 +268,10 @@ public class AddProductFrame implements ActionListener
 				fatherComboBox.removeAllItems();
 				for (String cn : catalogNumbers) 
 					fatherComboBoxModel.addElement(cn);
-				
-				fatherComboBoxModel.setSelectedItem(null);
+
+				fatherComboBox.removeAllSelectedItem();
 			}
+			
 		}
 		else if(event.getSource() == addProductButton)
 		{			
@@ -252,6 +285,16 @@ public class AddProductFrame implements ActionListener
 			{
 				JOptionPane.showConfirmDialog(null, "Please enter a description","",JOptionPane.PLAIN_MESSAGE);
 				return;
+			}
+			
+			if(aliasComboBox.getSelectedItem() != null)
+			{
+				if(fatherComboBox.getSelectedItems().contains(aliasComboBox.getSelectedItem()))
+				{
+					JOptionPane.showConfirmDialog(null, String.format("Catalog Number %s cannot be Father and Rev" , aliasComboBox.getSelectedItem()),"",JOptionPane.PLAIN_MESSAGE);
+					aliasComboBox.setSelectedItem(null);
+					return;
+				}
 			}
 			
 			String catalogNumber = catalogNumberComboBox.getText().trim();
@@ -270,7 +313,9 @@ public class AddProductFrame implements ActionListener
 					while(!validInput)
 					{
 						quantity = JOptionPane.showInputDialog(null , "Enter quantity for " + father , "Quantity To Associate" , JOptionPane.OK_OPTION);
-						if(quantity == null || !org.apache.commons.lang3.StringUtils.isNumeric(quantity.trim()))
+						if(quantity == null)
+							return;
+						if(!org.apache.commons.lang3.StringUtils.isNumeric(quantity.trim()))
 						{
 							JOptionPane.showConfirmDialog(null, "Please enter a valid quantity","",JOptionPane.PLAIN_MESSAGE);
 							continue;	
@@ -284,7 +329,12 @@ public class AddProductFrame implements ActionListener
 			}
 			else
 				db.addNewProduct(catalogNumber, customer, description, "", "0");
-
+			
+			
+			if(aliasComboBox.getSelectedItem() != null)
+			{
+				db.updateAlias(catalogNumber, (String) aliasComboBox.getSelectedItem());
+			}
 			
 			JOptionPane.showConfirmDialog(null, "Added successfully","",JOptionPane.PLAIN_MESSAGE);
 			
