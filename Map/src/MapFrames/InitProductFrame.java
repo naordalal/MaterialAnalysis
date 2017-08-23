@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,7 +33,7 @@ public class InitProductFrame implements ActionListener
 	private JFrame frame;
 	private JPanel panel;
 	private String userName;
-	private JLabel initTypeLabel;
+	private JComboBox<String> initTypeComboBox;
 	private JLabel catalogNumberLabel;
 	private JComboBox<String> catalogNumberComboBox;
 	private JLabel quantityLabel;
@@ -45,7 +46,7 @@ public class InitProductFrame implements ActionListener
 	private JButton addInitButton;
 	private List<FormType> formsTypeThatNeedInit;
 	private List<FormType> formsTypeThatNotNeedInit;
-	private int currentTypeIndex;
+	private List<FormType> formsThatAlreadyInit;
 	
 	public InitProductFrame(String userName , List<FormType> formsType) 
 	{
@@ -58,12 +59,13 @@ public class InitProductFrame implements ActionListener
 		
 		analyzer = new Analyzer();
 		db = new DataBase();
+		
+		formsThatAlreadyInit = new ArrayList<FormType>();
 		initialize();
 	}
 
 	private void initialize() 
 	{
-		this.currentTypeIndex = 0;
 		
 		frame = new JFrame("Init Product");
 		frame.setVisible(true);
@@ -96,10 +98,18 @@ public class InitProductFrame implements ActionListener
 		panel.setLayout(null);
 		frame.add(panel);
 		
-		initTypeLabel = new JLabel("<html><u><b>Init " + globals.FormTypeToString(formsTypeThatNeedInit.get(0)) + ":</b></u></html>");
-		initTypeLabel.setLocation(10,0);
-		initTypeLabel.setSize(100,100);
-		panel.add(initTypeLabel);
+		DefaultComboBoxModel<String> model = new DefaultComboBoxModel<String>();
+		//initTypeComboBox = new JLabel("<html><u><b>Init " + globals.FormTypeToString(formsTypeThatNeedInit.get(0)) + ":</b></u></html>");
+		for (FormType formType : formsTypeThatNeedInit) 
+		{
+			model.addElement(globals.FormTypeToString(formType));
+		}
+		
+		initTypeComboBox = new JComboBox<>(model);
+		initTypeComboBox.setLocation(10,20);
+		initTypeComboBox.setSize(120,20);
+		initTypeComboBox.addActionListener(this);
+		panel.add(initTypeComboBox);
 		
 		catalogNumberLabel = new JLabel("<html><u>Catalog Number:</u></html>");
 		catalogNumberLabel.setLocation(30,40);
@@ -107,7 +117,7 @@ public class InitProductFrame implements ActionListener
 		panel.add(catalogNumberLabel);
 		
 		List<String> catalogNumbers = db.getAllCatalogNumbers(userName);
-		DefaultComboBoxModel<String> model = new DefaultComboBoxModel<String>();
+		model = new DefaultComboBoxModel<String>();
 		for (String catalogNumber : catalogNumbers) 	
 			model.addElement(catalogNumber);
 		
@@ -131,13 +141,13 @@ public class InitProductFrame implements ActionListener
 		requireDateLabel = new JLabel("<html><u>Require Date:</u></html>");
 		requireDateLabel.setLocation(30,180);
 		requireDateLabel.setSize(100,100);
-		requireDateLabel.setVisible(Form.isNeedRequireDate(globals.getClassName(formsTypeThatNeedInit.get(currentTypeIndex))));
+		requireDateLabel.setVisible(Form.isNeedRequireDate(globals.getClassName(formsTypeThatNeedInit.get(initTypeComboBox.getSelectedIndex()))));
 		panel.add(requireDateLabel);
 		
 		requireDateText = new JTextField();
 		requireDateText.setLocation(120, 220);
 		requireDateText.setSize(150, 20);
-		requireDateText.setVisible(Form.isNeedRequireDate(globals.getClassName(formsTypeThatNeedInit.get(currentTypeIndex))));
+		requireDateText.setVisible(Form.isNeedRequireDate(globals.getClassName(formsTypeThatNeedInit.get(initTypeComboBox.getSelectedIndex()))));
 		panel.add(requireDateText);
 		
 		addInitButton = new JButton();
@@ -153,12 +163,16 @@ public class InitProductFrame implements ActionListener
 		
 	}
 
+
 	private void close() 
 	{
-		if(currentTypeIndex == 0)
+		if(formsThatAlreadyInit.size() != 0)
+		{
+			JOptionPane.showConfirmDialog(null, "You are not done yet , you have to init all categories","",JOptionPane.PLAIN_MESSAGE);
+			return;
+		}
+		else 
 			frame.dispose();
-		else
-			JOptionPane.showConfirmDialog(null, "You are not done yet","",JOptionPane.PLAIN_MESSAGE);
 	}
 
 	@Override
@@ -172,7 +186,7 @@ public class InitProductFrame implements ActionListener
 				return;
 			}
 			
-			if((Form.isNeedRequireDate(globals.getClassName(formsTypeThatNeedInit.get(currentTypeIndex)))))
+			if(Form.isNeedRequireDate(globals.getClassName(formsTypeThatNeedInit.get(initTypeComboBox.getSelectedIndex()))))
 			{
 				Date requireDate = Globals.isValidDate(requireDateText.getText()); 
 				if(requireDate == null)
@@ -185,34 +199,24 @@ public class InitProductFrame implements ActionListener
 			frame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 			
 			String catalogNumber = (String) catalogNumberComboBox.getModel().getSelectedItem();
-			if(currentTypeIndex == 0)
-				analyzer.cleanProductQuantityPerDate(catalogNumber);
+			analyzer.cleanProductQuantityPerDate(catalogNumber);
 			
 			String initDate = Globals.dateWithoutHourToString(Globals.getTodayDate());
 			String quantity = quantityText.getText().trim();
-			String requireDateString = (Form.isNeedRequireDate(globals.getClassName(formsTypeThatNeedInit.get(currentTypeIndex)))) ? requireDateText.getText() : Globals.dateWithoutHourToString(Globals.getTodayDate());
-			analyzer.addNewInitProductCustomerOrders(catalogNumber, initDate, quantity, requireDateString , formsTypeThatNeedInit.get(currentTypeIndex));
+			String requireDateString = (Form.isNeedRequireDate(globals.getClassName(formsTypeThatNeedInit.get(initTypeComboBox.getSelectedIndex()))))
+					? requireDateText.getText() : Globals.dateWithoutHourToString(Globals.getTodayDate());
+			analyzer.addNewInitProductCustomerOrders(catalogNumber, initDate, quantity, requireDateString , formsTypeThatNeedInit.get(initTypeComboBox.getSelectedIndex()));
 			
-			currentTypeIndex = (currentTypeIndex + 1) % formsTypeThatNeedInit.size();
-			initTypeLabel.setText("<html><u>Init " + globals.FormTypeToString(formsTypeThatNeedInit.get(currentTypeIndex)) + ":</u></html>");
-			
-			if(currentTypeIndex >= 1)
-				catalogNumberComboBox.setEnabled(false);
-			else
-			{
-				catalogNumberComboBox.setEnabled(true);	
-				catalogNumberComboBox.getModel().setSelectedItem(null);
-			}
 			
 			quantityText.setText("");
 			requireDateText.setText("");
-			requireDateText.setVisible(Form.isNeedRequireDate(globals.getClassName(formsTypeThatNeedInit.get(currentTypeIndex))));
-			requireDateLabel.setVisible(Form.isNeedRequireDate(globals.getClassName(formsTypeThatNeedInit.get(currentTypeIndex))));
 			quantityText.requestFocusInWindow();
+			catalogNumberComboBox.setEnabled(false);
 			
-			frame.setCursor(Cursor.getDefaultCursor());
+			if(!formsThatAlreadyInit.contains(formsTypeThatNeedInit.get(initTypeComboBox.getSelectedIndex())))
+				formsThatAlreadyInit.add(formsTypeThatNeedInit.get(initTypeComboBox.getSelectedIndex()));
 			
-			if(currentTypeIndex == 0)
+			if(formsThatAlreadyInit.size() == formsTypeThatNeedInit.size())
 			{
 				for (FormType formType : formsTypeThatNotNeedInit) 
 				{
@@ -220,8 +224,17 @@ public class InitProductFrame implements ActionListener
 				}
 				
 				JOptionPane.showConfirmDialog(null, "Init successfully","",JOptionPane.PLAIN_MESSAGE);
+				formsThatAlreadyInit.clear();
+				catalogNumberComboBox.setEnabled(true);
 			}
 			
+			frame.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+			
+		}
+		else if(event.getSource() == initTypeComboBox)
+		{
+			requireDateText.setVisible(Form.isNeedRequireDate(globals.getClassName(formsTypeThatNeedInit.get(initTypeComboBox.getSelectedIndex()))));
+			requireDateLabel.setVisible(Form.isNeedRequireDate(globals.getClassName(formsTypeThatNeedInit.get(initTypeComboBox.getSelectedIndex()))));
 		}
 	}
 	

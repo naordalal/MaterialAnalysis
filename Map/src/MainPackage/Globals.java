@@ -16,6 +16,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -588,6 +589,36 @@ public class Globals {
 			default:
 				return "";
 		}
+	}
+
+
+	public FormType getTypeByName(String typeName) 
+	{
+		switch(typeName)
+		{
+			case "Customer Order":
+				return FormType.PO;
+			case "Work Order":
+				return FormType.WO;
+			case "Shipments":
+				return FormType.SHIPMENT;
+			case "Forecast":
+				return FormType.FC;
+			default:
+				return null;
+		}
+	}
+
+
+	public List<FormType> getAllFormTypes()
+	{
+		List<FormType> formTypes = new ArrayList<>();
+		formTypes.add(FormType.PO);
+		formTypes.add(FormType.WO);
+		formTypes.add(FormType.SHIPMENT);
+		formTypes.add(FormType.FC);
+		
+		return formTypes;
 	}
 	
 }

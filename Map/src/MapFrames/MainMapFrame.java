@@ -23,6 +23,7 @@ import AnalyzerTools.MonthDate;
 import AnalyzerTools.ProductColumn;
 import Components.TableCellListener;
 import Forms.Form;
+import Forms.ProductInit;
 import Forms.Tree;
 import MainPackage.CallBack;
 import MainPackage.DataBase;
@@ -44,6 +45,7 @@ public class MainMapFrame implements ActionListener
 	private String userName;
 	private JLabel copyRight;
 	private JButton treeViewButton;
+	private JButton initProductViewButton;
 	private DataBase db;
 
 	public MainMapFrame(String userName, CallBack<Integer> callBack) 
@@ -122,6 +124,12 @@ public class MainMapFrame implements ActionListener
 		treeViewButton.addActionListener(this);
 		panel.add(treeViewButton);
 		
+		initProductViewButton = new JButton("<html><b>Init Product View</b></html>");
+		initProductViewButton.setLocation(140 , 100);
+		initProductViewButton.setSize(100, 60);
+		initProductViewButton.addActionListener(this);
+		panel.add(initProductViewButton);
+		
 		copyRight = new JLabel("<html><b>\u00a9 Naor Dalal</b></html>");
 		copyRight.setLocation(30 , 430);
 		copyRight.setSize(100,30);
@@ -197,9 +205,40 @@ public class MainMapFrame implements ActionListener
 			treeFrame.setFilters(filterColumns, filterNames);
 			treeFrame.show();
 		}
+		else if(event.getSource() == initProductViewButton)
+		{
+			List<ProductInit> productsInit = db.getAllProductsInit(userName);
+			
+			String [] columns;
+			String [][] rows;
+			
+			List<Integer> invalidEditableColumns = new ArrayList<Integer>();
+			if(productsInit.size() > 0)
+			{
+				columns = productsInit.get(0).getColumns();
+				invalidEditableColumns = productsInit.get(0).getInvalidEditableColumns();
+				rows = productsInit.stream().map(t -> t.getRow()).toArray(String[][]::new);
+			}
+			else
+			{
+				columns = new String [0];
+				rows = new String[0][0];
+			}
+			
+			boolean canEdit = true;
+			ReportViewFrame initProductFrame = new ReportViewFrame("Init Product View" , columns, rows, canEdit, invalidEditableColumns);
+			initProductFrame.setCallBacks(getInitProductValueCellChangeAction(initProductFrame, productsInit), null, null);
+			
+			List<Integer> filterColumns = ProductInit.getFilterColumns();
+			List<String> filterNames = new ArrayList<>();
+			if(productsInit.size() > 0)
+				filterColumns.stream().forEach(col -> filterNames.add(columns[col] + ": "));
+			initProductFrame.setFilters(filterColumns, filterNames);
+			initProductFrame.show();
+		}
 		
 	}
-		
+
 	public CallBack<Object> getMapDoubleLeftClickAction(Map<MonthDate, Map<String, ProductColumn>> map , ReportViewFrame mapFrame)
 	{
 		CallBack<Object> doubleLeftClickAction = new CallBack<Object>()
@@ -321,9 +360,51 @@ public class MainMapFrame implements ActionListener
 					}
 						
 				}
-										
-				treeFrame.refresh(db.getAllTrees(userName , null).stream().map(t -> t.getRow()).toArray(String[][]::new));
+								
+				List<Tree> newTrees = db.getAllTrees(userName , null);
+				trees.clear();
+				trees.addAll(newTrees);
+				treeFrame.refresh(newTrees.stream().map(t -> t.getRow()).toArray(String[][]::new));
 				treeFrame.setColumnWidth();
+				
+				return null;
+			}
+		};
+		
+		return valueCellChangeAction;
+	}
+	
+	
+	public CallBack<Object> getInitProductValueCellChangeAction(ReportViewFrame productInitFrame, List<ProductInit> productsInit) 
+	{
+		CallBack<Object> valueCellChangeAction = new CallBack<Object>()
+		{
+			@Override
+			public Object execute(Object... objects) 
+			{
+				TableCellListener tcl = (TableCellListener)objects[0];
+				int row = tcl.getRow();
+				int column = tcl.getColumn();
+				String newValue = (String) tcl.getNewValue();
+				String oldValue = (String) tcl.getOldValue();
+				ProductInit productInit = productsInit.get(row);
+				
+				try
+				{
+					productInit.updateValue(column, newValue);
+				} 
+				catch (Exception e) 
+				{
+					productInitFrame.updateCellValue(row,column,oldValue);
+					JOptionPane.showConfirmDialog(null, e.getMessage() ,"Error",JOptionPane.PLAIN_MESSAGE);
+					return e;
+				}
+							
+				List<ProductInit> newProductsInit = db.getAllProductsInit(userName);
+				productsInit.clear();
+				productsInit.addAll(newProductsInit);
+				productInitFrame.refresh(newProductsInit.stream().map(t -> t.getRow()).toArray(String[][]::new));
+				productInitFrame.setColumnWidth();
 				
 				return null;
 			}

@@ -469,6 +469,8 @@ public class PermissionFrame implements ActionListener{
 		}
 		else if(e.getSource() == nickNameComboBox)
 		{
+			if(!passwordField.isVisible())
+				return;
 			DefaultComboBoxModel<String> projectsPermissionComboBoxModel = (DefaultComboBoxModel<String>) projectsPermissionComboBox.getModel();
 			DefaultComboBoxModel<String> nickNameComboBoxModel = (DefaultComboBoxModel<String>) nickNameComboBox.getModel();
 			String nickName =  (nickNameComboBoxModel.getSelectedItem() == null) ? "" : (String) nickNameComboBoxModel.getSelectedItem();
