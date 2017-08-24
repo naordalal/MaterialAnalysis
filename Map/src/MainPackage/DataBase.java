@@ -1244,7 +1244,7 @@ public class DataBase {
 		try{
 			
 			connect();
-			stmt =  c.prepareStatement("SELECT date FROM productForecast where date(date) = (SELECT MAX(date(date)) FROM productForecast)");
+			stmt =  c.prepareStatement("SELECT Max(date(date)) AS date FROM (SELECT date FROM productForecast UNION SELECT date FROM productWorkOrder)");
 			ResultSet rs = stmt.executeQuery();
 
 			if(rs.next())

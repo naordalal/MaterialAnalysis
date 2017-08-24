@@ -364,6 +364,8 @@ public class MainMapFrame implements ActionListener
 				}
 								
 				List<Tree> newTrees = db.getAllTrees(userName , null);
+				trees.clear();
+				trees.addAll(newTrees);
 				treeFrame.refresh(newTrees.stream().map(t -> t.getRow()).toArray(String[][]::new));
 				treeFrame.setColumnWidth();
 				
@@ -401,6 +403,8 @@ public class MainMapFrame implements ActionListener
 				}
 							
 				List<ProductInit> newProductsInit = db.getAllProductsInit(userName);
+				productsInit.clear();
+				productsInit.addAll(newProductsInit);
 				productInitFrame.refresh(newProductsInit.stream().map(t -> t.getRow()).toArray(String[][]::new));
 				productInitFrame.setColumnWidth();
 				

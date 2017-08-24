@@ -3,6 +3,7 @@ package Forms;
 import java.util.ArrayList;
 import java.util.List;
 
+import AnalyzerTools.Analyzer;
 import MainPackage.DataBase;
 import MainPackage.Message;
 
@@ -168,6 +169,8 @@ public class Tree
 		
 		db.updateTree(catalogNumber, description , previousFatherCN , fatherCN , quantity , alias);
 		
+		Analyzer analyzer = new Analyzer();
+		analyzer.updateProductQuantities(catalogNumber);
 		return message;
 		
 	}
