@@ -146,7 +146,6 @@ public class FollowUpAndExpediteMenu implements ActionListener{
 		boolean purchasingPermission = db.checkPurchasingPermission(userName , password);
 		
 		frame = new JFrame("Gathering material analysis system");
-		frame.setVisible(true);
 		frame.setLayout(null);
 		frame.getRootPane().setFocusable(true);
 		frame.setBounds(300, 50, 900, 780);
@@ -691,7 +690,7 @@ public class FollowUpAndExpediteMenu implements ActionListener{
 		confirmProjectNameButton.setVisible(false);
 		panel.add(confirmProjectNameButton); 
 		
-		
+		frame.setVisible(true);
 	}
 
 

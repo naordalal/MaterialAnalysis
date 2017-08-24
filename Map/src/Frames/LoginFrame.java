@@ -24,6 +24,8 @@ import Forms.Forecast;
 import MainPackage.DataBase;
 import MainPackage.Globals;
 import MainPackage.Globals.FormType;
+import MainPackage.SimGlobals;
+import MainPackage.SimMrpGlobals;
 import MapFrames.AddProductFrame;
 import MapFrames.InitProductFrame;
 
@@ -52,7 +54,6 @@ public class LoginFrame implements ActionListener
 	{
 		globals = new Globals();
 		frame = new JFrame("ND System");
-		frame.setVisible(true);
 		frame.setLayout(null);
 		frame.getRootPane().setFocusable(true);
 		frame.setBounds(500, 200, 300, 300);
@@ -98,7 +99,6 @@ public class LoginFrame implements ActionListener
 		nickNametext.setLocation(120, 50);
 		nickNametext.setSize(150, 20);
 		panel.add(nickNametext);
-		nickNametext.requestFocusInWindow();
 		
 		passwordField = new JPasswordField();
 		passwordField.setLocation(120, 120);
@@ -131,7 +131,10 @@ public class LoginFrame implements ActionListener
 		copyRight.setLocation(30 , 230);
 		copyRight.setSize(100,30);
 		panel.add(copyRight);
+		
+		frame.setVisible(true);
 			
+		nickNametext.requestFocusInWindow();
 	}
 
 	@Override

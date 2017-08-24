@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.math.NumberUtils;
+
 import Forms.Form;
 import MainPackage.Globals.FormType;
 
@@ -63,6 +65,8 @@ public class Analyzer
 			else
 			{
 				Date date = Globals.parseDate(columns.get(dateColumn));
+				if(date == null || columns.get(catalogNumberColumn).trim().equals("") || !NumberUtils.isCreatable(columns.get(quantityColumn)))
+					continue;
 				if(Globals.addMonths(Globals.getTodayDate(), -globals.monthsToIgnore).before(date))
 					db.addWO(columns.get(woNumberColumn), columns.get(catalogNumberColumn), columns.get(quantityColumn)
 							, columns.get(customerColumn), columns.get(dateColumn), columns.get(descriptionColumn));
@@ -97,8 +101,11 @@ public class Analyzer
 				guaranteedDateColumn = columns.indexOf(globals.guaranteedDateColumn);
 			else
 			{
-				Date date = Globals.parseDate(columns.get(orderDateColumn));
-				if(Globals.addMonths(Globals.getTodayDate(), -globals.monthsToIgnore).before(date))
+				Date orderDate = Globals.parseDate(columns.get(orderDateColumn));
+				Date guaranteedDate = Globals.parseDate(columns.get(guaranteedDateColumn));
+				if(orderDate == null || guaranteedDate == null || columns.get(catalogNumberColumn).trim().equals("") || !NumberUtils.isCreatable(columns.get(quantityColumn)))
+					continue;
+				if(Globals.addMonths(Globals.getTodayDate(), -globals.monthsToIgnore).before(orderDate))
 					db.addCustomerOrder(columns.get(customerColumn), columns.get(orderNumberColumn), columns.get(customerOrderNumberColumn), columns.get(catalogNumberColumn)
 							, columns.get(descriptionColumn), columns.get(quantityColumn), columns.get(priceColumn) 
 							, columns.get(orderDateColumn) , columns.get(guaranteedDateColumn));
@@ -129,6 +136,7 @@ public class Analyzer
 			else
 			{
 				Date date = Globals.parseDate(columns.get(shipmentDateColumn));
+				if(date == null || columns.get(catalogNumberColumn).trim().equals("") || !NumberUtils.isCreatable(columns.get(quantityColumn)))
 				if(Globals.addDays(Globals.getTodayDate(), -2).before(date))
 					db.addShipment(columns.get(customerColumn), columns.get(orderIdColumn), columns.get(orderCustomerIdColumn) ,columns.get(catalogNumberColumn)
 							, columns.get(quantityColumn), columns.get(shipmentDateColumn), columns.get(descriptionColumn));

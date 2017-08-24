@@ -51,7 +51,7 @@ public class DataBase {
 			}catch ( Exception e ) {
 			      System.err.println( e.getClass().getName() + ": " + e.getMessage() );
 			      JOptionPane.showConfirmDialog(null, "Can't find DB file \nThe file should be in : " + Globals.con,"",JOptionPane.PLAIN_MESSAGE);
-			      //System.exit(0);
+			      System.exit(0);
 			      return false;
 			}
 	}
@@ -62,8 +62,11 @@ public class DataBase {
 				stmt.close();
 			if(c != null && !c.isClosed())
 				c.close();
+			
 		} catch (SQLException e) {
 			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+		}finally {
+			stmt = null;
 		}
 	    
 	}
@@ -1237,14 +1240,15 @@ public class DataBase {
 		}
 	}
 
-	public MonthDate getMaximumForecastDate() 
+	public MonthDate getMaximumMapDate() 
 	{
 		MonthDate requireDate = new MonthDate(Globals.getTodayDate());
+		MonthDate maxInitDate = getMaximumInitDate();
 		
 		try{
 			
 			connect();
-			stmt =  c.prepareStatement("SELECT Max(date(date)) AS date FROM (SELECT date FROM productForecast UNION SELECT date FROM productWorkOrder)");
+			stmt =  c.prepareStatement("SELECT Max(date(date)) AS date FROM (SELECT date FROM productForecast UNION SELECT date FROM productCustomerOrders)");
 			ResultSet rs = stmt.executeQuery();
 
 			if(rs.next())
@@ -1253,6 +1257,9 @@ public class DataBase {
 				if(date != null && !date.trim().equals(""))
 					requireDate = new MonthDate(Globals.parseDateFromSqlFormat(date));
 			}
+			
+			if(maxInitDate.after(requireDate))
+				requireDate = maxInitDate;
 			
 			closeConnection();
 			return requireDate;
@@ -1268,7 +1275,7 @@ public class DataBase {
 	
 	public MonthDate getMinimumInitDate() 
 	{
-		MonthDate requireDate = new MonthDate(Globals.getTodayDate());
+		MonthDate requireDate = new MonthDate(Globals.addMonths(Globals.getTodayDate() , -6));
 		
 		try{
 			
@@ -1281,7 +1288,48 @@ public class DataBase {
 			{
 				String date = rs.getString("date");
 				if(date != null && !date.trim().equals(""))
-					requireDate = new MonthDate(Globals.parseDateFromSqlFormat(date));
+				{
+					MonthDate minInitMonthDate = new MonthDate(Globals.parseDateFromSqlFormat(date));
+					if(minInitMonthDate.after(requireDate))
+						requireDate = minInitMonthDate;
+					
+				}
+			}
+				
+			
+			closeConnection();
+			return requireDate;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return null;
+		}
+	}
+	
+	public MonthDate getMaximumInitDate() 
+	{
+		MonthDate requireDate = new MonthDate(Globals.getTodayDate());
+		
+		try{
+			
+			connect();
+			stmt =  c.prepareStatement("SELECT MAX(date(requireDate)) AS date FROM (SELECT requireDate FROM InitProductCustomerOrders UNION "
+					+ "SELECT requireDate FROM InitProductForecast UNION SELECT requireDate FROM InitProductWorkOrder UNION SELECT requireDate FROM InitProductShipments)");
+			ResultSet rs = stmt.executeQuery();
+
+			if(rs.next())
+			{
+				String date = rs.getString("date");
+				if(date != null && !date.trim().equals(""))
+				{
+					MonthDate maxInitMonthDate = new MonthDate(Globals.parseDateFromSqlFormat(date));
+					if(maxInitMonthDate.before(requireDate))
+						requireDate = maxInitMonthDate;
+					
+				}
 			}
 				
 			

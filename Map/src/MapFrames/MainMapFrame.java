@@ -1,5 +1,6 @@
 package MapFrames;
 
+import java.awt.Cursor;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -10,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import javax.mail.Authenticator;
+import javax.naming.AuthenticationException;
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -44,17 +47,21 @@ public class MainMapFrame implements ActionListener
 	private JButton initProductButton;
 	private Analyzer analyzer;
 	private String userName;
+	private String email;
 	private JLabel copyRight;
 	private JButton treeViewButton;
 	private JButton initProductViewButton;
 	private DataBase db;
+	private Authenticator auth;
 
-	public MainMapFrame(String userName, CallBack<Integer> callBack) 
+	public MainMapFrame(String userName, String email , Authenticator auth , CallBack<Integer> callBack) 
 	{
 		this.callBack = callBack;
 		analyzer = new Analyzer();
 		db = new DataBase();
 		this.userName = userName;
+		this.email = email;
+		this.auth = auth;
 		initialize();
 	}
 
@@ -63,7 +70,6 @@ public class MainMapFrame implements ActionListener
 		globals = new Globals();
 		
 		frame = new JFrame("MAP");
-		frame.setVisible(true);
 		frame.setLayout(null);
 		frame.getRootPane().setFocusable(true);
 		frame.setBounds(400, 100, 505, 500);
@@ -130,16 +136,20 @@ public class MainMapFrame implements ActionListener
 		initProductViewButton.setSize(100, 60);
 		initProductViewButton.addActionListener(this);
 		panel.add(initProductViewButton);
-		
+				
 		copyRight = new JLabel("<html><b>\u00a9 Naor Dalal</b></html>");
 		copyRight.setLocation(30 , 430);
 		copyRight.setSize(100,30);
 		panel.add(copyRight);
+		
+		frame.setVisible(true);
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent event) 
 	{
+		frame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+		
 		if(event.getSource() == mapButton)
 		{
 			Map<MonthDate, Map<String, ProductColumn>> map = analyzer.calculateMap(userName);
@@ -147,7 +157,7 @@ public class MainMapFrame implements ActionListener
 			String [][] rows = analyzer.getRows(map);
 			
 			boolean canEdit = false;
-			ReportViewFrame mapFrame = new ReportViewFrame("Map View" , columns, rows, canEdit , new ArrayList<Integer>());
+			ReportViewFrame mapFrame = new ReportViewFrame(email , auth , "Map View" , columns, rows, canEdit , new ArrayList<Integer>());
 			
 			List<Integer> filterColumns = analyzer.getFilterColumns();
 			List<String> filterNames = new ArrayList<>();
@@ -196,7 +206,7 @@ public class MainMapFrame implements ActionListener
 			}
 			
 			boolean canEdit = true;
-			ReportViewFrame treeFrame = new ReportViewFrame("Tree View" , columns, rows, canEdit, invalidEditableColumns);
+			ReportViewFrame treeFrame = new ReportViewFrame(email , auth , "Tree View" , columns, rows, canEdit, invalidEditableColumns);
 			treeFrame.setCallBacks(getTreeValueCellChangeAction(treeFrame, trees), null, null);
 			
 			List<Integer> filterColumns = Tree.getFilterColumns();
@@ -227,7 +237,7 @@ public class MainMapFrame implements ActionListener
 			}
 			
 			boolean canEdit = true;
-			ReportViewFrame initProductFrame = new ReportViewFrame("Init Product View" , columns, rows, canEdit, invalidEditableColumns);
+			ReportViewFrame initProductFrame = new ReportViewFrame(email , auth , "Init Product View" , columns, rows, canEdit, invalidEditableColumns);
 			initProductFrame.setCallBacks(getInitProductValueCellChangeAction(initProductFrame, productsInit), null, null);
 			
 			List<Integer> filterColumns = ProductInit.getFilterColumns();
@@ -237,6 +247,8 @@ public class MainMapFrame implements ActionListener
 			initProductFrame.setFilters(filterColumns, filterNames);
 			initProductFrame.show();
 		}
+		
+		frame.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 		
 	}
 
@@ -273,7 +285,7 @@ public class MainMapFrame implements ActionListener
 				}
 				
 				boolean canEdit = forms.get(0).canEdit();
-				ReportViewFrame reportViewFrame = new ReportViewFrame("Reports View" , columns, rows, canEdit , forms.get(0).getInvalidEditableColumns());
+				ReportViewFrame reportViewFrame = new ReportViewFrame(email , auth , "Reports View" , columns, rows, canEdit , forms.get(0).getInvalidEditableColumns());
 				
 				List<Integer> filterColumns = forms.get(0).getFilterColumns();
 				List<String> filterNames = new ArrayList<>();

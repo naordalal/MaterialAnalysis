@@ -54,6 +54,11 @@ public class MultiSelectionComboBox<T> extends JComboBox<T>
     	manager.addSelectedItem(item);
     }
     
+    public void addSelectedItem(T item)
+    {
+    	manager.addSelectedItem(item);
+    }
+    
     @Override
     public void removeAllItems() {
     	super.removeAllItems();

@@ -2,23 +2,28 @@ package MapFrames;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import javax.mail.Authenticator;
 import javax.swing.AbstractAction;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -37,13 +42,18 @@ import Components.MyJTable;
 import Components.MyTableRenderer;
 import Components.TableCellListener;
 import MainPackage.CallBack;
+import MainPackage.DataBase;
+import MainPackage.Excel;
 import MainPackage.Globals;
+import MainPackage.noValidEmailException;
+import Senders.SendEmail;
 
 public class ReportViewFrame implements ActionListener 
 {
 	private static final int maximumFilters = 4;
 	
 	private JFrame frame;
+	private String email;
 	private Globals globals;
 	private JPanel panel;
 	private MyJTable table;
@@ -63,10 +73,14 @@ public class ReportViewFrame implements ActionListener
 	private MultiSelectionComboBox<String>[] filterComboBoxs;
 	private JPanel filterPanel;
 	private Map<Integer,Integer> currentRowPerOriginalRow;
+	private JButton exportReportButton;
+	private Authenticator auth;
 
 
-	public ReportViewFrame(String frameName , String [] columns , String [][] content ,  boolean canEdit , List<Integer> invalidEditableColumns) 
+	public ReportViewFrame(String email , Authenticator auth , String frameName , String [] columns , String [][] content ,  boolean canEdit , List<Integer> invalidEditableColumns) 
 	{
+		this.email = email;
+		this.auth = auth;
 		this.frameName = frameName;
 		this.columns = columns;
 		this.content = content;
@@ -103,7 +117,6 @@ public class ReportViewFrame implements ActionListener
 	{
 		
 		frame = new JFrame(frameName);
-		frame.setVisible(true);
 		frame.setLayout(null);
 		frame.getRootPane().setFocusable(true);
 		frame.setBounds(300, 100, 900, 780);
@@ -136,7 +149,7 @@ public class ReportViewFrame implements ActionListener
 		
 		panel = new JPanel();
 		panel.setLocation(0 , yPanelLocation);
-		panel.setSize(900, 630);
+		panel.setSize(900, 780);
 		panel.setLayout(null);
 		frame.add(panel);
 		
@@ -223,10 +236,26 @@ public class ReportViewFrame implements ActionListener
 			filterPanel.add(filterComboBoxs[index]);
 		}
 
+		
+		exportReportButton = new JButton();
+		exportReportButton.setLocation(800 , 640);
+		exportReportButton.setSize(70,40);
+		exportReportButton.setVisible(true);
+		exportReportButton.addActionListener(this);
+		exportReportButton.setIcon(globals.sendIcon);
+		exportReportButton.setFocusable(false);
+		exportReportButton.setContentAreaFilled(false);
+		exportReportButton.setPressedIcon(globals.clickSendIcon);
+		exportReportButton.setToolTipText("send");
+		panel.add(exportReportButton);
+		
 		copyRight = new JLabel("<html><b>\u00a9 Naor Dalal</b></html>");
-		copyRight.setLocation(30 , 710);
+		copyRight.setLocation(30 , 680);
 		copyRight.setSize(100,30);
 		panel.add(copyRight);
+		
+		
+		frame.setVisible(true);
 	}
 
 	private void updateFilterComboBoxValues(int index) 
@@ -310,13 +339,11 @@ public class ReportViewFrame implements ActionListener
 			currentRowPerOriginalRow.put(row, row);
 		}
 
-		for (int comboxIndex = 0 ; comboxIndex < filterComboBoxs.length ; comboxIndex++) 
-		{
-			MultiSelectionComboBox<String> comboBox = filterComboBoxs[comboxIndex];
-			comboBox.removeAllSelectedItem();
-		}
-		
 		this.content = rows;
+		
+		if(filterComboBoxs.length > 0)
+			actionPerformed(new ActionEvent(filterComboBoxs[0], 0, null));
+		
 	}
 
 	public void updateCellValue(int row, int column, String newValue) 
@@ -391,31 +418,77 @@ public class ReportViewFrame implements ActionListener
 	@Override
 	public void actionPerformed(ActionEvent event) 
 	{	
-		for(int rowIndex = 	table.getRowCount() - 1 ; rowIndex >= 0 ; rowIndex --)
-			removeRow(rowIndex);
-			
-		DefaultTableModel model = (DefaultTableModel)table.getModel();
-		
-		for(int row = 0 ; row < content.length  ; row ++)
+		if(event.getSource() == exportReportButton)
 		{
-			boolean filterRow = true;
-			for (int comboxIndex = 0 ; comboxIndex < filterComboBoxs.length ; comboxIndex++) 
+			frame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+			
+			String [][] currentContent = new String[table.getRowCount()][];
+			for(int row = 0 ; row < table.getRowCount() ; row++)
 			{
-				MultiSelectionComboBox<String> comboBox = filterComboBoxs[comboxIndex];
-				List<String> selectionItems = comboBox.getSelectedItems().stream().map(item -> item.trim().toLowerCase()).collect(Collectors.toList());
-				
-				int column = filterColumns.get(comboxIndex);
-				if(selectionItems.size() > 0 && !selectionItems.contains(content[row][column].trim().toLowerCase()))
-					filterRow = false;
+				currentContent[row] = getRow(row);
 			}
 			
-			if(filterRow)
+			Excel excel = new Excel();
+			File attachFile = excel.createExcelFile(Globals.getReportFileName(frameName) , columns, currentContent);
+			
+			List<String> dest = new ArrayList<>();
+			dest.add(email);
+			SendEmail sender = new SendEmail(email, dest, auth);
+			
+			try 
 			{
-				model.addRow(content[row]);
-				currentRowPerOriginalRow.put(model.getRowCount() - 1 , row);
+				sender.send(frameName, "", attachFile, Globals.getReportFileName(frameName));
+			}
+			catch (noValidEmailException e) 
+			{
+				e.printStackTrace();
+				JOptionPane.showConfirmDialog(null, "Wrong User/Password OR there is no internet connection","",JOptionPane.PLAIN_MESSAGE);
+			}
+			
+			attachFile.delete();
+			
+			frame.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+		}
+		else if(isFilterComboBoxsEvent(event))
+		{
+			for(int rowIndex = 	table.getRowCount() - 1 ; rowIndex >= 0 ; rowIndex --)
+				removeRow(rowIndex);
+				
+			DefaultTableModel model = (DefaultTableModel)table.getModel();
+			
+			for(int row = 0 ; row < content.length  ; row ++)
+			{
+				boolean filterRow = true;
+				for (int comboxIndex = 0 ; comboxIndex < filterComboBoxs.length ; comboxIndex++) 
+				{
+					MultiSelectionComboBox<String> comboBox = filterComboBoxs[comboxIndex];
+					List<String> selectionItems = comboBox.getSelectedItems().stream().map(item -> item.trim().toLowerCase()).collect(Collectors.toList());
+					
+					int column = filterColumns.get(comboxIndex);
+					if(selectionItems.size() > 0 && !selectionItems.contains(content[row][column].trim().toLowerCase()))
+						filterRow = false;
+				}
+				
+				if(filterRow)
+				{
+					model.addRow(content[row]);
+					currentRowPerOriginalRow.put(model.getRowCount() - 1 , row);
+				}
 			}
 		}
 
+
+	}
+
+	private boolean isFilterComboBoxsEvent(ActionEvent event) 
+	{
+		for (int comboxIndex = 0 ; comboxIndex < filterComboBoxs.length ; comboxIndex++) 
+		{
+			if(event.getSource() == filterComboBoxs[comboxIndex])
+				return true;
+		}
+		
+		return false;
 	}
 
 	public int getOriginalRowNumber(int row) 

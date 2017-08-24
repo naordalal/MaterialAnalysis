@@ -99,6 +99,7 @@ public class SelectionManager implements ActionListener
 
 	public void setModelSelectedItem()
 	{
+		fromClick = false;
 		if (combo == null) 
 			return;
 		if(selectedItems.size() == 0)
@@ -106,6 +107,7 @@ public class SelectionManager implements ActionListener
         else
         	combo.setSelectedItem(getFirstSelectedElementInItemsList((DefaultComboBoxModel<String>) combo.getModel()));
 		
+		fromClick = true;
 	}
 	
 	public void removeSelectedItem(Object item)

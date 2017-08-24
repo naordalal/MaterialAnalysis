@@ -237,7 +237,7 @@ public class Analyzer
 		
 		Map<String,String> catalogNumbers = db.getAllCatalogNumbersPerDescription(userName);
 		
-		MonthDate maximumDate = db.getMaximumForecastDate();
+		MonthDate maximumDate = db.getMaximumMapDate();
 		MonthDate minimumDate = db.getMinimumInitDate();
 		if(maximumDate == null || maximumDate.before(minimumDate))
 			return map;

@@ -117,7 +117,6 @@ public class SenderFrame extends MouseAdapter implements ActionListener{
 		globals = new Globals();
 		
 		frame = new JFrame("Gathering material analysis system");
-		frame.setVisible(true);
 		frame.getContentPane().setLayout(null);
 		frame.getContentPane().setFocusable(true);
 		frame.setBounds(500, 200, 550, 500);
@@ -249,6 +248,8 @@ public class SenderFrame extends MouseAdapter implements ActionListener{
 		popMenu.setLabel("Justification");
 		popMenu.setBorder(new BevelBorder(BevelBorder.RAISED));
 		panel.addMouseListener(this);
+		
+		frame.setVisible(true);
 	}
 	
 

@@ -53,7 +53,6 @@ public class AdminFrame implements ActionListener
 		globals = new Globals();
 		
 		frame = new JFrame("Admin");
-		frame.setVisible(true);
 		frame.setLayout(null);
 		frame.getRootPane().setFocusable(true);
 		frame.setBounds(400, 100, 550, 500);
@@ -163,6 +162,8 @@ public class AdminFrame implements ActionListener
 		copyRight.setLocation(30 , 430);
 		copyRight.setSize(100,30);
 		panel.add(copyRight);
+		
+		frame.setVisible(true);
 		
 	}
 

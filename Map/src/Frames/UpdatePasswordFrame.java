@@ -49,7 +49,6 @@ public class UpdatePasswordFrame implements ActionListener
 		globals = new Globals();
 
 		frame = new JFrame("Update Password");
-		frame.setVisible(true);
 		frame.getContentPane().setLayout(null);
 		frame.getContentPane().setFocusable(true);
 		frame.setBounds(500, 200, 300, 200);
@@ -87,7 +86,7 @@ public class UpdatePasswordFrame implements ActionListener
 		newPasswordText.setSize(150, 20);
 		newPasswordText.setLocation(120, 20);
 		panel.add(newPasswordText);
-		newPasswordText.requestFocusInWindow();
+		
 		
 		confirmPasswordLabel = new JLabel("Confirm Password:");
 		confirmPasswordLabel.setSize(100 , 20);
@@ -110,6 +109,9 @@ public class UpdatePasswordFrame implements ActionListener
 		confirmButton.setToolTipText("confirm password");
 		panel.add(confirmButton);
 		
+		frame.setVisible(true);
+		
+		newPasswordText.requestFocusInWindow();
 		
 	}
 	@Override

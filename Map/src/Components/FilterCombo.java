@@ -43,18 +43,6 @@ public class FilterCombo extends JComboBox<String> implements KeyListener, Focus
 		baseValues.stream().forEach(cn -> this.model.addElement(cn));
 		model.setSelectedItem(null);
 		
-		super.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e)
-			{
-				if(model.getSelectedItem() != null)
-					lastText = ((String) model.getSelectedItem());
-				else 
-					lastText = "";
-			}
-		});
-		
 		Component editor = this.getEditor().getEditorComponent();
 		if (editor instanceof JTextComponent)
 		{
@@ -66,6 +54,7 @@ public class FilterCombo extends JComboBox<String> implements KeyListener, Focus
 
 	public FilterCombo(DefaultComboBoxModel<String> model , boolean clearWhenFocusLost) 
 	{
+		super(model);
 		this.model = model;
 		this.clearWhenFocusLost = clearWhenFocusLost;
 		this.baseValues = new ArrayList<>();
@@ -152,19 +141,14 @@ public class FilterCombo extends JComboBox<String> implements KeyListener, Focus
             	}
             	if(ke.getKeyCode() == KeyEvent.VK_ENTER)
             	{
-    				List<String> containsValue = getContainsValue(tc.getText());
-    				if(containsValue.size() == 1)
+    				if(baseValues.contains(lastText))
     				{
-            			model.setSelectedItem(containsValue.get(0));
-            			setText(containsValue.get(0));
+    					model.setSelectedItem(lastText);
     				}
-            		return;
             	}
-            	else if(ke.getKeyCode() == KeyEvent.VK_DOWN || ke.getKeyCode() == KeyEvent.VK_UP)
+            	else if(ke.getKeyCode() == KeyEvent.VK_UP || ke.getKeyCode() == KeyEvent.VK_DOWN)
             	{
-            		if(model.getSelectedItem() != null)
-            			setText((String) model.getSelectedItem());
-            		return;
+            		setText(tc.getText());
             	}
             	else
             		comboFilter(tc.getText());
@@ -199,9 +183,7 @@ public class FilterCombo extends JComboBox<String> implements KeyListener, Focus
 	            	}
 	            	else if(model.getSelectedItem() == null)
 	            	{
-	            		setText("");
-	            		baseValues.stream().forEach(cn -> addElement(cn));
-	            		model.setSelectedItem(null);
+	            		clear();
 	            	}
 	            }
 			});
@@ -213,7 +195,7 @@ public class FilterCombo extends JComboBox<String> implements KeyListener, Focus
 		setText("");
 		this.model.removeAllElements();
 		baseValues.stream().forEach(cn -> this.model.addElement(cn));
-		this.model.setSelectedItem(null);	
+		this.model.setSelectedItem(null);
 	}	
 	
 	private void addElement(String element) 

@@ -23,6 +23,7 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 
 import AnalyzerTools.Analyzer;
+import Components.FilterCombo;
 import Forms.Form;
 import MainPackage.DataBase;
 import MainPackage.Globals;
@@ -35,7 +36,7 @@ public class InitProductFrame implements ActionListener
 	private String userName;
 	private JComboBox<String> initTypeComboBox;
 	private JLabel catalogNumberLabel;
-	private JComboBox<String> catalogNumberComboBox;
+	private FilterCombo catalogNumberComboBox;
 	private JLabel quantityLabel;
 	private JTextField quantityText;
 	private JLabel requireDateLabel;
@@ -47,6 +48,7 @@ public class InitProductFrame implements ActionListener
 	private List<FormType> formsTypeThatNeedInit;
 	private List<FormType> formsTypeThatNotNeedInit;
 	private List<FormType> formsThatAlreadyInit;
+	private String currentCatalogNumber;
 	
 	public InitProductFrame(String userName , List<FormType> formsType) 
 	{
@@ -62,7 +64,7 @@ public class InitProductFrame implements ActionListener
 		
 		analyzer = new Analyzer();
 		db = new DataBase();
-		
+		currentCatalogNumber = "";
 		formsThatAlreadyInit = new ArrayList<FormType>();
 		initialize();
 	}
@@ -71,7 +73,6 @@ public class InitProductFrame implements ActionListener
 	{
 		
 		frame = new JFrame("Init Product");
-		frame.setVisible(true);
 		frame.setLayout(null);
 		frame.getRootPane().setFocusable(true);
 		frame.setBounds(300, 100, 500, 400);
@@ -121,10 +122,9 @@ public class InitProductFrame implements ActionListener
 		
 		List<String> catalogNumbers = db.getAllCatalogNumbers(userName);
 		model = new DefaultComboBoxModel<String>();
-		for (String catalogNumber : catalogNumbers) 	
-			model.addElement(catalogNumber);
 		
-		catalogNumberComboBox = new JComboBox<>(model);
+		boolean clearWhenFocusLost = true;
+		catalogNumberComboBox = new FilterCombo(catalogNumbers , model, clearWhenFocusLost);
 		catalogNumberComboBox.setLocation(120, 80);
 		catalogNumberComboBox.setSize(150, 20);
 		catalogNumberComboBox.addActionListener(this);
@@ -164,6 +164,7 @@ public class InitProductFrame implements ActionListener
 		addInitButton.setToolTipText("OK");
 		panel.add(addInitButton);
 		
+		frame.setVisible(true);
 	}
 
 
@@ -229,6 +230,7 @@ public class InitProductFrame implements ActionListener
 				JOptionPane.showConfirmDialog(null, "Init successfully","",JOptionPane.PLAIN_MESSAGE);
 				formsThatAlreadyInit.clear();
 				catalogNumberComboBox.setEnabled(true);
+				initTypeComboBox.setSelectedIndex(0);
 			}
 			
 			frame.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
@@ -238,6 +240,19 @@ public class InitProductFrame implements ActionListener
 		{
 			requireDateText.setVisible(Form.isNeedRequireDate(globals.getClassName(formsTypeThatNeedInit.get(initTypeComboBox.getSelectedIndex()))));
 			requireDateLabel.setVisible(Form.isNeedRequireDate(globals.getClassName(formsTypeThatNeedInit.get(initTypeComboBox.getSelectedIndex()))));
+		}
+		else if(event.getSource() == catalogNumberComboBox)
+		{
+			String catalogNumber = (String)catalogNumberComboBox.getModel().getSelectedItem();
+			if(catalogNumber == null || currentCatalogNumber.equals(catalogNumber))
+			{
+				currentCatalogNumber = "";
+				catalogNumberComboBox.setSelectedIndex(-1);
+			}
+			else
+			{
+				currentCatalogNumber = catalogNumber;
+			}
 		}
 	}
 	

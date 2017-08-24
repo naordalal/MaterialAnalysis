@@ -62,7 +62,6 @@ public class AddProductFrame implements ActionListener
 		globals = new Globals();
 		
 		frame = new JFrame("New Product");
-		frame.setVisible(true);
 		frame.setLayout(null);
 		frame.getRootPane().setFocusable(true);
 		frame.setBounds(300, 100, 500, 500);
@@ -178,7 +177,7 @@ public class AddProductFrame implements ActionListener
 		copyRight.setSize(100,30);
 		panel.add(copyRight);
 		
-
+		frame.setVisible(true);
 	}
 
 	@Override

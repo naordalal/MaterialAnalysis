@@ -6,6 +6,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 
+import javax.mail.Authenticator;
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -19,6 +20,7 @@ import FollowUpAndExpediteFrames.FollowUpAndExpediteMenu;
 import MainPackage.CallBack;
 import MainPackage.DataBase;
 import MainPackage.Globals;
+import MainPackage.SocialAuth;
 import MainPackage.Globals.FormType;
 import MapFrames.MainMapFrame;
 
@@ -53,7 +55,6 @@ public class SelectionWindowFrame implements ActionListener
 		this.adminButtomWidth = (adminPermission) ? 100 : 0;
 		
 		frame = new JFrame("ND System");
-		frame.setVisible(true);
 		frame.getContentPane().setLayout(null);
 		frame.getContentPane().setFocusable(true);
 		frame.setBounds(500, 200, adminButtomPosition + adminButtomWidth + 300, 150);
@@ -108,6 +109,8 @@ public class SelectionWindowFrame implements ActionListener
 		copyRight.setLocation(30 , 90);
 		copyRight.setSize(100,30);
 		panel.add(copyRight);
+		
+		frame.setVisible(true);
 	}
 	@Override
 	public void actionPerformed(ActionEvent event) 
@@ -126,7 +129,9 @@ public class SelectionWindowFrame implements ActionListener
 		}
 		else if(event.getSource() == mapButton)
 		{
-			new MainMapFrame(userName , new CallBack<Integer>() {
+			String email = db.getEmail(userName, password);
+			Authenticator auth = new SocialAuth("AL-NT/"+email.split("@")[0],password);
+			new MainMapFrame(userName , email , auth , new CallBack<Integer>() {
 				
 				@Override
 				public Integer execute(Object... objects) {

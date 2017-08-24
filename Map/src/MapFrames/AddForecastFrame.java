@@ -64,7 +64,6 @@ public class AddForecastFrame extends KeyAdapter implements ActionListener
 		currentCatalogNumber = "";
 		
 		frame = new JFrame("New Forecast");
-		frame.setVisible(true);
 		frame.setLayout(null);
 		frame.getRootPane().setFocusable(true);
 		frame.setBounds(300, 100, 500, 500);
@@ -152,6 +151,8 @@ public class AddForecastFrame extends KeyAdapter implements ActionListener
 		copyRight.setLocation(30 , 430);
 		copyRight.setSize(100,30);
 		panel.add(copyRight);
+		
+		frame.setVisible(true);
 		
 	}
 

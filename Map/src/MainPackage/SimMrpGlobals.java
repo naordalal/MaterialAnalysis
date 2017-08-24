@@ -3,7 +3,7 @@ package MainPackage;
 public class SimMrpGlobals extends Globals
 {
 
-	public int maxOrderIndex = 6;
+	public int maxOrderIndex = 12;
 	public int maxRoundsNumber = 7;
 
 	public int openOrdersIndex = 3;
@@ -24,7 +24,7 @@ public class SimMrpGlobals extends Globals
 	public String dateColumn = "מועד אספקה ";
 	public String requiredAmountCloumn = "נדרש חודש ";
 	public String balanceColumn = "כמות פתוחה ";
-	public String balanceAfterOrdersColumn = "יתרת הזמנה מעבר ל 6";
+	public String balanceAfterOrdersColumn = "יתרת הזמנה מעבר ל  12";
 	public String priceColumn = " מחיר תקן מ Data MRP";
 	public String priceColumn2 = "4-מחיר תקן שיווק";
 	

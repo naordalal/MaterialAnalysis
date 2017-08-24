@@ -49,7 +49,6 @@ public class BodyFrame implements ActionListener {
 		globals = new Globals();
 		
 		frame = new JFrame("Gathering material analysis system");
-		frame.setVisible(true);
 		frame.getContentPane().setLayout(null);
 		frame.getContentPane().setFocusable(true);
 		frame.setBounds(500, 200, 550, 500);
@@ -88,7 +87,7 @@ public class BodyFrame implements ActionListener {
 		subjectText.setSize(300 ,  30);
 		globals.initTextComponent(subjectText);
 		panel.add(subjectText);
-		subjectText.requestFocusInWindow();
+		
 		
 		bodyLabel = new JLabel("body:");
 		bodyLabel.setLocation(30 ,  55);
@@ -118,6 +117,9 @@ public class BodyFrame implements ActionListener {
 		copyRight.setSize(100,30);
 		panel.add(copyRight);
 		
+		frame.setVisible(true);
+		
+		subjectText.requestFocusInWindow();
 	}
 
 	@Override

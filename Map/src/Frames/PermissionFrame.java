@@ -71,7 +71,6 @@ public class PermissionFrame implements ActionListener{
 		
 		
 		frame = new JFrame("Gathering material analysis system");
-		frame.setVisible(true);
 		frame.getContentPane().setLayout(null);
 		frame.getContentPane().setFocusable(true);
 		frame.setBounds(500, 200, 550, 500);
@@ -217,6 +216,8 @@ public class PermissionFrame implements ActionListener{
 		copyRight.setLocation(30 , 440);
 		copyRight.setSize(100,30);
 		panel.add(copyRight);
+		
+		frame.setVisible(true);
 		
 		
 	}
@@ -471,7 +472,6 @@ public class PermissionFrame implements ActionListener{
 		{
 			if(!passwordField.isVisible())
 				return;
-			DefaultComboBoxModel<String> projectsPermissionComboBoxModel = (DefaultComboBoxModel<String>) projectsPermissionComboBox.getModel();
 			DefaultComboBoxModel<String> nickNameComboBoxModel = (DefaultComboBoxModel<String>) nickNameComboBox.getModel();
 			String nickName =  (nickNameComboBoxModel.getSelectedItem() == null) ? "" : (String) nickNameComboBoxModel.getSelectedItem();
 			User user = db.getUser(nickName);
@@ -494,17 +494,14 @@ public class PermissionFrame implements ActionListener{
 				List<String> allCustomers = db.getAllProjects();
 				for (String customer : allCustomers) 
 				{
-					if(user.getCustomers().contains(customer))
-						projectsPermissionComboBox.addItem(customer);
-					else
-						projectsPermissionComboBoxModel.addElement(customer);
+					projectsPermissionComboBox.addItem(customer);
 				}
 				
-				if(user.getCustomers().size() == 0)
-				{
-					projectsPermissionComboBox.removeSelectedItem(allCustomers.get(0));
-					projectsPermissionComboBox.setSelectedItem(null);
-				}
+				allCustomers.removeAll(user.getCustomers());
+				for(String customer : allCustomers)
+					projectsPermissionComboBox.removeSelectedItem(customer);
+				
+				projectsPermissionComboBox.setModelSelectedItem();							
 				
 				passwordField.setEnabled(false);
 				

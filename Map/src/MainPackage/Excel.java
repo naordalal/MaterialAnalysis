@@ -325,10 +325,10 @@ public class Excel
 	    	cell.setCellStyle(headerStyle);
 	    }
 	    
-	    for(int rowIndex = 1 ; rowIndex < rows.length ; rowIndex++)
+	    for(int rowIndex = 1 ; rowIndex <= rows.length ; rowIndex++)
 	    {
 	    	newRow = excelSheet.createRow(rowIndex);
-	    	for(int columnIndex = 0 ; columnIndex < rows[rowIndex].length ; columnIndex++)
+	    	for(int columnIndex = 0 ; columnIndex < rows[rowIndex - 1].length ; columnIndex++)
 		    {
 	        	XSSFCellStyle contentStyle = w.createCellStyle();
 	        	contentStyle.setBorderBottom(HSSFCellStyle.BORDER_THIN);
@@ -337,13 +337,13 @@ public class Excel
 	        	contentStyle.setBorderLeft(HSSFCellStyle.BORDER_THIN);
 	        	
 	    		Cell cell = newRow.createCell(columnIndex);	 
-	    		if(rows[rowIndex][columnIndex] instanceof String)
-	    			cell.setCellValue((String)rows[rowIndex][columnIndex]);
-	    		if(rows[rowIndex][columnIndex] instanceof Double)
-	    			cell.setCellValue((Double)rows[rowIndex][columnIndex]);
-	    		if(rows[rowIndex][columnIndex] instanceof Date)
+	    		if(rows[rowIndex - 1][columnIndex] instanceof String)
+	    			cell.setCellValue((String)rows[rowIndex - 1][columnIndex]);
+	    		if(rows[rowIndex - 1][columnIndex] instanceof Double)
+	    			cell.setCellValue((Double)rows[rowIndex - 1][columnIndex]);
+	    		if(rows[rowIndex - 1][columnIndex] instanceof Date)
 	    		{
-	    			cell.setCellValue((Date)rows[rowIndex][columnIndex]);
+	    			cell.setCellValue((Date)rows[rowIndex - 1][columnIndex]);
 	    			Globals.setDateFormat(w , contentStyle);
 	    		}
 		    	cell.setCellStyle(contentStyle);
