@@ -1,4 +1,5 @@
 package MainPackage;
+import java.awt.Color;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -6,14 +7,17 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.xssf.usermodel.extensions.XSSFCellBorder.BorderSide;
 
 import MainPackage.Globals.Sort;
 
@@ -328,6 +332,7 @@ public class Excel
 	    for(int rowIndex = 1 ; rowIndex <= rows.length ; rowIndex++)
 	    {
 	    	newRow = excelSheet.createRow(rowIndex);
+	    	Object previousItem = null;
 	    	for(int columnIndex = 0 ; columnIndex < rows[rowIndex - 1].length ; columnIndex++)
 		    {
 	        	XSSFCellStyle contentStyle = w.createCellStyle();
@@ -336,9 +341,33 @@ public class Excel
 	        	contentStyle.setBorderRight(HSSFCellStyle.BORDER_THIN);
 	        	contentStyle.setBorderLeft(HSSFCellStyle.BORDER_THIN);
 	        	
+    			if(previousItem == null)
+    				previousItem = rows[rowIndex - 1][columnIndex];
+    			else if(!previousItem.equals(rows[rowIndex - 1][0]))
+        		{
+        			contentStyle.setBorderColor(BorderSide.TOP, new XSSFColor(Color.RED));
+        			
+        			previousItem = rows[rowIndex - 1][columnIndex];
+        		}
+	        	
 	    		Cell cell = newRow.createCell(columnIndex);	 
 	    		if(rows[rowIndex - 1][columnIndex] instanceof String)
-	    			cell.setCellValue((String)rows[rowIndex - 1][columnIndex]);
+	    		{
+	    			Object value = rows[rowIndex - 1][columnIndex];
+	    			Date date;
+	    			if(NumberUtils.isCreatable((String) value))
+	    			{
+	    				value = Double.parseDouble((String) value);
+	    				cell.setCellValue((double) value);
+	    			}
+	    			else if((date = Globals.isValidDate((String) value)) != null)
+	    			{
+	    				cell.setCellValue(date);
+	    				Globals.setDateFormat(w , contentStyle);
+	    			}
+	    			else
+	    				cell.setCellValue((String) value);	
+	    		}
 	    		if(rows[rowIndex - 1][columnIndex] instanceof Double)
 	    			cell.setCellValue((Double)rows[rowIndex - 1][columnIndex]);
 	    		if(rows[rowIndex - 1][columnIndex] instanceof Date)
@@ -350,7 +379,7 @@ public class Excel
 		    }
 	    }
 	    
-	    for(int i = 0 ; i <= headers.length ; i++)
+	    for(int i = 0 ; i < headers.length ; i++)
 	    	excelSheet.autoSizeColumn(i); 
 	    
 	    FileOutputStream fos;

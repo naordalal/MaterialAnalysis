@@ -11,9 +11,9 @@ public class Globals
 	public static final String con = "C:\\Users\\naordalal\\Desktop\\DB.db";
 	//public static final String con = "O:\\Purchasing\\PO_FollowUp\\Material Analysis\\DB.db";
 	
-	public final String shipmentsFilePath = "C:\\Users\\naordalal\\Desktop\\Map Analyzer\\SHIPMENTS.txt";
-	public final String customerOrdersFilePath = "C:\\Users\\naordalal\\Desktop\\Map Analyzer\\PO.txt";
-	public final String WOFilePath = "C:\\Users\\naordalal\\Desktop\\Map Analyzer\\WO.txt";;
+	public final String shipmentsFilePath = "C:\\Users\\naordalal\\Desktop\\SHIPMENTS.txt";
+	public final String customerOrdersFilePath = "C:\\Users\\naordalal\\Desktop\\PO.txt";
+	public final String WOFilePath = "C:\\Users\\naordalal\\Desktop\\WO.txt";;
 	
 
 	public final String woNumberColumn = "מספר פקודה";

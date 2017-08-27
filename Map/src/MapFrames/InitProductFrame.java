@@ -48,7 +48,6 @@ public class InitProductFrame implements ActionListener
 	private List<FormType> formsTypeThatNeedInit;
 	private List<FormType> formsTypeThatNotNeedInit;
 	private List<FormType> formsThatAlreadyInit;
-	private String currentCatalogNumber;
 	
 	public InitProductFrame(String userName , List<FormType> formsType) 
 	{
@@ -64,7 +63,6 @@ public class InitProductFrame implements ActionListener
 		
 		analyzer = new Analyzer();
 		db = new DataBase();
-		currentCatalogNumber = "";
 		formsThatAlreadyInit = new ArrayList<FormType>();
 		initialize();
 	}
@@ -240,19 +238,6 @@ public class InitProductFrame implements ActionListener
 		{
 			requireDateText.setVisible(Form.isNeedRequireDate(globals.getClassName(formsTypeThatNeedInit.get(initTypeComboBox.getSelectedIndex()))));
 			requireDateLabel.setVisible(Form.isNeedRequireDate(globals.getClassName(formsTypeThatNeedInit.get(initTypeComboBox.getSelectedIndex()))));
-		}
-		else if(event.getSource() == catalogNumberComboBox)
-		{
-			String catalogNumber = (String)catalogNumberComboBox.getModel().getSelectedItem();
-			if(catalogNumber == null || currentCatalogNumber.equals(catalogNumber))
-			{
-				currentCatalogNumber = "";
-				catalogNumberComboBox.setSelectedIndex(-1);
-			}
-			else
-			{
-				currentCatalogNumber = catalogNumber;
-			}
 		}
 	}
 	

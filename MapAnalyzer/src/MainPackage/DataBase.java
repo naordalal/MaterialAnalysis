@@ -688,4 +688,33 @@ public class DataBase
 		}
 		
 	}
+
+	public Date getMaximumShipmentDate() 
+	{
+		Date shipmentDate = null;
+		try{
+			
+			connect();
+			stmt =  c.prepareStatement("SELECT Max(date(shipmentDate)) AS date FROM Shipments");
+			ResultSet rs = stmt.executeQuery();
+
+			if(rs.next())
+			{
+				String date = rs.getString("date");
+				if(date != null && !date.trim().equals(""))
+					shipmentDate = Globals.parseDateFromSqlFormat(date);
+			}
+			
+			closeConnection();
+			
+			return shipmentDate;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return null;
+		}
+	}
 }

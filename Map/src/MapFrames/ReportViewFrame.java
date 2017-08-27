@@ -37,6 +37,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 
+import Components.FilterCombo;
 import Components.MultiSelectionComboBox;
 import Components.MyJTable;
 import Components.MyTableRenderer;
@@ -231,6 +232,7 @@ public class ReportViewFrame implements ActionListener
 			
 			DefaultComboBoxModel<String> comboBoxModel = new DefaultComboBoxModel<>();
 			filterComboBoxs[index] = new MultiSelectionComboBox<String>(comboBoxModel);
+			
 			updateFilterComboBoxValues(index);
 			filterComboBoxs[index].addActionListener(this);
 			filterPanel.add(filterComboBoxs[index]);
@@ -260,19 +262,22 @@ public class ReportViewFrame implements ActionListener
 
 	private void updateFilterComboBoxValues(int index) 
 	{
-		DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) filterComboBoxs[index].getModel();
+		DefaultComboBoxModel<String> filterModel = (DefaultComboBoxModel<String>) filterComboBoxs[index].getModel();
 		filterComboBoxs[index].hidePopup();
 		filterComboBoxs[index].removeAllItems();
-
+		List<String> baseValues = new ArrayList<>();
+		
 		for(int row = 0 ; row < table.getRowCount() ; row++)
 		{
 			String value = (String) table.getValueAt(row , filterColumns.get(index));
-			if(model.getIndexOf(value) < 0)
-				model.addElement(value);
+			if(filterModel.getIndexOf(value) < 0)
+			{
+				filterModel.addElement(value);
+				baseValues.add(value);
+			}
 		}
 		
 		filterComboBoxs[index].removeAllSelectedItem();
-		
 	}
 
 	private String[] getRow(int rowIndex) 
@@ -328,6 +333,15 @@ public class ReportViewFrame implements ActionListener
 
 	public void refresh(String[][] rows) 
 	{
+
+		this.content = rows;
+		
+		if(filterComboBoxs.length > 0)
+		{
+			actionPerformed(new ActionEvent(filterComboBoxs[0], 0, null));
+			return;
+		}
+		
 		for(int rowIndex = 	table.getRowCount() - 1 ; rowIndex >= 0 ; rowIndex --)
 				removeRow(rowIndex);
 		
@@ -339,10 +353,6 @@ public class ReportViewFrame implements ActionListener
 			currentRowPerOriginalRow.put(row, row);
 		}
 
-		this.content = rows;
-		
-		if(filterComboBoxs.length > 0)
-			actionPerformed(new ActionEvent(filterComboBoxs[0], 0, null));
 		
 	}
 
@@ -438,6 +448,7 @@ public class ReportViewFrame implements ActionListener
 			try 
 			{
 				sender.send(frameName, "", attachFile, Globals.getReportFileName(frameName));
+				JOptionPane.showConfirmDialog(null, "Sent successfully","",JOptionPane.PLAIN_MESSAGE);
 			}
 			catch (noValidEmailException e) 
 			{
@@ -479,6 +490,7 @@ public class ReportViewFrame implements ActionListener
 
 
 	}
+
 
 	private boolean isFilterComboBoxsEvent(ActionEvent event) 
 	{

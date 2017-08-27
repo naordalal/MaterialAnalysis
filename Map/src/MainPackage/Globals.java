@@ -62,7 +62,7 @@ public class Globals {
 	    SHIPMENT,WO,PO,FC
 	};
 	
-	//public static String con = "C:\\Users\\naordalal\\Desktop\\DB.db";
+	//public static String con = "C:\\Users\\naordalal\\Desktop\\DB3.db";
 	public static final String con = "O:\\Purchasing\\PO_FollowUp\\Material Analysis\\DB.db";
 	public static final String ALGO = "AES";
 	public static final byte[] keyValue = {'T' , 'h' , 'e' , 'B' , 'e' ,'s' ,'t' , 'S' , 'e' , 'c' ,'r' ,'e' ,'t'
@@ -615,7 +615,7 @@ public class Globals {
 		List<FormType> formTypes = new ArrayList<>();
 		formTypes.add(FormType.FC);
 		formTypes.add(FormType.WO);
-		formTypes.add(FormType.FC);
+		formTypes.add(FormType.PO);
 		formTypes.add(FormType.SHIPMENT);
 		
 		return formTypes;

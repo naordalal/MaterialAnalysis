@@ -45,7 +45,6 @@ public class AddForecastFrame extends KeyAdapter implements ActionListener
 	private JButton addForecastButton;
 	private DataBase db;
 	private Map<String, String> productPerDescription;
-	private String currentCatalogNumber;
 	private JLabel copyRight;
 	private String userName;
 	
@@ -61,7 +60,6 @@ public class AddForecastFrame extends KeyAdapter implements ActionListener
 	{
 		globals = new Globals();
 		productPerDescription = db.getAllCatalogNumbersPerDescription(userName);
-		currentCatalogNumber = "";
 		
 		frame = new JFrame("New Forecast");
 		frame.setLayout(null);
@@ -161,7 +159,7 @@ public class AddForecastFrame extends KeyAdapter implements ActionListener
 	{
 		if(event.getSource() == addForecastButton)
 		{
-			if(currentCatalogNumber.equals(""))
+			if(catalogNumberComboBox.getSelectedItem() == null)
 			{
 				JOptionPane.showConfirmDialog(null, "Please select a Catalog Number","",JOptionPane.PLAIN_MESSAGE);
 				return;
@@ -186,26 +184,13 @@ public class AddForecastFrame extends KeyAdapter implements ActionListener
 			}
 			
 			Date initDate = Globals.getTodayDate();
-			String description = productPerDescription.get(currentCatalogNumber);
-			String customer = db.getCustomerOfCatalogNumber(currentCatalogNumber);
+			String description = productPerDescription.get(catalogNumberComboBox.getSelectedItem());
+			String customer = db.getCustomerOfCatalogNumber((String) catalogNumberComboBox.getSelectedItem());
 			String quantity = quantityText.getText();
 			String notes = notesText.getText();
 			
-			analyzer.addNewFC(customer, currentCatalogNumber, quantity, Globals.dateWithoutHourToString(initDate), Globals.dateWithoutHourToString(requireDate), description, notes);
+			analyzer.addNewFC(customer, (String) catalogNumberComboBox.getSelectedItem(), quantity, Globals.dateWithoutHourToString(initDate), Globals.dateWithoutHourToString(requireDate), description, notes);
 			JOptionPane.showConfirmDialog(null, "Added successfully","",JOptionPane.PLAIN_MESSAGE);
-		}
-		else if(event.getSource() == catalogNumberComboBox)
-		{
-			String catalogNumber = (String)catalogNumberComboBox.getModel().getSelectedItem();
-			if(catalogNumber == null || currentCatalogNumber.equals(catalogNumber))
-			{
-				currentCatalogNumber = "";
-				catalogNumberComboBox.setSelectedIndex(-1);
-			}
-			else
-			{
-				currentCatalogNumber = catalogNumber;
-			}
 		}
 		
 	}

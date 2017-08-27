@@ -1,32 +1,35 @@
 package Components;
 
-import java.awt.Color;
 import java.awt.Component;
 
 import javax.swing.Icon;
+import javax.swing.JComboBox;
 import javax.swing.JList;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
 
 public class MyComboBoxRenderer extends BasicComboBoxRenderer 
 {
 
-	 SelectionManager selectionManager;
+	private static final long serialVersionUID = 1L;
+	
+	private SelectionManager selectionManager;
 	  
     public MyComboBoxRenderer(SelectionManager sm) {
-        selectionManager = sm;
+        this.selectionManager = sm;
     }
-  
+      
     public Component getListCellRendererComponent(JList list,
                                                   Object value,
                                                   int index,
                                                   boolean isSelected,
                                                   boolean cellHasFocus) {
-        if (selectionManager.isSelected(value) || isSelected) 
+        if (selectionManager != null && (selectionManager.isSelected(value) || isSelected)) 
         {
             setBackground(list.getSelectionBackground());
             setForeground(list.getSelectionForeground());
             
-        } else {
+        }else
+        {
             setBackground(list.getBackground());
             setForeground(list.getForeground());
         }

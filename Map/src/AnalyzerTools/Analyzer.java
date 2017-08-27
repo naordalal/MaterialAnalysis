@@ -24,7 +24,7 @@ import MainPackage.Globals.FormType;
 
 public class Analyzer 
 {
-	public static final int ConstantColumnsCount = 3;
+	public static final int ConstantColumnsCount = 4;
 	private DataBase db;
 	
 	public Analyzer() 
@@ -431,6 +431,11 @@ public class Analyzer
 	public String getProductOnRow(JTable table, int row) 
 	{
 		return (String) table.getValueAt(row, 0);
+	}
+	
+	public String getCategoryOnRow(JTable table, int row) 
+	{
+		return (String) table.getValueAt(row, 3);
 	}
 
 	public List<Integer> getFilterColumns() 

@@ -137,7 +137,9 @@ public class Analyzer
 			{
 				Date date = Globals.parseDate(columns.get(shipmentDateColumn));
 				if(date == null || columns.get(catalogNumberColumn).trim().equals("") || !NumberUtils.isCreatable(columns.get(quantityColumn)))
-				if(Globals.addDays(Globals.getTodayDate(), -2).before(date))
+					continue;
+				Date maximumShipmentDate = db.getMaximumShipmentDate();
+				if(maximumShipmentDate == null || maximumShipmentDate.before(date))
 					db.addShipment(columns.get(customerColumn), columns.get(orderIdColumn), columns.get(orderCustomerIdColumn) ,columns.get(catalogNumberColumn)
 							, columns.get(quantityColumn), columns.get(shipmentDateColumn), columns.get(descriptionColumn));
 			}

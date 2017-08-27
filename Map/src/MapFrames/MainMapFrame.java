@@ -260,16 +260,15 @@ public class MainMapFrame implements ActionListener
 			public Object execute(Object... objects) 
 			{
 				TableCellListener tcl = (TableCellListener)objects[0];
-				int row = mapFrame.getOriginalRowNumber(tcl.getRow());
+				int row = tcl.getRow();
 				int column = tcl.getColumn();
 				if(column < Analyzer.ConstantColumnsCount)
 					return null;
 				
 				String monthOnShortName = tcl.getTable().getColumnName(column);
-				String product = (String) analyzer.getProductOnRow(tcl.getTable() , row);
+				String product = analyzer.getProductOnRow(tcl.getTable() , row);
 				MonthDate monthDate = new MonthDate(monthOnShortName);
-				ProductColumn productColumn = map.get(monthDate).get(product);
-				String category = productColumn.getColumn(row % productColumn.getCategoriesCount());
+				String category = analyzer.getCategoryOnRow(tcl.getTable() , row);
 				List<? extends Form> forms = analyzer.getFormsFromCell(map , product , monthDate , category);
 				
 				if(forms == null || forms.size() == 0)

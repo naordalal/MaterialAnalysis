@@ -1626,16 +1626,23 @@ public class DataBase {
 				int id = rs.getInt("id");
 				String orderId = rs.getString("orderId");
 				String orderCustomerId = rs.getString("orderCustomerId");
-				String customer = rs.getString("customer");
-				String description = rs.getString("description");
 				String quantity = rs.getString("quantity");
 				String shipmentDate = rs.getString("shipmentDate");
 				
-				Shipment shipment = new Shipment(id,customer, orderId, orderCustomerId , catalogNumber, quantity, Globals.parseDateFromSqlFormat(shipmentDate), description);
+				Shipment shipment = new Shipment(id,null, orderId, orderCustomerId , catalogNumber, quantity, Globals.parseDateFromSqlFormat(shipmentDate), null);
 				shipments.add(shipment);
 			}
 			
 			closeConnection();
+			
+			for (Shipment shipment : shipments) 
+			{				
+				String customer = getCustomerOfCatalogNumber(shipment.getCatalogNumber());
+				String description = getDescriptionOfCatalogNumber(shipment.getCatalogNumber());
+				shipment.setCustomer(customer);
+				shipment.setDescription(description);
+			}
+			
 			return shipments;
 		
 		}
@@ -1665,20 +1672,27 @@ public class DataBase {
 			while(rs.next())
 			{
 				int id = rs.getInt("id");
-				String customer = rs.getString("customer");
-				String orderNumber = rs.getString("orderNumber");
 				String customerOrderNumber = rs.getString("customerOrderNumber");
-				String description = rs.getString("description");
+				String orderNumber = rs.getString("orderNumber");
 				String quantity = rs.getString("quantity");
 				String price = rs.getString("price");
 				java.util.Date orderDate = Globals.parseDateFromSqlFormat(rs.getString("orderDate"));
 				java.util.Date guaranteedDate = Globals.parseDateFromSqlFormat(rs.getString("guaranteedDate"));
 				
-				CustomerOrder customerOrder = new CustomerOrder(id,customer, orderNumber, customerOrderNumber , catalogNumber, description, quantity, price, orderDate, guaranteedDate);
+				CustomerOrder customerOrder = new CustomerOrder(id,null, orderNumber, customerOrderNumber , catalogNumber, null, quantity, price, orderDate, guaranteedDate);
 				customerOrders.add(customerOrder);
 			}
 			
 			closeConnection();
+			
+			for (CustomerOrder customerOrder : customerOrders) 
+			{				
+				String customer = getCustomerOfCatalogNumber(customerOrder.getCatalogNumber());
+				String description = getDescriptionOfCatalogNumber(customerOrder.getCatalogNumber());
+				customerOrder.setCustomer(customer);
+				customerOrder.setDescription(description);
+			}
+			
 			return customerOrders;
 		
 		}
@@ -1707,17 +1721,24 @@ public class DataBase {
 			while(rs.next())
 			{
 				int id = rs.getInt("id");
-				String customer = rs.getString("customer");
-				String woNumber = rs.getString("WOId");
-				String description = rs.getString("description");
+				String woNumber = rs.getString("WOId");				
 				String quantity = rs.getString("quantity");
 				java.util.Date orderDate = Globals.parseDateFromSqlFormat(rs.getString("date"));
 				
-				WorkOrder customerOrder = new WorkOrder(id, woNumber, catalogNumber, quantity, customer, orderDate, description);
+				WorkOrder customerOrder = new WorkOrder(id, woNumber, catalogNumber, quantity, null, orderDate, null);
 				workOrders.add(customerOrder);
 			}
 			
 			closeConnection();
+			
+			for (WorkOrder customerOrder : workOrders) 
+			{				
+				String customer = getCustomerOfCatalogNumber(customerOrder.getCatalogNumber());
+				String description = getDescriptionOfCatalogNumber(customerOrder.getCatalogNumber());
+				customerOrder.setCustomer(customer);
+				customerOrder.setDescription(description);
+			}
+			
 			return workOrders;
 		
 		}
@@ -2005,18 +2026,25 @@ public class DataBase {
 			while(rs.next())
 			{
 				int id = rs.getInt("id");
-				String customer = rs.getString("customer");
 				String woNumber = rs.getString("WOId");
 				catalogNumber = (catalogNumber == null) ? rs.getString("CN") : catalogNumber;
-				String description = rs.getString("description");
 				String quantity = rs.getString("quantity");
 				java.util.Date orderDate = Globals.parseDateFromSqlFormat(rs.getString("date"));
 				
-				WorkOrder customerOrder = new WorkOrder(id, woNumber, catalogNumber, quantity, customer, orderDate, description);
+				WorkOrder customerOrder = new WorkOrder(id, woNumber, catalogNumber, quantity, null, orderDate, null);
 				workOrders.add(customerOrder);
 			}
 			
 			closeConnection();
+			
+			for (WorkOrder workOrder : workOrders) 
+			{				
+				String customer = getCustomerOfCatalogNumber(workOrder.getCatalogNumber());
+				String description = getDescriptionOfCatalogNumber(workOrder.getCatalogNumber());
+				workOrder.setCustomer(customer);
+				workOrder.setDescription(description);
+			}
+			
 			return workOrders;
 		
 		}
@@ -2042,21 +2070,29 @@ public class DataBase {
 			while(rs.next())
 			{
 				int id = rs.getInt("id");
-				String customer = rs.getString("customer");
-				String orderNumber = rs.getString("orderNumber");
 				String customerOrderNumber = rs.getString("customerOrderNumber");
+				String orderNumber = rs.getString("orderNumber");
 				catalogNumber = (catalogNumber == null) ? rs.getString("CN") : catalogNumber;
-				String description = rs.getString("description");
+				
 				String quantity = rs.getString("quantity");
 				String price = rs.getString("price");
 				java.util.Date orderDate = Globals.parseDateFromSqlFormat(rs.getString("orderDate"));
 				java.util.Date guaranteedDate = Globals.parseDateFromSqlFormat(rs.getString("guaranteedDate"));
 				
-				CustomerOrder customerOrder = new CustomerOrder(id,customer, orderNumber, customerOrderNumber , catalogNumber, description, quantity, price, orderDate, guaranteedDate);
+				CustomerOrder customerOrder = new CustomerOrder(id,null, orderNumber, customerOrderNumber , catalogNumber, null, quantity, price, orderDate, guaranteedDate);
 				customerOrders.add(customerOrder);
 			}
 			
 			closeConnection();
+			
+			for (CustomerOrder customerOrder : customerOrders) 
+			{				
+				String customer = getCustomerOfCatalogNumber(customerOrder.getCatalogNumber());
+				String description = getDescriptionOfCatalogNumber(customerOrder.getCatalogNumber());
+				customerOrder.setCustomer(customer);
+				customerOrder.setDescription(description);
+			}
+			
 			return customerOrders;
 		
 		}
@@ -2068,6 +2104,30 @@ public class DataBase {
 		}
 	}
 	
+	private String getDescriptionOfCatalogNumber(String catalogNumber) 
+	{
+		String description = "";
+		try{
+			
+			connect();
+			stmt = c.prepareStatement("SELECT description FROM Tree where CN = ?");
+			stmt.setString(1, catalogNumber);
+			ResultSet rs = stmt.executeQuery();
+			
+			if(rs.next())
+				description = rs.getString("description");
+			
+			closeConnection();
+			return description;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return description;
+		}
+	}
 	public List<Shipment> getAllShipments(String catalogNumber) 
 	{
 		List<Shipment> shipments = new ArrayList<>();
@@ -2084,17 +2144,24 @@ public class DataBase {
 				int id = rs.getInt("id");
 				String orderId = rs.getString("orderId");
 				String orderCustomerId = rs.getString("orderCustomerId");
-				String customer = rs.getString("customer");
-				catalogNumber = (catalogNumber == null) ? rs.getString("CN") : catalogNumber;
-				String description = rs.getString("description");
+				catalogNumber = (catalogNumber == null) ? rs.getString("CN") : catalogNumber;			
 				String quantity = rs.getString("quantity");
 				String shipmentDate = rs.getString("shipmentDate");
 				
-				Shipment shipment = new Shipment(id,customer, orderId, orderCustomerId , catalogNumber, quantity, Globals.parseDateFromSqlFormat(shipmentDate), description);
+				Shipment shipment = new Shipment(id,null, orderId, orderCustomerId , catalogNumber, quantity, Globals.parseDateFromSqlFormat(shipmentDate), null);
 				shipments.add(shipment);
 			}
 			
 			closeConnection();
+			
+			for (Shipment shipment : shipments) 
+			{				
+				String customer = getCustomerOfCatalogNumber(shipment.getCatalogNumber());
+				String description = getDescriptionOfCatalogNumber(shipment.getCatalogNumber());
+				shipment.setCustomer(customer);
+				shipment.setDescription(description);
+			}
+			
 			return shipments;
 		
 		}

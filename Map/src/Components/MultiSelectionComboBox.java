@@ -1,7 +1,9 @@
 package Components;
 
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -16,13 +18,12 @@ public class MultiSelectionComboBox<T> extends JComboBox<T>
 	private SelectionManager manager;
 
 
-
 	public MultiSelectionComboBox(DefaultComboBoxModel model)
     {
     	super(model);
 
         manager = new SelectionManager();
-
+        
         BasicComboBoxRenderer renderer = new MyComboBoxRenderer(manager);
         super.addActionListener(manager);
         this.setRenderer(renderer);      
@@ -50,7 +51,10 @@ public class MultiSelectionComboBox<T> extends JComboBox<T>
     @Override
     public void addItem(T item) {
     	if(((DefaultComboBoxModel) getModel()).getIndexOf(item) == -1)
+    	{
     		((DefaultComboBoxModel)getModel()).addElement(item);
+    		
+    	}
     	manager.addSelectedItem(item);
     }
     
