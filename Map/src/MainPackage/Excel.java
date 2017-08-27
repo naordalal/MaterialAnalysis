@@ -329,10 +329,10 @@ public class Excel
 	    	cell.setCellStyle(headerStyle);
 	    }
 	    
+    	Object previousItem = null;
 	    for(int rowIndex = 1 ; rowIndex <= rows.length ; rowIndex++)
 	    {
 	    	newRow = excelSheet.createRow(rowIndex);
-	    	Object previousItem = null;
 	    	for(int columnIndex = 0 ; columnIndex < rows[rowIndex - 1].length ; columnIndex++)
 		    {
 	        	XSSFCellStyle contentStyle = w.createCellStyle();
@@ -345,10 +345,15 @@ public class Excel
     				previousItem = rows[rowIndex - 1][columnIndex];
     			else if(!previousItem.equals(rows[rowIndex - 1][0]))
         		{
-        			contentStyle.setBorderColor(BorderSide.TOP, new XSSFColor(Color.RED));
-        			
-        			previousItem = rows[rowIndex - 1][columnIndex];
+    	        	contentStyle.setBorderTop(HSSFCellStyle.BORDER_THICK);
+        			contentStyle.setTopBorderColor(IndexedColors.BLUE.index);
+        			previousItem = rows[rowIndex - 1][0];
         		}
+    			else if(columnIndex > 0)
+    			{
+    				contentStyle.setBorderTop(newRow.getCell(0).getCellStyle().getBorderTop());
+        			contentStyle.setTopBorderColor(newRow.getCell(0).getCellStyle().getTopBorderColor());
+    			}
 	        	
 	    		Cell cell = newRow.createCell(columnIndex);	 
 	    		if(rows[rowIndex - 1][columnIndex] instanceof String)
@@ -368,9 +373,9 @@ public class Excel
 	    			else
 	    				cell.setCellValue((String) value);	
 	    		}
-	    		if(rows[rowIndex - 1][columnIndex] instanceof Double)
+	    		else if(rows[rowIndex - 1][columnIndex] instanceof Double)
 	    			cell.setCellValue((Double)rows[rowIndex - 1][columnIndex]);
-	    		if(rows[rowIndex - 1][columnIndex] instanceof Date)
+	    		else if(rows[rowIndex - 1][columnIndex] instanceof Date)
 	    		{
 	    			cell.setCellValue((Date)rows[rowIndex - 1][columnIndex]);
 	    			Globals.setDateFormat(w , contentStyle);

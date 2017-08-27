@@ -78,8 +78,8 @@ public class ProductInit
 	public String [] getColumns()
 	{
 		String [] columns = new String[5];
-		columns[0] = "Type";
-		columns[1] = "Catalog Number";
+		columns[0] = "Catalog Number";
+		columns[1] = "Type";
 		columns[2] = "Quantity";
 		columns[3] = "InitDate";
 		columns[4] = "RequireDate";
@@ -91,8 +91,8 @@ public class ProductInit
 	{
 		Globals globals = new Globals();
 		String [] row = new String[5];
-		row[0] = globals.FormTypeToString(this.type);
-		row[1] = this.catalogNumber;
+		row[0] = this.catalogNumber;
+		row[1] = globals.FormTypeToString(this.type);
 		row[2] = this.quantity;
 		row[3] = this.initDate;
 		row[4] = this.requireDate;
