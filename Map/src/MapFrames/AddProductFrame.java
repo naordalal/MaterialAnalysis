@@ -26,9 +26,9 @@ import org.apache.poi.ss.usermodel.Font;
 
 import Components.FilterCombo;
 import Components.MultiSelectionComboBox;
-import Forms.Tree;
 import MainPackage.DataBase;
 import MainPackage.Globals;
+import Reports.Tree;
 
 public class AddProductFrame implements ActionListener 
 {

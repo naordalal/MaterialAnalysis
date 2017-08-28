@@ -1,39 +1,39 @@
 package MapFrames;
 
 import java.awt.Cursor;
-import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import javax.mail.Authenticator;
-import javax.naming.AuthenticationException;
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
+
+import com.google.common.collect.Range;
 
 import AnalyzerTools.Analyzer;
 import AnalyzerTools.MonthDate;
 import AnalyzerTools.ProductColumn;
-import Components.TableCellListener;
-import Forms.Form;
-import Forms.ProductInit;
-import Forms.Tree;
 import MainPackage.CallBack;
 import MainPackage.DataBase;
 import MainPackage.Globals;
 import MainPackage.Globals.FormType;
-import MainPackage.Message;
+import Reports.ProductInit;
+import Reports.Tree;
 
 public class MainMapFrame implements ActionListener 
 {
@@ -155,16 +155,20 @@ public class MainMapFrame implements ActionListener
 			Map<MonthDate, Map<String, ProductColumn>> map = analyzer.calculateMap(userName);
 			String [] columns = analyzer.getColumns(map);
 			String [][] rows = analyzer.getRows(map);
+			List<Integer> invalidEditableCoulmns = IntStream.rangeClosed(0, columns.length - 1).boxed().collect(Collectors.toList());
 			
-			boolean canEdit = false;
-			ReportViewFrame mapFrame = new ReportViewFrame(email , auth , "Map View" , columns, rows, canEdit , new ArrayList<Integer>());
+			boolean canEdit = invalidEditableCoulmns.size() < columns.length;
+			ReportViewFrame mapFrame = new ReportViewFrame(email , auth , "Map View" , columns, rows, canEdit ,invalidEditableCoulmns);
 			
 			List<Integer> filterColumns = analyzer.getFilterColumns();
 			List<String> filterNames = new ArrayList<>();
 			filterColumns.stream().forEach(col -> filterNames.add(columns[col] + ": "));
 			mapFrame.setFilters(filterColumns, filterNames);
 			
-			mapFrame.setCallBacks(null , getMapDoubleLeftClickAction(map, mapFrame), null);
+			CallBack<Object> valueCellChangeAction = analyzer.getValueCellChangeAction(email, auth, userName, mapFrame, map);
+			CallBack<Object> doubleLeftClickAction = analyzer.getDoubleLeftClickAction(email, auth, userName, mapFrame, map);
+			CallBack<Object> rightClickAction = analyzer.getRightClickAction(email, auth, userName, mapFrame, map);
+			mapFrame.setCallBacks(valueCellChangeAction , doubleLeftClickAction, rightClickAction);
 			
 			mapFrame.show();
 
@@ -205,11 +209,25 @@ public class MainMapFrame implements ActionListener
 				rows = new String[0][0];
 			}
 			
-			boolean canEdit = true;
+			boolean canEdit = invalidEditableColumns.size() < columns.length;
 			ReportViewFrame treeFrame = new ReportViewFrame(email , auth , "Tree View" , columns, rows, canEdit, invalidEditableColumns);
-			treeFrame.setCallBacks(getTreeValueCellChangeAction(treeFrame, trees), null, null);
 			
-			List<Integer> filterColumns = Tree.getFilterColumns();
+			CallBack<Object> valueCellChangeAction = null;
+			CallBack<Object> doubleLeftClickAction = null;
+			CallBack<Object> rightClickAction = null;
+			if(trees.size() > 0)
+			{
+				valueCellChangeAction = trees.get(0).getValueCellChangeAction(userName, treeFrame, trees);
+				doubleLeftClickAction = trees.get(0).getDoubleLeftClickAction(userName, treeFrame, trees);
+				rightClickAction = trees.get(0).getRightClickAction(userName, treeFrame, trees);
+			}
+			treeFrame.setCallBacks(valueCellChangeAction, doubleLeftClickAction, rightClickAction);
+			
+			List<Integer> filterColumns =  new ArrayList<>();
+			if(trees.size() > 0)
+			{
+				filterColumns.addAll(trees.get(0).getFilterColumns());
+			}
 			List<String> filterNames = new ArrayList<>();
 			if(trees.size() > 0)
 				filterColumns.stream().forEach(col -> filterNames.add(columns[col] + ": "));
@@ -236,11 +254,26 @@ public class MainMapFrame implements ActionListener
 				rows = new String[0][0];
 			}
 			
-			boolean canEdit = true;
+			boolean canEdit = invalidEditableColumns.size() < columns.length;
 			ReportViewFrame initProductFrame = new ReportViewFrame(email , auth , "Init Product View" , columns, rows, canEdit, invalidEditableColumns);
-			initProductFrame.setCallBacks(getInitProductValueCellChangeAction(initProductFrame, productsInit), null, null);
 			
-			List<Integer> filterColumns = ProductInit.getFilterColumns();
+			CallBack<Object> valueCellChangeAction = null;
+			CallBack<Object> doubleLeftClickAction = null;
+			CallBack<Object> rightClickAction = null;
+			if(productsInit.size() > 0)
+			{
+				valueCellChangeAction = productsInit.get(0).getValueCellChangeAction(userName, initProductFrame, productsInit);
+				doubleLeftClickAction = productsInit.get(0).getDoubleLeftClickAction(userName, initProductFrame, productsInit);
+				rightClickAction = productsInit.get(0).getRightClickAction(userName, initProductFrame, productsInit);
+			}
+			initProductFrame.setCallBacks(valueCellChangeAction, doubleLeftClickAction, rightClickAction);
+			
+			List<Integer> filterColumns =  new ArrayList<>();
+			if(productsInit.size() > 0)
+			{
+				filterColumns.addAll(productsInit.get(0).getFilterColumns());
+			}
+			
 			List<String> filterNames = new ArrayList<>();
 			if(productsInit.size() > 0)
 				filterColumns.stream().forEach(col -> filterNames.add(columns[col] + ": "));
@@ -250,179 +283,5 @@ public class MainMapFrame implements ActionListener
 		
 		frame.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 		
-	}
-
-	public CallBack<Object> getMapDoubleLeftClickAction(Map<MonthDate, Map<String, ProductColumn>> map , ReportViewFrame mapFrame)
-	{
-		CallBack<Object> doubleLeftClickAction = new CallBack<Object>()
-		{
-			@Override
-			public Object execute(Object... objects) 
-			{
-				TableCellListener tcl = (TableCellListener)objects[0];
-				int row = tcl.getRow();
-				int column = tcl.getColumn();
-				if(column < Analyzer.ConstantColumnsCount)
-					return null;
-				
-				String monthOnShortName = tcl.getTable().getColumnName(column);
-				String product = analyzer.getProductOnRow(tcl.getTable() , row);
-				MonthDate monthDate = new MonthDate(monthOnShortName);
-				String category = analyzer.getCategoryOnRow(tcl.getTable() , row);
-				List<? extends Form> forms = analyzer.getFormsFromCell(map , product , monthDate , category);
-				
-				if(forms == null || forms.size() == 0)
-					return null;
-				
-				String [] columns = forms.get(0).getColumns();
-				String [][] rows = new String[forms.size()][columns.length];
-				int index = 0;
-				for (Form form : forms) 
-				{
-					rows[index] = form.getRow();
-					index++;
-				}
-				
-				boolean canEdit = forms.get(0).canEdit();
-				ReportViewFrame reportViewFrame = new ReportViewFrame(email , auth , "Reports View" , columns, rows, canEdit , forms.get(0).getInvalidEditableColumns());
-				
-				List<Integer> filterColumns = forms.get(0).getFilterColumns();
-				List<String> filterNames = new ArrayList<>();
-				filterColumns.stream().forEach(col -> filterNames.add(columns[col] + ": "));
-				reportViewFrame.setFilters(filterColumns, filterNames);
-				
-
-				CallBack<Object> valueCellChangeAction = new CallBack<Object>()
-				{
-					@Override
-					public Object execute(Object... objects) 
-					{
-						TableCellListener tcl = (TableCellListener)objects[0];
-						int row = reportViewFrame.getOriginalRowNumber(tcl.getRow());
-						int column = tcl.getColumn();
-						String newValue = (String) tcl.getNewValue();
-						String oldValue = (String) tcl.getOldValue();
-						Form updateForm = forms.get(row);
-						
-						try 
-						{
-							updateForm.updateValue(column , newValue);
-							mapFrame.refresh(analyzer.getRows(analyzer.calculateMap(userName)));
-							reportViewFrame.setColumnWidth();
-							return null;
-						} catch (Exception e) 
-						{
-							reportViewFrame.updateCellValue(row,column,oldValue);
-							JOptionPane.showConfirmDialog(null, e.getMessage() ,"Error",JOptionPane.PLAIN_MESSAGE);
-							return e;
-						}
-					}
-				};
-				reportViewFrame.setCallBacks(valueCellChangeAction, null, null);
-				reportViewFrame.show();
-		        return null;
-			}
-		};
-		
-		return doubleLeftClickAction;
-	}
-	
-	public CallBack<Object> getTreeValueCellChangeAction(ReportViewFrame treeFrame , List<Tree> trees)
-	{
-		CallBack<Object> valueCellChangeAction = new CallBack<Object>()
-		{
-			@Override
-			public Object execute(Object... objects) 
-			{			
-				TableCellListener tcl = (TableCellListener)objects[0];
-				int row = treeFrame.getOriginalRowNumber(tcl.getRow());
-				int column = tcl.getColumn();
-				String newValue = (String) tcl.getNewValue();
-				String oldValue = (String) tcl.getOldValue();
-				Tree tree = trees.get(row);
-				Message message;
-				try
-				{
-					message = tree.updateValue(userName , column , newValue);
-				} 
-				catch (Exception e) 
-				{
-					treeFrame.updateCellValue(row,column,oldValue);
-					JOptionPane.showConfirmDialog(null, e.getMessage() ,"Error",JOptionPane.PLAIN_MESSAGE);
-					return e;
-				}
-				
-				while(message != null)
-				{
-					boolean validInput = false;
-					while(!validInput)
-					{
-						String answer = JOptionPane.showInputDialog(null ,message.getMessage(), "" , JOptionPane.OK_OPTION);
-						if(answer != null)
-						{
-							try 
-							{
-								message = tree.updateValue(userName , message.getColumn() , answer.trim());
-								validInput = true;
-							} catch (Exception e) 
-							{
-								JOptionPane.showConfirmDialog(null, e.getMessage() ,"Error",JOptionPane.PLAIN_MESSAGE);
-							}
-						}
-
-					}
-						
-				}
-								
-				List<Tree> newTrees = db.getAllTrees(userName , null);
-				trees.clear();
-				trees.addAll(newTrees);
-				treeFrame.refresh(newTrees.stream().map(t -> t.getRow()).toArray(String[][]::new));
-				treeFrame.setColumnWidth();
-				
-				return null;
-			}
-		};
-		
-		return valueCellChangeAction;
-	}
-	
-	
-	public CallBack<Object> getInitProductValueCellChangeAction(ReportViewFrame productInitFrame, List<ProductInit> productsInit) 
-	{
-		CallBack<Object> valueCellChangeAction = new CallBack<Object>()
-		{
-			@Override
-			public Object execute(Object... objects) 
-			{
-				TableCellListener tcl = (TableCellListener)objects[0];
-				int row = productInitFrame.getOriginalRowNumber(tcl.getRow());
-				int column = tcl.getColumn();
-				String newValue = (String) tcl.getNewValue();
-				String oldValue = (String) tcl.getOldValue();
-				ProductInit productInit = productsInit.get(row);
-				
-				try
-				{
-					productInit.updateValue(column, newValue);
-				} 
-				catch (Exception e) 
-				{
-					productInitFrame.updateCellValue(row,column,oldValue);
-					JOptionPane.showConfirmDialog(null, e.getMessage() ,"Error",JOptionPane.PLAIN_MESSAGE);
-					return e;
-				}
-							
-				List<ProductInit> newProductsInit = db.getAllProductsInit(userName);
-				productsInit.clear();
-				productsInit.addAll(newProductsInit);
-				productInitFrame.refresh(newProductsInit.stream().map(t -> t.getRow()).toArray(String[][]::new));
-				productInitFrame.setColumnWidth();
-				
-				return null;
-			}
-		};
-		
-		return valueCellChangeAction;
 	}
 }

@@ -10,17 +10,23 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import javax.mail.Authenticator;
+import javax.swing.JOptionPane;
 import javax.swing.JTable;
 
+import Components.TableCellListener;
 import Forms.CustomerOrder;
 import Forms.Forecast;
 import Forms.Form;
 import Forms.Shipment;
 import Forms.WorkOrder;
+import MainPackage.CallBack;
 import MainPackage.DataBase;
 import MainPackage.Globals;
 import MainPackage.Pair;
 import MainPackage.Globals.FormType;
+import MapFrames.ReportViewFrame;
+import Reports.ProductInit;
 
 public class Analyzer 
 {
@@ -447,6 +453,90 @@ public class Analyzer
 		filterColumns.add(3);
 		
 		return filterColumns;
+	}
+	
+	public CallBack<Object> getValueCellChangeAction(String email , Authenticator auth , String userName , ReportViewFrame mapFrame , Map<MonthDate, Map<String, ProductColumn>> map) 
+	{
+		CallBack<Object> doubleLeftClickAction = new CallBack<Object>()
+		{
+			@Override
+			public Object execute(Object... objects) 
+			{
+				TableCellListener tcl = (TableCellListener)objects[0];
+				int row = tcl.getRow();
+				int column = tcl.getColumn();
+				if(column < Analyzer.ConstantColumnsCount)
+					return null;
+				
+				String monthOnShortName = tcl.getTable().getColumnName(column);
+				String product = getProductOnRow(tcl.getTable() , row);
+				MonthDate monthDate = new MonthDate(monthOnShortName);
+				String category = getCategoryOnRow(tcl.getTable() , row);
+				List<? extends Form> forms = getFormsFromCell(map , product , monthDate , category);
+				
+				if(forms == null || forms.size() == 0)
+					return null;
+				
+				String [] columns = forms.get(0).getColumns();
+				String [][] rows = new String[forms.size()][columns.length];
+				int index = 0;
+				for (Form form : forms) 
+				{
+					rows[index] = form.getRow();
+					index++;
+				}
+				
+				boolean canEdit = forms.get(0).canEdit();
+				ReportViewFrame reportViewFrame = new ReportViewFrame(email , auth , "Reports View" , columns, rows, canEdit , forms.get(0).getInvalidEditableColumns());
+				
+				List<Integer> filterColumns = forms.get(0).getFilterColumns();
+				List<String> filterNames = new ArrayList<>();
+				filterColumns.stream().forEach(col -> filterNames.add(columns[col] + ": "));
+				reportViewFrame.setFilters(filterColumns, filterNames);
+				
 
+				CallBack<Object> valueCellChangeAction = new CallBack<Object>()
+				{
+					@Override
+					public Object execute(Object... objects) 
+					{
+						TableCellListener tcl = (TableCellListener)objects[0];
+						int row = reportViewFrame.getOriginalRowNumber(tcl.getRow());
+						int column = tcl.getColumn();
+						String newValue = (String) tcl.getNewValue();
+						String oldValue = (String) tcl.getOldValue();
+						Form updateForm = forms.get(row);
+						
+						try 
+						{
+							updateForm.updateValue(column , newValue);
+							mapFrame.refresh(getRows(calculateMap(userName)));
+							reportViewFrame.setColumnWidth();
+							return null;
+						} catch (Exception e) 
+						{
+							reportViewFrame.updateCellValue(row,column,oldValue);
+							JOptionPane.showConfirmDialog(null, e.getMessage() ,"Error",JOptionPane.PLAIN_MESSAGE);
+							return e;
+						}
+					}
+				};
+				reportViewFrame.setCallBacks(valueCellChangeAction, null, null);
+				reportViewFrame.show();
+		        return null;
+			}
+		};
+		
+		return doubleLeftClickAction;
+	}
+
+	public CallBack<Object> getDoubleLeftClickAction(String email , Authenticator auth , String userName , ReportViewFrame mapFrame , Map<MonthDate, Map<String, ProductColumn>> map) 
+	{
+		return null;
+	}
+
+	public CallBack<Object> getRightClickAction(String email , Authenticator auth , String userName , ReportViewFrame mapFrame , Map<MonthDate, Map<String, ProductColumn>> map) 
+	{
+		return null;
 	}
 }

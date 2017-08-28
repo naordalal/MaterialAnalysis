@@ -1,13 +1,18 @@
-package Forms;
+package Reports;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.JOptionPane;
+
 import AnalyzerTools.Analyzer;
+import Components.TableCellListener;
+import MainPackage.CallBack;
 import MainPackage.DataBase;
 import MainPackage.Message;
+import MapFrames.ReportViewFrame;
 
-public class Tree 
+public class Tree extends Report
 {
 	private String catalogNumber;
 	private String customer;
@@ -184,7 +189,7 @@ public class Tree
 		return invalidEditableColumns;
 	}
 
-	public static List<Integer> getFilterColumns() 
+	public List<Integer> getFilterColumns() 
 	{
 		List<Integer> filterColumns = new ArrayList<>();
 		filterColumns.add(0);
@@ -192,5 +197,81 @@ public class Tree
 		filterColumns.add(2);
 		
 		return filterColumns;
+	}
+
+	@Override
+	public CallBack<Object> getValueCellChangeAction(String userName , ReportViewFrame frame, Object... args) 
+	{
+		List<Tree> trees = (List<Tree>) args[0];
+		DataBase db = new DataBase();
+		
+		CallBack<Object> valueCellChangeAction = new CallBack<Object>()
+		{
+			@Override
+			public Object execute(Object... objects) 
+			{			
+				TableCellListener tcl = (TableCellListener)objects[0];
+				int row = frame.getOriginalRowNumber(tcl.getRow());
+				int column = tcl.getColumn();
+				String newValue = (String) tcl.getNewValue();
+				String oldValue = (String) tcl.getOldValue();
+				Tree tree = trees.get(row);
+				Message message;
+				try
+				{
+					message = tree.updateValue(userName , column , newValue);
+				} 
+				catch (Exception e) 
+				{
+					frame.updateCellValue(row,column,oldValue);
+					JOptionPane.showConfirmDialog(null, e.getMessage() ,"Error",JOptionPane.PLAIN_MESSAGE);
+					return e;
+				}
+				
+				while(message != null)
+				{
+					boolean validInput = false;
+					while(!validInput)
+					{
+						String answer = JOptionPane.showInputDialog(null ,message.getMessage(), "" , JOptionPane.OK_OPTION);
+						if(answer != null)
+						{
+							try 
+							{
+								message = tree.updateValue(userName , message.getColumn() , answer.trim());
+								validInput = true;
+							} catch (Exception e) 
+							{
+								JOptionPane.showConfirmDialog(null, e.getMessage() ,"Error",JOptionPane.PLAIN_MESSAGE);
+							}
+						}
+
+					}
+						
+				}
+								
+				List<Tree> newTrees = db.getAllTrees(userName , null);
+				trees.clear();
+				trees.addAll(newTrees);
+				frame.refresh(newTrees.stream().map(t -> t.getRow()).toArray(String[][]::new));
+				frame.setColumnWidth();
+				
+				return null;
+			}
+		};
+		
+		return valueCellChangeAction;
+	}
+
+	@Override
+	public CallBack<Object> getDoubleLeftClickAction(String userName , ReportViewFrame frame, Object... args) 
+	{
+		return null;
+	}
+
+	@Override
+	public CallBack<Object> getRightClickAction(String userName , ReportViewFrame frame, Object... args) 
+	{
+		return null;
 	}
 }
