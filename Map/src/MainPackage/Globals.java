@@ -62,7 +62,7 @@ public class Globals {
 	    SHIPMENT,WO,PO,FC
 	};
 	
-	public static String con = "C:\\Users\\naordalal\\Desktop\\DB.db";
+	public static String con = "C:\\Users\\naordalal\\Desktop\\DB2.db";
 	//public static final String con = "O:\\Purchasing\\PO_FollowUp\\Material Analysis\\DB.db";
 	public static final String ALGO = "AES";
 	public static final byte[] keyValue = {'T' , 'h' , 'e' , 'B' , 'e' ,'s' ,'t' , 'S' , 'e' , 'c' ,'r' ,'e' ,'t'
@@ -125,7 +125,9 @@ public class Globals {
 	public static double highPrice;
 	
 	public static int deafultPrice = 500;
-
+	
+	public static final int monthsToCalculate = 6;
+	public static final int monthsBackToView = 3;
 	
 	public String acceptNotes = "Please approve receipt of PO and delivery date";
 	public String promisedDateInHebrewColumn = "תאריך מובטח";

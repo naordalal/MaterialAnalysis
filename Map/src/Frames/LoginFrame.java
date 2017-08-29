@@ -20,6 +20,7 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 
+import AnalyzerTools.Analyzer;
 import Forms.Forecast;
 import MainPackage.DataBase;
 import MainPackage.Globals;

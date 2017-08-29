@@ -122,6 +122,7 @@ public class Tree extends Report
 		DataBase db = new DataBase();
 		Message message = null;
 		String previousFatherCN = fatherCN;
+		boolean ignorePast = true;
 		switch(column)
 		{
 			case 0 : 
@@ -132,11 +133,11 @@ public class Tree extends Report
 				this.description = newValue;
 				break;
 			case 3:
-				if(!db.getAllCatlogNumberOfCustomer(customer).contains(newValue))
+				if(!db.getAllCatlogNumberOfCustomer(customer).contains(newValue.trim()))
 					throw new Exception("Invalid catalog number , catalog number does not exist");
 				if(newValue.trim().equals(catalogNumber.trim()))
 					throw new Exception("Invalid catalog number , cannot be defined as a child and a father");
-				if(db.getFathers(catalogNumber).contains(newValue))
+				if(db.getFathers(catalogNumber).stream().filter(father -> father.getLeft().equals(newValue.trim())).count() > 0)
 					throw new Exception("This catalog number is already defined as father of this product");
 				
 				if(quantity == null || quantity.equals("0") || quantity.equals(""))
@@ -144,6 +145,7 @@ public class Tree extends Report
 				else
 					message = null;
 				this.fatherCN = newValue;
+				ignorePast = false;
 				break;
 			case 4:
 				if(!org.apache.commons.lang3.StringUtils.isNumeric(newValue.trim()))
@@ -158,6 +160,7 @@ public class Tree extends Report
 					this.fatherCN = "";	
 				}
 				message = null;
+				ignorePast = false;
 				break;
 			case 5:
 				if(!db.getAllCatlogNumberOfCustomer(customer).contains(newValue))
@@ -165,6 +168,7 @@ public class Tree extends Report
 				
 				this.alias = newValue;
 				message = null;
+				ignorePast = false;
 				break;
 				
 			default:
@@ -175,7 +179,7 @@ public class Tree extends Report
 		db.updateTree(catalogNumber, description , previousFatherCN , fatherCN , quantity , alias);
 		
 		Analyzer analyzer = new Analyzer();
-		analyzer.updateProductQuantities(catalogNumber);
+		analyzer.updateProductQuantities(catalogNumber , ignorePast);
 		return message;
 		
 	}

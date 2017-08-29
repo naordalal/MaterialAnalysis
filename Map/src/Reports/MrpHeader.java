@@ -1,7 +1,13 @@
 package Reports;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
+import AnalyzerTools.MonthDate;
 import MainPackage.CallBack;
 import MainPackage.Message;
 import MapFrames.ReportViewFrame;
@@ -9,16 +15,59 @@ import MapFrames.ReportViewFrame;
 public class MrpHeader extends Report
 {
 
+	private String catalogNumber;
+	private String customer;
+	private String description;
+	private Map<MonthDate , Double> quantityPerMonth;
+	
+	public MrpHeader(String catalogNumber , String customer , String description , Map<MonthDate, Double> quantityPerMonth)
+	{
+		this.catalogNumber = catalogNumber;
+		this.customer = customer;
+		this.description = description;
+		this.quantityPerMonth = quantityPerMonth;
+	}
+	
 	@Override
 	public String[] getRow() 
 	{
-		return null;
+		int monthCount = quantityPerMonth.size();
+		String [] row = new String[3 + monthCount];
+		row[0] = catalogNumber;
+		row[1] = customer;
+		row[2] = description;
+		List<MonthDate> months = quantityPerMonth.keySet().stream().collect(Collectors.toList());
+		Collections.sort(months);
+		
+		int index = 3;
+		for (MonthDate month : months)
+		{
+			row[index] = quantityPerMonth.get(month).toString();
+			index++;
+		}
+		
+		return row;
 	}
 
 	@Override
 	public String[] getColumns() 
 	{
-		return null;
+		int monthCount = quantityPerMonth.size();
+		String [] column = new String[3 + monthCount];
+		column[0] = "Catalog Number";
+		column[1] = "Customer";
+		column[2] = "Description";
+		List<MonthDate> months = quantityPerMonth.keySet().stream().collect(Collectors.toList());
+		Collections.sort(months);
+		
+		int index = 3;
+		for (MonthDate month : months)
+		{
+			column[index] = month.shortString();
+			index++;
+		}
+		
+		return column;
 	}
 
 	@Override
@@ -30,13 +79,20 @@ public class MrpHeader extends Report
 	@Override
 	public List<Integer> getInvalidEditableColumns() 
 	{
-		return null;
+		int monthCount = quantityPerMonth.size();
+		int columnsLength = 3 + monthCount;
+		return IntStream.rangeClosed(0, columnsLength - 1).boxed().collect(Collectors.toList());
 	}
 
 	@Override
 	public List<Integer> getFilterColumns() 
 	{
-		return null;
+		List<Integer> filterColumns = new ArrayList<>();
+		filterColumns.add(0);
+		filterColumns.add(1);
+		filterColumns.add(2);
+		
+		return filterColumns;
 	}
 
 	@Override

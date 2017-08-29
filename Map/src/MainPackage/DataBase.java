@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.sqlite.SQLiteConfig;
 
 import AnalyzerTools.MonthDate;
+import AnalyzerTools.ProductColumn;
 import AnalyzerTools.QuantityPerDate;
 import Forms.CustomerOrder;
 import Forms.Forecast;
@@ -1118,15 +1119,26 @@ public class DataBase {
 		
 	}
 	
-	public List<Forecast> getAllFC(String catalogNumber) 
+	public List<Forecast> getAllFC(String catalogNumber, boolean ignorePast) 
 	{
 		List<Forecast> forecasts = new ArrayList<>();
+		MonthDate firstMonth;
+		if(ignorePast)
+			firstMonth = new MonthDate(Globals.addMonths(Globals.getTodayDate(), -Globals.monthsToCalculate));
+		else
+			firstMonth = getMinimumInitDate();
 		try{
 			
 			connect();
-			stmt = (catalogNumber == null) ? c.prepareStatement("SELECT * FROM Forecast") : c.prepareStatement("SELECT * FROM Forecast where CN = ?");
+			stmt = (catalogNumber == null) ? c.prepareStatement("SELECT * FROM Forecast where date(initDate) >= date(?)") 
+					: c.prepareStatement("SELECT * FROM Forecast where CN = ? AND date(initDate) >= date(?)");
 			if(catalogNumber != null)
-				stmt.setString(1, catalogNumber); 	
+			{
+				stmt.setString(1, catalogNumber);
+				stmt.setString(2, Globals.dateToSqlFormatString(firstMonth));
+			}
+			else
+				stmt.setString(1, Globals.dateToSqlFormatString(firstMonth));	
 			ResultSet rs = stmt.executeQuery();
 			
 			while(rs.next())
@@ -1273,10 +1285,20 @@ public class DataBase {
 		}
 	}
 	
-	public MonthDate getMinimumInitDate() 
+	public MonthDate getMinimumMapDate() 
 	{
-		MonthDate requireDate = new MonthDate(Globals.addMonths(Globals.getTodayDate() , -6));
+		MonthDate requireDate = new MonthDate(Globals.addMonths(Globals.getTodayDate() , -Globals.monthsToCalculate));
+		MonthDate minInitDate = getMinimumInitDate();
 		
+		if(minInitDate.after(requireDate))
+			requireDate = minInitDate;
+		
+		return requireDate;
+	}
+	
+	public MonthDate getMinimumInitDate() 
+	{		
+		MonthDate requireDate = null;
 		try{
 			
 			connect();
@@ -1290,8 +1312,7 @@ public class DataBase {
 				if(date != null && !date.trim().equals(""))
 				{
 					MonthDate minInitMonthDate = new MonthDate(Globals.parseDateFromSqlFormat(date));
-					if(minInitMonthDate.after(requireDate))
-						requireDate = minInitMonthDate;
+					requireDate =  minInitMonthDate;
 					
 				}
 			}
@@ -1386,9 +1407,8 @@ public class DataBase {
 			connect();
 			for (String customer : customers) 
 			{
-				stmt = (userName == null) ? c.prepareStatement("SELECT distinct CN,description FROM Tree") : c.prepareStatement("SELECT distinct CN,description FROM Tree where customer = ?");
-				if(userName != null)
-					stmt.setString(1, customer);
+				stmt = c.prepareStatement("SELECT distinct CN,description FROM Tree where customer = ?");
+				stmt.setString(1, customer);
 				ResultSet rs = stmt.executeQuery();
 				
 				while(rs.next())
@@ -1497,7 +1517,7 @@ public class DataBase {
 			{
 				String fatherCatalogNumber = rs.getString("fatherCN");
 				if(fatherCatalogNumber == null || fatherCatalogNumber.trim().equals(""))
-					father = new Pair<String,Integer>(null, null);
+					continue;
 				else
 				{
 					String quantity = rs.getString("quantity");
@@ -1538,6 +1558,16 @@ public class DataBase {
 			c.commit();
 			
 			closeConnection();
+			
+			String initDate = Globals.dateWithoutHourToString(Globals.getTodayDate());
+			if(!getInitProductsFCDates(catalogNumber).containsKey(catalogNumber))
+			{
+				insertNewInitProduct(catalogNumber, initDate, "0", initDate, FormType.FC);
+				insertNewInitProduct(catalogNumber, initDate, "0", initDate, FormType.WO);
+				insertNewInitProduct(catalogNumber, initDate, "0", initDate, FormType.PO);
+				insertNewInitProduct(catalogNumber, initDate, "0", initDate, FormType.SHIPMENT);	
+			}
+
 		
 		}
 		catch(Exception e)
@@ -1884,7 +1914,7 @@ public class DataBase {
 		return patriarchsCatalogNumber;
 	}
 	
-	public void addNewInitProductCustomerOrders(String catalogNumber, String initDate , String quantity , String requireDate , FormType type)
+	public void addNewInitProduct(String catalogNumber, String initDate , String quantity , String requireDate , FormType type)
 	{
 		String tableName;
 		
@@ -1944,14 +1974,9 @@ public class DataBase {
 					connect();
 				}
 				
-				stmt = c.prepareStatement("INSERT INTO " + tableName +" (CN , quantity , initDate ,requireDate) VALUES(?,?,?,?)");
-				stmt.setString(1, catalogNumber);
-				stmt.setString(2, quantity);
-				stmt.setString(3, Globals.parseDateToSqlFormatString(initDate));
-				stmt.setString(4, Globals.parseDateToSqlFormatString(requireDate));
-				stmt.executeUpdate();
-				
-				c.commit();
+				closeConnection();
+				insertNewInitProduct(catalogNumber , quantity , Globals.parseDateToSqlFormatString(initDate) , Globals.parseDateToSqlFormatString(requireDate) , type);
+				connect();
 			}
 
 			
@@ -1969,6 +1994,52 @@ public class DataBase {
 		}
 	}
 	
+	private void insertNewInitProduct(String catalogNumber, String quantity, String initDate,String requireDate ,FormType type) 
+	{
+		String tableName;
+		
+		switch (type) 
+		{
+			case SHIPMENT:
+				tableName = "InitProductShipments";
+				break;
+			case PO:
+				tableName = "InitProductCustomerOrders";
+				break;
+			case WO:
+				tableName = "InitProductWorkOrder";
+				break;
+			case FC:
+				tableName = "InitProductForecast";
+				break;
+			default:
+				return;
+		}
+		
+		try
+		{
+			connect();
+			stmt = c.prepareStatement("INSERT INTO " + tableName +" (CN , quantity , initDate ,requireDate) VALUES(?,?,?,?)");
+			stmt.setString(1, catalogNumber);
+			stmt.setString(2, quantity);
+			stmt.setString(3, Globals.parseDateToSqlFormatString(initDate));
+			stmt.setString(4, Globals.parseDateToSqlFormatString(requireDate));
+			stmt.executeUpdate();
+			
+			c.commit();
+			closeConnection();
+		}
+		catch(SQLException e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			closeConnection();
+		}
+		
+	}
 	public void cleanInitProduct(String catalogNumber, FormType type) 
 	{
 		String tableName;
@@ -2013,14 +2084,26 @@ public class DataBase {
 			closeConnection();
 		}
 	}
-	public List<WorkOrder> getAllWO(String catalogNumber) 
+	public List<WorkOrder> getAllWO(String catalogNumber, boolean ignorePast) 
 	{
 		List<WorkOrder> workOrders = new ArrayList<>();
+		MonthDate firstMonth;
+		if(ignorePast)
+			firstMonth = new MonthDate(Globals.addMonths(Globals.getTodayDate(), -Globals.monthsToCalculate));
+		else
+			firstMonth = getMinimumInitDate();
 		try{
 			connect();
-			stmt = (catalogNumber == null) ? c.prepareStatement("SELECT * FROM WorkOrder") : c.prepareStatement("SELECT * FROM WorkOrder where CN = ?");
+			stmt = (catalogNumber == null) ? c.prepareStatement("SELECT * FROM WorkOrder where date(date) >= date(?)") 
+					: c.prepareStatement("SELECT * FROM WorkOrder where CN = ? AND date(date) >= date(?)");
 			if(catalogNumber != null)
+			{
 				stmt.setString(1, catalogNumber);
+				stmt.setString(2, Globals.dateToSqlFormatString(firstMonth));
+			}
+			else
+				stmt.setString(1, Globals.dateToSqlFormatString(firstMonth));
+			
 			ResultSet rs = stmt.executeQuery();
 			
 			while(rs.next())
@@ -2056,15 +2139,26 @@ public class DataBase {
 		}
 	}
 	
-	public List<CustomerOrder> getAllPO(String catalogNumber) 
+	public List<CustomerOrder> getAllPO(String catalogNumber, boolean ignorePast) 
 	{
 		List<CustomerOrder> customerOrders = new ArrayList<>();
+		MonthDate firstMonth;
+		if(ignorePast)
+			firstMonth = new MonthDate(Globals.addMonths(Globals.getTodayDate(), -Globals.monthsToCalculate));
+		else
+			firstMonth = getMinimumInitDate();
 		try{
 			
 			connect();
-			stmt = (catalogNumber == null) ? c.prepareStatement("SELECT * FROM CustomerOrders") : c.prepareStatement("SELECT * FROM CustomerOrders where CN = ?");
+			stmt = (catalogNumber == null) ? c.prepareStatement("SELECT * FROM CustomerOrders where date(orderDate) >= date(?)") 
+					: c.prepareStatement("SELECT * FROM CustomerOrders where CN = ? AND date(orderDate) >= date(?)");
 			if(catalogNumber != null)
+			{
 				stmt.setString(1, catalogNumber);
+				stmt.setString(2, Globals.dateToSqlFormatString(firstMonth));
+			}
+			else
+				stmt.setString(1, Globals.dateToSqlFormatString(firstMonth));
 			ResultSet rs = stmt.executeQuery();
 			
 			while(rs.next())
@@ -2128,15 +2222,26 @@ public class DataBase {
 			return description;
 		}
 	}
-	public List<Shipment> getAllShipments(String catalogNumber) 
+	public List<Shipment> getAllShipments(String catalogNumber, boolean ignorePast) 
 	{
 		List<Shipment> shipments = new ArrayList<>();
+		MonthDate firstMonth;
+		if(ignorePast)
+			firstMonth = new MonthDate(Globals.addMonths(Globals.getTodayDate(), -Globals.monthsToCalculate));
+		else
+			firstMonth = getMinimumInitDate();
 		try{
 			
 			connect();
-			stmt = (catalogNumber == null) ? c.prepareStatement("SELECT * FROM Shipments") : c.prepareStatement("SELECT * FROM Shipments where CN = ?");
+			stmt = (catalogNumber == null) ? c.prepareStatement("SELECT * FROM Shipments where date(shipmentDate) >= date(?)") 
+					: c.prepareStatement("SELECT * FROM Shipments where CN = ? AND date(shipmentDate) >= date(?)");
 			if(catalogNumber != null)
-				stmt.setString(1, catalogNumber);	
+			{
+				stmt.setString(1, catalogNumber);
+				stmt.setString(2, Globals.dateToSqlFormatString(firstMonth));
+			}
+			else
+				stmt.setString(1, Globals.dateToSqlFormatString(firstMonth));	
 			ResultSet rs = stmt.executeQuery();
 			
 			while(rs.next())
@@ -2174,9 +2279,14 @@ public class DataBase {
 		
 	}
 	
-	public Map<String, List<QuantityPerDate>> getAllProductsFormQuantityPerDate(FormType type , String catalogNumber)
+	public Map<String, List<QuantityPerDate>> getAllProductsFormQuantityPerDate(FormType type , String catalogNumber, boolean ignorePast)
 	{
 		Map<String, List<QuantityPerDate>> productFormQuantityPerDate = new HashMap<>();
+		MonthDate firstMonth;
+		if(ignorePast)
+			firstMonth = new MonthDate(Globals.addMonths(Globals.getTodayDate(), -Globals.monthsToCalculate));
+		else
+			firstMonth = getMinimumInitDate();
 		String tableName;
 		
 		switch (type) 
@@ -2200,9 +2310,15 @@ public class DataBase {
 		try{
 			
 			connect();
-			stmt = (catalogNumber == null) ? c.prepareStatement("SELECT * FROM " + tableName) : c.prepareStatement("SELECT * FROM " + tableName + " where CN = ?");
+			stmt = (catalogNumber == null) ? c.prepareStatement("SELECT * FROM " + tableName + " where date(date) >= date(?)") 
+					: c.prepareStatement("SELECT * FROM " + tableName + " where CN = ? AND date(date) >= date(?)");
 			if(catalogNumber != null)
-				stmt.setString(1, catalogNumber);	
+			{
+				stmt.setString(1, catalogNumber);
+				stmt.setString(2, Globals.dateToSqlFormatString(firstMonth));
+			}
+			else
+				stmt.setString(1, Globals.dateToSqlFormatString(firstMonth));	
 			ResultSet rs = stmt.executeQuery();
 			
 			while(rs.next())
@@ -2236,24 +2352,24 @@ public class DataBase {
 		}
 	}
 	
-	public Map<String, List<QuantityPerDate>> getAllProductsWOQuantityPerDate(String catalogNumber) 
+	public Map<String, List<QuantityPerDate>> getAllProductsWOQuantityPerDate(String catalogNumber, boolean ignorePast) 
 	{
-		return getAllProductsFormQuantityPerDate(FormType.WO , catalogNumber);
+		return getAllProductsFormQuantityPerDate(FormType.WO , catalogNumber , ignorePast);
 	}
 	
-	public Map<String, List<QuantityPerDate>> getAllProductsPOQuantityPerDate(String catalogNumber) 
+	public Map<String, List<QuantityPerDate>> getAllProductsPOQuantityPerDate(String catalogNumber, boolean ignorePast) 
 	{
-		return getAllProductsFormQuantityPerDate(FormType.PO , catalogNumber);
+		return getAllProductsFormQuantityPerDate(FormType.PO , catalogNumber , ignorePast);
 	}
 	
-	public Map<String, List<QuantityPerDate>> getAllProductsShipmentQuantityPerDate(String catalogNumber) 
+	public Map<String, List<QuantityPerDate>> getAllProductsShipmentQuantityPerDate(String catalogNumber, boolean ignorePast) 
 	{
-		return getAllProductsFormQuantityPerDate(FormType.SHIPMENT , catalogNumber);
+		return getAllProductsFormQuantityPerDate(FormType.SHIPMENT , catalogNumber , ignorePast);
 	}
 	
-	public Map<String, List<QuantityPerDate>> getAllProductsFCQuantityPerDate(String catalogNumber) 
+	public Map<String, List<QuantityPerDate>> getAllProductsFCQuantityPerDate(String catalogNumber, boolean ignorePast) 
 	{
-		return getAllProductsFormQuantityPerDate(FormType.FC , catalogNumber);
+		return getAllProductsFormQuantityPerDate(FormType.FC , catalogNumber , ignorePast);
 	}
 	
 	public Map<String,List<QuantityPerDate>> getInitProductsFormQuantityPerDate(FormType type , String catalogNumber)
@@ -2863,7 +2979,303 @@ public class DataBase {
 		}
 		
 	}
+	
+	public MonthDate getLastCalculateMapDate() 
+	{
+		MonthDate requireDate = null;
 		
+		try{
+			
+			connect();	
+			stmt =  c.prepareStatement("SELECT MAX(date(date)) AS date FROM (SELECT date FROM MaterialAvailability UNION "
+					+ "SELECT date FROM WorkOrderAfterSupplied UNION SELECT date FROM OpenCustomerOrder)");
+			ResultSet rs = stmt.executeQuery();
+
+			if(rs.next())
+			{
+				String date = rs.getString("date");
+				if(date != null && !date.trim().equals(""))
+				{
+					MonthDate maxMapCalculateDate = new MonthDate(Globals.parseDateFromSqlFormat(date));
+					requireDate = maxMapCalculateDate;
+				}
+			}
+				
+			closeConnection();
+			return requireDate;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return null;
+		}
+	}
+	
+	public Map<String, ProductColumn> getLastMap(String userName , MonthDate lastCalculateMapDate) 
+	{
+		Map<String,ProductColumn> lastMap = new HashMap<String,ProductColumn>();
+		Map<String, String> catalogNumbers = getAllCatalogNumbersPerDescription(userName);
+		try{
+			
+			connect();
+			for (String catalogNumber : catalogNumbers.keySet())
+			{	
+				closeConnection();
+				Map<String,java.util.Date> initDates = getInitProductsFCDates(catalogNumber);
+				connect();
+				
+				if(initDates.containsKey(catalogNumber))
+				{
+					MonthDate initDate = new MonthDate(initDates.get(catalogNumber));
+					if(initDate.after(lastCalculateMapDate))
+						continue;
+				}
+				
+				double materialAvailability = 0;
+				double workOrderAfterSupplied = 0;
+				double openCustomerOrder = 0;
+	
+				stmt =  c.prepareStatement("SELECT * FROM MaterialAvailability where CN = ? AND date(date) = date(?)");
+				stmt.setString(1, catalogNumber);
+				stmt.setString(2, Globals.dateToSqlFormatString(lastCalculateMapDate));
+				ResultSet rs = stmt.executeQuery();
+
+				if(rs.next())
+					materialAvailability = rs.getDouble("quantity");
+				
+				stmt =  c.prepareStatement("SELECT * FROM WorkOrderAfterSupplied where CN = ? AND date(date) = date(?)");
+				stmt.setString(1, catalogNumber);
+				stmt.setString(2, Globals.dateToSqlFormatString(lastCalculateMapDate));
+				rs = stmt.executeQuery();
+		
+				if(rs.next())
+					workOrderAfterSupplied = rs.getDouble("quantity");
+				
+				stmt =  c.prepareStatement("SELECT * FROM OpenCustomerOrder where CN = ? AND date(date) = date(?)");
+				stmt.setString(1, catalogNumber);
+				stmt.setString(2, Globals.dateToSqlFormatString(lastCalculateMapDate));
+				rs = stmt.executeQuery();
+		
+				if(rs.next())
+					openCustomerOrder = rs.getDouble("quantity");
+					
+				ProductColumn productColumn = new ProductColumn(catalogNumber, catalogNumbers.get(catalogNumber), 0, materialAvailability, 0, workOrderAfterSupplied, 0, 0, openCustomerOrder);
+				lastMap.put(catalogNumber, productColumn);
+			}
+			
+			closeConnection();
+			return lastMap;	
+			
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return new HashMap<String,ProductColumn>();
+		}
+	}
+	
+	public void updateMap(Map<String, ProductColumn> newMap , java.util.Date newCalculateMapDate) 
+	{
+		try{
+			
+			connect();
+			for (String catalogNumber : newMap.keySet())
+			{	
+				ProductColumn productColumn = newMap.get(catalogNumber);
+				double materialAvailability = productColumn.getMaterialAvailability();
+				double workOrderAfterSupplied = productColumn.getWorkOrderAfterSupplied();
+				double openCustomerOrder = productColumn.getOpenCustomerOrder();
+	
+				stmt =  c.prepareStatement("UPDATE MaterialAvailability SET quantity = ? , date = ? where CN = ?");
+				stmt.setDouble(1, materialAvailability);
+				stmt.setString(2, Globals.dateToSqlFormatString(newCalculateMapDate));
+				stmt.setString(3, catalogNumber);
+				int rows = stmt.executeUpdate();
+				c.commit();
+				if(rows == 0)
+				{
+					closeConnection();
+					addNewMaterialAvailability(catalogNumber , newCalculateMapDate , materialAvailability);
+					connect();
+				}
+				
+				
+				stmt =  c.prepareStatement("UPDATE WorkOrderAfterSupplied SET quantity = ? , date = ? where CN = ?");
+				stmt.setDouble(1, workOrderAfterSupplied);
+				stmt.setString(2, Globals.dateToSqlFormatString(newCalculateMapDate));
+				stmt.setString(3, catalogNumber);
+				rows= stmt.executeUpdate();
+				c.commit();
+				if(rows == 0)
+				{
+					closeConnection();
+					addNewWorkOrderAfterSupplied(catalogNumber , newCalculateMapDate , workOrderAfterSupplied);
+					connect();
+				}
+				
+				
+				stmt =  c.prepareStatement("UPDATE OpenCustomerOrder SET quantity = ? , date = ? where CN = ?");
+				stmt.setDouble(1, openCustomerOrder);
+				stmt.setString(2, Globals.dateToSqlFormatString(newCalculateMapDate));
+				stmt.setString(3, catalogNumber);
+				rows = stmt.executeUpdate();
+				c.commit();
+				if(rows == 0)
+				{
+					closeConnection();
+					addNewOpenCustomerOrder(catalogNumber , newCalculateMapDate , openCustomerOrder);
+					connect();
+				}
+				
+			}
+			
+			closeConnection();
+			
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			closeConnection();
+		}
+		
+	}
+	
+	private void addNewOpenCustomerOrder(String catalogNumber, java.util.Date newCalculateMapDate, double openCustomerOrder) 
+	{
+		
+		try
+		{
+			connect();
+			stmt = c.prepareStatement("INSERT INTO OpenCustomerOrder (CN , quantity , date) VALUES (?,?,?)");
+			stmt.setString(1, catalogNumber);
+			stmt.setDouble(2, openCustomerOrder);
+			stmt.setString(3, Globals.dateToSqlFormatString(newCalculateMapDate));
+			stmt.executeUpdate();
+			
+			c.commit();
+			
+			closeConnection();
+					
+		}
+		catch(Exception e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			
+			e.printStackTrace();
+			
+			closeConnection();
+		}
+	}
+
+	private void addNewWorkOrderAfterSupplied(String catalogNumber, java.util.Date newCalculateMapDate, double workOrderAfterSupplied) 
+	{
+		try
+		{
+			connect();
+			stmt = c.prepareStatement("INSERT INTO WorkOrderAfterSupplied (CN , quantity , date) VALUES (?,?,?)");
+			stmt.setString(1, catalogNumber);
+			stmt.setDouble(2, workOrderAfterSupplied);
+			stmt.setString(3, Globals.dateToSqlFormatString(newCalculateMapDate));
+			stmt.executeUpdate();
+			
+			c.commit();
+			
+			closeConnection();
+					
+		}
+		catch(Exception e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			
+			e.printStackTrace();
+			
+			closeConnection();
+		}
+	}
+
+	private void addNewMaterialAvailability(String catalogNumber, java.util.Date newCalculateMapDate, double materialAvailability) 
+	{
+		try
+		{
+			connect();
+			stmt = c.prepareStatement("INSERT INTO MaterialAvailability (CN , quantity , date) VALUES (?,?,?)");
+			stmt.setString(1, catalogNumber);
+			stmt.setDouble(2, materialAvailability);
+			stmt.setString(3, Globals.dateToSqlFormatString(newCalculateMapDate));
+			stmt.executeUpdate();
+			
+			c.commit();
+			
+			closeConnection();
+					
+		}
+		catch(Exception e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			
+			e.printStackTrace();
+			
+			closeConnection();
+		}
+		
+	}
+	public void clearLastMap() 
+	{
+		try
+		{
+			connect();
+			stmt = c.prepareStatement("DELETE FROM MaterialAvailability");
+			stmt.executeUpdate();
+			
+			c.commit();
+			
+			stmt = c.prepareStatement("DELETE FROM WorkOrderAfterSupplied");
+			stmt.executeUpdate();
+			
+			c.commit();
+			
+			stmt = c.prepareStatement("DELETE FROM OpenCustomerOrder");
+			stmt.executeUpdate();
+			
+			c.commit();
+			
+			closeConnection();
+					
+		}
+		catch(Exception e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			
+			e.printStackTrace();
+			
+			closeConnection();
+		}
+	
+	}
 	
 	
 

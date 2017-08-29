@@ -201,13 +201,14 @@ public class InitProductFrame implements ActionListener
 			frame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 			
 			String catalogNumber = (String) catalogNumberComboBox.getModel().getSelectedItem();
-			analyzer.cleanProductQuantityPerDate(catalogNumber);
+			if(formsThatAlreadyInit.size() == 0)
+				analyzer.cleanProductQuantityPerDate(catalogNumber);
 			
 			String initDate = Globals.dateWithoutHourToString(Globals.getTodayDate());
 			String quantity = quantityText.getText().trim();
 			String requireDateString = (Form.isNeedRequireDate(globals.getClassName(formsTypeThatNeedInit.get(initTypeComboBox.getSelectedIndex()))))
 					? requireDateText.getText() : Globals.dateWithoutHourToString(Globals.getTodayDate());
-			analyzer.addNewInitProductCustomerOrders(catalogNumber, initDate, quantity, requireDateString , formsTypeThatNeedInit.get(initTypeComboBox.getSelectedIndex()));
+			analyzer.addNewInitProduct(catalogNumber, initDate, quantity, requireDateString , formsTypeThatNeedInit.get(initTypeComboBox.getSelectedIndex()));
 			
 			
 			quantityText.setText("");
@@ -222,7 +223,7 @@ public class InitProductFrame implements ActionListener
 			{
 				for (FormType formType : formsTypeThatNotNeedInit) 
 				{
-					analyzer.addNewInitProductCustomerOrders(catalogNumber, initDate, "0", initDate , formType);
+					analyzer.addNewInitProduct(catalogNumber, initDate, "0", initDate , formType);
 				}
 				
 				JOptionPane.showConfirmDialog(null, "Init successfully","",JOptionPane.PLAIN_MESSAGE);

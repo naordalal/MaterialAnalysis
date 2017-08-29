@@ -35,7 +35,7 @@ public class Globals
 	public final String orderCustomerIdColumn = "סימוכין";
 	public final String shipmentDateColumn = "תאריך משלוח";
 	
-	public final int monthsToIgnore = 6;
+	public static final int monthsToIgnore = 6;
 	public final String charsetName = "IBM862";
 	
 	public enum FormType {
@@ -206,6 +206,18 @@ public class Globals
 		}
 		
 		return parseDate;
+	}
+
+	public static boolean isFirstDayOfMonth(Date date) 
+	{
+		Calendar c = Calendar.getInstance();
+		c.setTime(date);
+		c.set(Calendar.HOUR_OF_DAY, 0);
+		c.set(Calendar.MINUTE, 0);
+		c.set(Calendar.SECOND, 0);
+		c.set(Calendar.MILLISECOND, 0);
+		
+		return c.get(Calendar.DAY_OF_MONTH) == 1;
 	}
 	
 	

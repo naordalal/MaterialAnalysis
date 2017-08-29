@@ -135,7 +135,7 @@ public class ProductInit extends Report
 
 		db.updateInitProduct(catalogNumber , quantity , initDate , previousRequireDate , requireDate , type);
 		Analyzer analyzer = new Analyzer();
-		analyzer.updateProductQuantities(catalogNumber , type);
+		analyzer.updateProductQuantities(catalogNumber , type , false);
 		return null;
 	}
 	

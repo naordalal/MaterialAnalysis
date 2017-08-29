@@ -8,6 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
 import AnalyzerTools.Analyzer;
+import AnalyzerTools.MonthDate;
 import MainPackage.Globals;
 
 public class Forecast extends Form
@@ -103,6 +104,9 @@ public class Forecast extends Form
 		if(!canEdit())
 			return;
 		
+		if(new MonthDate(super.getCreateDate()).before(new MonthDate(Globals.addMonths(Globals.getTodayDate(), -Globals.monthsToCalculate))))
+			throw new Exception("Cannot update old forecast");
+		
 		switch(column)
 		{
 			case 0:
@@ -144,7 +148,18 @@ public class Forecast extends Form
 	public List<Integer> getInvalidEditableColumns() 
 	{
 		List<Integer> columns = new ArrayList<>();
-		columns.add(4);
+		if(super.getCreateDate().before(new MonthDate(Globals.addMonths(Globals.getTodayDate(), -Globals.monthsToCalculate))))
+		{
+			columns.add(0);
+			columns.add(1);
+			columns.add(2);
+			columns.add(3);
+			columns.add(4);
+			columns.add(5);
+			columns.add(6);
+		}
+		else
+			columns.add(4);
 		return columns;
 	}
 

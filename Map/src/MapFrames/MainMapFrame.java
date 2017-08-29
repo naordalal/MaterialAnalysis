@@ -32,7 +32,9 @@ import MainPackage.CallBack;
 import MainPackage.DataBase;
 import MainPackage.Globals;
 import MainPackage.Globals.FormType;
+import Reports.MrpHeader;
 import Reports.ProductInit;
+import Reports.Report;
 import Reports.Tree;
 
 public class MainMapFrame implements ActionListener 
@@ -53,6 +55,7 @@ public class MainMapFrame implements ActionListener
 	private JButton initProductViewButton;
 	private DataBase db;
 	private Authenticator auth;
+	private JButton mrpHeaderViewButton;
 
 	public MainMapFrame(String userName, String email , Authenticator auth , CallBack<Integer> callBack) 
 	{
@@ -136,6 +139,12 @@ public class MainMapFrame implements ActionListener
 		initProductViewButton.setSize(100, 60);
 		initProductViewButton.addActionListener(this);
 		panel.add(initProductViewButton);
+		
+		mrpHeaderViewButton = new JButton("<html><b>Mrp Header</b></html>");
+		mrpHeaderViewButton.setLocation(260 , 100);
+		mrpHeaderViewButton.setSize(100, 60);
+		mrpHeaderViewButton.addActionListener(this);
+		panel.add(mrpHeaderViewButton);
 				
 		copyRight = new JLabel("<html><b>\u00a9 Naor Dalal</b></html>");
 		copyRight.setLocation(30 , 430);
@@ -155,7 +164,7 @@ public class MainMapFrame implements ActionListener
 			Map<MonthDate, Map<String, ProductColumn>> map = analyzer.calculateMap(userName);
 			String [] columns = analyzer.getColumns(map);
 			String [][] rows = analyzer.getRows(map);
-			List<Integer> invalidEditableCoulmns = IntStream.rangeClosed(0, columns.length - 1).boxed().collect(Collectors.toList());
+			List<Integer> invalidEditableCoulmns = analyzer.getInvalidEditableCoulmns(columns);
 			
 			boolean canEdit = invalidEditableCoulmns.size() < columns.length;
 			ReportViewFrame mapFrame = new ReportViewFrame(email , auth , "Map View" , columns, rows, canEdit ,invalidEditableCoulmns);
@@ -193,95 +202,72 @@ public class MainMapFrame implements ActionListener
 		else if(event.getSource() == treeViewButton)
 		{
 			List<Tree> trees = db.getAllTrees(userName , null);
-			String [] columns;
-			String [][] rows;
-			
-			List<Integer> invalidEditableColumns = new ArrayList<Integer>();
-			if(trees.size() > 0)
-			{
-				columns = trees.get(0).getColumns();
-				invalidEditableColumns = trees.get(0).getInvalidEditableColumns();
-				rows = trees.stream().map(t -> t.getRow()).toArray(String[][]::new);
-			}
-			else
-			{
-				columns = new String [0];
-				rows = new String[0][0];
-			}
-			
-			boolean canEdit = invalidEditableColumns.size() < columns.length;
-			ReportViewFrame treeFrame = new ReportViewFrame(email , auth , "Tree View" , columns, rows, canEdit, invalidEditableColumns);
-			
-			CallBack<Object> valueCellChangeAction = null;
-			CallBack<Object> doubleLeftClickAction = null;
-			CallBack<Object> rightClickAction = null;
-			if(trees.size() > 0)
-			{
-				valueCellChangeAction = trees.get(0).getValueCellChangeAction(userName, treeFrame, trees);
-				doubleLeftClickAction = trees.get(0).getDoubleLeftClickAction(userName, treeFrame, trees);
-				rightClickAction = trees.get(0).getRightClickAction(userName, treeFrame, trees);
-			}
-			treeFrame.setCallBacks(valueCellChangeAction, doubleLeftClickAction, rightClickAction);
-			
-			List<Integer> filterColumns =  new ArrayList<>();
-			if(trees.size() > 0)
-			{
-				filterColumns.addAll(trees.get(0).getFilterColumns());
-			}
-			List<String> filterNames = new ArrayList<>();
-			if(trees.size() > 0)
-				filterColumns.stream().forEach(col -> filterNames.add(columns[col] + ": "));
-			treeFrame.setFilters(filterColumns, filterNames);
+			ReportViewFrame treeFrame = createReportViewFrame(trees , "Tree View");
+
 			treeFrame.show();
 		}
 		else if(event.getSource() == initProductViewButton)
 		{
 			List<ProductInit> productsInit = db.getAllProductsInit(userName);
+			ReportViewFrame initProductFrame = createReportViewFrame(productsInit , "Init Product View");
 			
-			String [] columns;
-			String [][] rows;
-			
-			List<Integer> invalidEditableColumns = new ArrayList<Integer>();
-			if(productsInit.size() > 0)
-			{
-				columns = productsInit.get(0).getColumns();
-				invalidEditableColumns = productsInit.get(0).getInvalidEditableColumns();
-				rows = productsInit.stream().map(t -> t.getRow()).toArray(String[][]::new);
-			}
-			else
-			{
-				columns = new String [0];
-				rows = new String[0][0];
-			}
-			
-			boolean canEdit = invalidEditableColumns.size() < columns.length;
-			ReportViewFrame initProductFrame = new ReportViewFrame(email , auth , "Init Product View" , columns, rows, canEdit, invalidEditableColumns);
-			
-			CallBack<Object> valueCellChangeAction = null;
-			CallBack<Object> doubleLeftClickAction = null;
-			CallBack<Object> rightClickAction = null;
-			if(productsInit.size() > 0)
-			{
-				valueCellChangeAction = productsInit.get(0).getValueCellChangeAction(userName, initProductFrame, productsInit);
-				doubleLeftClickAction = productsInit.get(0).getDoubleLeftClickAction(userName, initProductFrame, productsInit);
-				rightClickAction = productsInit.get(0).getRightClickAction(userName, initProductFrame, productsInit);
-			}
-			initProductFrame.setCallBacks(valueCellChangeAction, doubleLeftClickAction, rightClickAction);
-			
-			List<Integer> filterColumns =  new ArrayList<>();
-			if(productsInit.size() > 0)
-			{
-				filterColumns.addAll(productsInit.get(0).getFilterColumns());
-			}
-			
-			List<String> filterNames = new ArrayList<>();
-			if(productsInit.size() > 0)
-				filterColumns.stream().forEach(col -> filterNames.add(columns[col] + ": "));
-			initProductFrame.setFilters(filterColumns, filterNames);
 			initProductFrame.show();
+		}
+		else if(event.getSource() == mrpHeaderViewButton)
+		{
+			List<MrpHeader> mrpHeaders = analyzer.getMrpHeaders(userName);
+			ReportViewFrame mrpHeaderFrame = createReportViewFrame(mrpHeaders , "Mrp Header");
+			
+			mrpHeaderFrame.show();
 		}
 		
 		frame.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 		
+	}
+	
+	public ReportViewFrame createReportViewFrame(List<? extends Report> data , String frameName)
+	{		
+		String [] columns;
+		String [][] rows;
+		
+		List<Integer> invalidEditableColumns = new ArrayList<Integer>();
+		if(data.size() > 0)
+		{
+			columns = data.get(0).getColumns();
+			invalidEditableColumns = data.get(0).getInvalidEditableColumns();
+			rows = data.stream().map(t -> t.getRow()).toArray(String[][]::new);
+		}
+		else
+		{
+			columns = new String [0];
+			rows = new String[0][0];
+		}
+		
+		boolean canEdit = invalidEditableColumns.size() < columns.length;
+		ReportViewFrame reportFrame = new ReportViewFrame(email , auth , frameName , columns, rows, canEdit, invalidEditableColumns);
+		
+		CallBack<Object> valueCellChangeAction = null;
+		CallBack<Object> doubleLeftClickAction = null;
+		CallBack<Object> rightClickAction = null;
+		if(data.size() > 0)
+		{
+			valueCellChangeAction = data.get(0).getValueCellChangeAction(userName, reportFrame, data);
+			doubleLeftClickAction = data.get(0).getDoubleLeftClickAction(userName, reportFrame, data);
+			rightClickAction = data.get(0).getRightClickAction(userName, reportFrame, data);
+		}
+		reportFrame.setCallBacks(valueCellChangeAction, doubleLeftClickAction, rightClickAction);
+		
+		List<Integer> filterColumns =  new ArrayList<>();
+		if(data.size() > 0)
+		{
+			filterColumns.addAll(data.get(0).getFilterColumns());
+		}
+		
+		List<String> filterNames = new ArrayList<>();
+		if(data.size() > 0)
+			filterColumns.stream().forEach(col -> filterNames.add(columns[col] + ": "));
+		reportFrame.setFilters(filterColumns, filterNames);
+		
+		return reportFrame;
 	}
 }
