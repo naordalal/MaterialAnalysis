@@ -7,6 +7,7 @@ import java.util.List;
 import javax.swing.JOptionPane;
 
 import AnalyzerTools.Analyzer;
+import AnalyzerTools.MonthDate;
 import Components.TableCellListener;
 import MainPackage.CallBack;
 import MainPackage.DataBase;
@@ -135,7 +136,10 @@ public class ProductInit extends Report
 
 		db.updateInitProduct(catalogNumber , quantity , initDate , previousRequireDate , requireDate , type);
 		Analyzer analyzer = new Analyzer();
-		analyzer.updateProductQuantities(catalogNumber , type , false);
+		MonthDate initMonth = new MonthDate(Globals.parseDate(initDate));
+		MonthDate calculateMonth = new MonthDate(Globals.addMonths(Globals.getTodayDate(), -Globals.monthsToCalculate - 1));
+		boolean ignorePast = initMonth.after(calculateMonth);
+		analyzer.updateProductQuantities(catalogNumber , type , ignorePast);
 		return null;
 	}
 	
@@ -171,7 +175,7 @@ public class ProductInit extends Report
 			public Object execute(Object... objects) 
 			{
 				TableCellListener tcl = (TableCellListener)objects[0];
-				int row = frame.getOriginalRowNumber(tcl.getRow());
+				int row = tcl.getRow();
 				int column = tcl.getColumn();
 				String newValue = (String) tcl.getNewValue();
 				String oldValue = (String) tcl.getOldValue();

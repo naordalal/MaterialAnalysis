@@ -18,7 +18,8 @@ public class MyComboBoxRenderer extends BasicComboBoxRenderer
         this.selectionManager = sm;
     }
       
-    public Component getListCellRendererComponent(JList list,
+
+	public Component getListCellRendererComponent(JList list,
                                                   Object value,
                                                   int index,
                                                   boolean isSelected,
@@ -28,10 +29,11 @@ public class MyComboBoxRenderer extends BasicComboBoxRenderer
             setBackground(list.getSelectionBackground());
             setForeground(list.getSelectionForeground());
             
-        }else
+        }
+        else
         {
-            setBackground(list.getBackground());
-            setForeground(list.getForeground());
+    	  setBackground(list.getBackground());
+          setForeground(list.getForeground());
         }
   
         setFont(list.getFont());

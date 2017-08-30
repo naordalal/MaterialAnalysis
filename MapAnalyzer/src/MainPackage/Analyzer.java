@@ -68,7 +68,9 @@ public class Analyzer
 			{
 				Date date = Globals.parseDate(columns.get(dateColumn));
 				if(date == null || columns.get(catalogNumberColumn).trim().equals("") || !NumberUtils.isCreatable(columns.get(quantityColumn)))
-					continue;
+				{
+					continue;	
+				}
 				if(Globals.addMonths(Globals.getTodayDate(), -Globals.monthsToIgnore - 1).before(date))
 					db.addWO(columns.get(woNumberColumn), columns.get(catalogNumberColumn), columns.get(quantityColumn)
 							, columns.get(customerColumn), columns.get(dateColumn), columns.get(descriptionColumn));
@@ -176,7 +178,7 @@ public class Analyzer
 	        Map.Entry<MonthDate,List<Form>> entry = (Map.Entry<MonthDate,List<Form>>)it.next();
 	        for (Form form : entry.getValue()) 
 	        {
-	        	QuantityPerDate quantityPerDate = new QuantityPerDate(entry.getKey(), new Integer(form.getQuantity()));
+	        	QuantityPerDate quantityPerDate = new QuantityPerDate(entry.getKey(), new Double(form.getQuantity()));
 	        	if(initProductsQuantityPerDate.containsKey(form.getCatalogNumber()))
 	        	{
 	        		List<QuantityPerDate> quantityPerDateList = initProductsQuantityPerDate.get(form.getCatalogNumber());

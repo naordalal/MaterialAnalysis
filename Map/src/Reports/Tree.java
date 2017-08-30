@@ -215,7 +215,7 @@ public class Tree extends Report
 			public Object execute(Object... objects) 
 			{			
 				TableCellListener tcl = (TableCellListener)objects[0];
-				int row = frame.getOriginalRowNumber(tcl.getRow());
+				int row = tcl.getRow();
 				int column = tcl.getColumn();
 				String newValue = (String) tcl.getNewValue();
 				String oldValue = (String) tcl.getOldValue();

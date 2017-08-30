@@ -29,6 +29,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
+import javax.swing.RowFilter;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.border.AbstractBorder;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -36,6 +37,8 @@ import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 
 import Components.FilterCombo;
 import Components.MultiSelectionComboBox;
@@ -73,7 +76,6 @@ public class ReportViewFrame implements ActionListener
 	private JLabel[] filterLabels;
 	private MultiSelectionComboBox<String>[] filterComboBoxs;
 	private JPanel filterPanel;
-	private Map<Integer,Integer> currentRowPerOriginalRow;
 	private JButton exportReportButton;
 	private Authenticator auth;
 
@@ -90,9 +92,6 @@ public class ReportViewFrame implements ActionListener
 		this.invalidEditableColumns = invalidEditableColumns;
 		this.filterColumns = new ArrayList<>();
 		this.filterNames = new ArrayList<>();
-		this.currentRowPerOriginalRow = new HashMap<>();
-		for (int row = 0 ; row < content.length ; row ++)
-			currentRowPerOriginalRow.put(row, row);
 	}
 
 	public void setFilters(List<Integer> filterColumns , List<String> filterNames)
@@ -335,22 +334,18 @@ public class ReportViewFrame implements ActionListener
 	{
 
 		this.content = rows;
+				
+		DefaultTableModel model = (DefaultTableModel)table.getModel();
+		
+		for(int rowIndex = 	model.getRowCount() - 1 ; rowIndex >= 0 ; rowIndex --)
+				removeRow(rowIndex);
+		
+		createContent(model);
 		
 		if(filterComboBoxs.length > 0)
 		{
 			actionPerformed(new ActionEvent(filterComboBoxs[0], 0, null));
 			return;
-		}
-		
-		for(int rowIndex = 	table.getRowCount() - 1 ; rowIndex >= 0 ; rowIndex --)
-				removeRow(rowIndex);
-		
-		currentRowPerOriginalRow.clear();
-		DefaultTableModel model = (DefaultTableModel)table.getModel();
-		for(int row = 0 ; row < rows.length ; row++)
-		{
-			model.addRow(rows[row]);
-			currentRowPerOriginalRow.put(row, row);
 		}
 
 		
@@ -420,9 +415,8 @@ public class ReportViewFrame implements ActionListener
 
 	public void removeRow(int row) 
 	{
-		int modelIndex = table.convertRowIndexToModel(row); 
         DefaultTableModel model = (DefaultTableModel)table.getModel();
-        model.removeRow(modelIndex);
+        model.removeRow(row);
 	}
 
 	@Override
@@ -461,31 +455,28 @@ public class ReportViewFrame implements ActionListener
 			frame.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 		}
 		else if(isFilterComboBoxsEvent(event))
-		{
-			for(int rowIndex = 	table.getRowCount() - 1 ; rowIndex >= 0 ; rowIndex --)
-				removeRow(rowIndex);
-				
-			DefaultTableModel model = (DefaultTableModel)table.getModel();
-			
-			for(int row = 0 ; row < content.length  ; row ++)
+		{			
+			List<RowFilter<TableModel, Integer>> rowsFilters = new ArrayList<>();
+			for (int comboxIndex = 0 ; comboxIndex < filterComboBoxs.length ; comboxIndex++) 
 			{
-				boolean filterRow = true;
-				for (int comboxIndex = 0 ; comboxIndex < filterComboBoxs.length ; comboxIndex++) 
-				{
-					MultiSelectionComboBox<String> comboBox = filterComboBoxs[comboxIndex];
-					List<String> selectionItems = comboBox.getSelectedItems().stream().map(item -> item.trim().toLowerCase()).collect(Collectors.toList());
-					
-					int column = filterColumns.get(comboxIndex);
-					if(selectionItems.size() > 0 && !selectionItems.contains(content[row][column].trim().toLowerCase()))
-						filterRow = false;
-				}
+				MultiSelectionComboBox<String> comboBox = filterComboBoxs[comboxIndex];
+				List<String> selectionItems = comboBox.getSelectedItems().stream().map(item -> item.trim().toLowerCase()).collect(Collectors.toList());
 				
-				if(filterRow)
+				int column = filterColumns.get(comboxIndex);
+				List<RowFilter<TableModel, Integer>> rowFilters = new ArrayList<>();
+				selectionItems.forEach(selectionItem -> rowFilters.add(RowFilter.regexFilter("(?i)" + selectionItem , column)));
+				if(rowFilters.size() > 0)
 				{
-					model.addRow(content[row]);
-					currentRowPerOriginalRow.put(model.getRowCount() - 1 , row);
+					RowFilter<TableModel, Integer> rowFilter = RowFilter.orFilter(rowFilters);
+					
+					rowsFilters.add(rowFilter);
 				}
 			}
+			
+			TableRowSorter<TableModel> sorter = new TableRowSorter<TableModel>(((DefaultTableModel) table.getModel())); 
+		    sorter.setRowFilter(RowFilter.andFilter(rowsFilters));
+		    
+		    table.setRowSorter(sorter);
 		}
 
 
@@ -501,11 +492,6 @@ public class ReportViewFrame implements ActionListener
 		}
 		
 		return false;
-	}
-
-	public int getOriginalRowNumber(int row) 
-	{
-		return currentRowPerOriginalRow.get(row);
 	}
     
 

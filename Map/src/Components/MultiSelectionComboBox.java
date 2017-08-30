@@ -38,9 +38,10 @@ public class MultiSelectionComboBox<T> extends JComboBox<T>
 	}
     
     @Override 
-    public void setPopupVisible(boolean v) {
+    public void setPopupVisible(boolean v) 
+    {
     	
-      }
+    }
     
     
     

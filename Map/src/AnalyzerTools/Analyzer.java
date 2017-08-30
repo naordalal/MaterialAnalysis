@@ -180,7 +180,7 @@ public class Analyzer
 	        Map.Entry<MonthDate,List<Form>> entry = (Map.Entry<MonthDate,List<Form>>)it.next();
 	        for (Form form : entry.getValue()) 
 	        {
-	        	QuantityPerDate quantityPerDate = new QuantityPerDate(entry.getKey(), new Integer(form.getQuantity()));
+	        	QuantityPerDate quantityPerDate = new QuantityPerDate(entry.getKey(), new Double(form.getQuantity()));
 	        	if(initProductsQuantityPerDate.containsKey(form.getCatalogNumber()))
 	        	{
 	        		List<QuantityPerDate> quantityPerDateList = initProductsQuantityPerDate.get(form.getCatalogNumber());
@@ -309,13 +309,13 @@ public class Analyzer
 					
 					for (String fatherCatalogNumber : patriarchsFatherCatalogNumber) 
 					{
-							QuantityPerDate fatherSupplied = db.getProductShipmentQuantityOnDate(fatherCatalogNumber , monthDate);
-							QuantityPerDate fatherWorkOrder = db.getProductWOQuantityOnDate(fatherCatalogNumber , monthDate);
-							
-							int quantityToAssociate = fatherCatalogNumberAndQuantityToAssociate.getRight();
-							customerOrders.setQuantity(customerOrders.getQuantity() + quantityToAssociate * fatherWorkOrder.getQuantity());
-							supplied.setQuantity(supplied.getQuantity() + quantityToAssociate * fatherSupplied.getQuantity());
-							materialAvailabilityFix += quantityToAssociate * fatherWorkOrder.getQuantity();
+						QuantityPerDate fatherSupplied = db.getProductShipmentQuantityOnDate(fatherCatalogNumber , monthDate);
+						QuantityPerDate fatherWorkOrder = db.getProductWOQuantityOnDate(fatherCatalogNumber , monthDate);
+						
+						int quantityToAssociate = fatherCatalogNumberAndQuantityToAssociate.getRight();
+						customerOrders.setQuantity(customerOrders.getQuantity() + quantityToAssociate * fatherWorkOrder.getQuantity());
+						supplied.setQuantity(supplied.getQuantity() + quantityToAssociate * fatherSupplied.getQuantity());
+						materialAvailabilityFix += quantityToAssociate * fatherWorkOrder.getQuantity();
 					}
 					
 				}
@@ -623,7 +623,7 @@ public class Analyzer
 					public Object execute(Object... objects) 
 					{
 						TableCellListener tcl = (TableCellListener)objects[0];
-						int row = reportViewFrame.getOriginalRowNumber(tcl.getRow());
+						int row = tcl.getRow();
 						int column = tcl.getColumn();
 						String newValue = (String) tcl.getNewValue();
 						String oldValue = (String) tcl.getOldValue();
