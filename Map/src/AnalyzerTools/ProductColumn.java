@@ -250,6 +250,8 @@ public class ProductColumn
 				return FormType.SHIPMENT;
 			case ParentsWorkOrderString:
 				return FormType.WO; 
+			case ParentsWorkOrderSuppliedString:
+				return FormType.SHIPMENT;
 			default:
 				return null;
 		}
@@ -281,10 +283,10 @@ public class ProductColumn
 		case WorkOrderAfterPOAndParentsWOString:
 			break;	
 		case ParentsWorkOrderString:
-			List<String> parents = db.getFathers(catalogNumber).stream().map(pair -> pair.getLeft()).collect(Collectors.toList());
-			catalogNumbers = parents;
+			catalogNumbers = db.getFathers(catalogNumber).stream().map(pair -> pair.getLeft()).collect(Collectors.toList());
 			break;
 		case ParentsWorkOrderSuppliedString:
+			catalogNumbers = db.getFathers(catalogNumber).stream().map(pair -> pair.getLeft()).collect(Collectors.toList());
 			break;
 		default:
 			break;
@@ -303,7 +305,7 @@ public class ProductColumn
 				description.append("Forecast");
 				break;
 			case MaterialAvailabilityString:
-				description.append("Previous Material Availability + Forecast + Work Order ");
+				description.append("Previous Material Availability + Forecast - Work Order ");
 				fathers = db.getFathers(catalogNumber);
 				for (Pair<String, Integer> father : fathers) 
 				{
@@ -345,12 +347,13 @@ public class ProductColumn
 				description.append("Previous Open Customer Order + Customer Orders - Supplied");
 				break;	
 			case WorkOrderAfterPOAndParentsWOString:
-				description.append("Previous Work Order After PO And Parents WO + Work Order - Customer Order ");
+				description.append("Previous Work Order After PO And Parents WO + Work Order - Customer Orders ");
 				fathers = db.getFathers(catalogNumber);
 				for (Pair<String, Integer> father : fathers) 
 				{
 					description.append("- Work Order Of ");
-					description.append(father.getLeft() + "(father catalog number)");
+					description.append(father.getLeft() + "(father catalog number) * ");
+					description.append(father.getRight());
 					description.append("\n");
 				}
 				break;	

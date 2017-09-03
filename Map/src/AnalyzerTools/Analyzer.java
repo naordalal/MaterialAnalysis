@@ -757,114 +757,14 @@ public class Analyzer
 	
 	public List<MrpHeader> getMrpHeaders(String userName)
 	{
-		MonthDate lastCalculateMapDate = db.getLastCalculateMapDate();
-		MonthDate maximumDate = new MonthDate(Globals.addMonths(Globals.getTodayDate(), -Globals.monthsToCalculate - 1));
-		if(lastCalculateMapDate != null && !lastCalculateMapDate.equals(maximumDate))
-			updateLastMap(userName , null);
-		
-		lastCalculateMapDate = db.getLastCalculateMapDate();
-		Map<String,ProductColumn> lastMap = (lastCalculateMapDate != null) ? db.getLastMap(userName, lastCalculateMapDate) : new HashMap<String,ProductColumn>();
-		return getMrpHeaders(userName , lastMap);
-	}
-	
-	private List<MrpHeader> getMrpHeaders(String userName, Map<String, ProductColumn> lastMap)
-	{
-		Map<MonthDate,Map<String,Double>> map = new HashMap<MonthDate,Map<String,Double>>();
-		Map<MonthDate,Map<String,Double>> helpedMap = new HashMap<MonthDate,Map<String,Double>>();
-		
+		Map<MonthDate , Map<String,ProductColumn>> map = calculateMap(userName);
 		List<MrpHeader> mrpHeaders = new ArrayList<>();
 		
 		Map<String,String> catalogNumbers = db.getAllCatalogNumbersPerDescription(userName);
 		
 		MonthDate maximumDate = db.getMaximumMapDate();
 		MonthDate minimumDate = db.getMinimumMapDate();
-		if(maximumDate == null || maximumDate.before(minimumDate))
-			return mrpHeaders;
-		
 		List<MonthDate> monthToCalculate = createDates(minimumDate , maximumDate);
-		
-		for (String catalogNumber : catalogNumbers.keySet()) 
-		{
-			String descendantCatalogNumber = db.getDescendantCatalogNumber(catalogNumber);
-			
-			for (MonthDate monthDate : monthToCalculate) 
-			{
-				QuantityPerDate workOrder = db.getProductWOQuantityOnDate(catalogNumber , monthDate);
-				QuantityPerDate forecast = db.getProductFCQuantityOnDate(catalogNumber , monthDate);
-				
-				double materialAvailability = 0;
-				
-				double previousMaterialAvailability = 0;
-				int indexOfCurrentMonth = monthToCalculate.indexOf(monthDate);
-				if(indexOfCurrentMonth != 0)
-				{
-					previousMaterialAvailability = helpedMap.get(monthToCalculate.get(indexOfCurrentMonth - 1)).get(catalogNumber);
-				}
-				else if(lastMap.containsKey(catalogNumber))
-				{
-					ProductColumn previousProductColumn = lastMap.get(catalogNumber);
-
-					previousMaterialAvailability = previousProductColumn.getMaterialAvailability();
-				}
-
-				List<Pair<String, Integer>> fathersCatalogNumberAndQuantityToAssociate = db.getFathers(catalogNumber);
-								
-				double materialAvailabilityFix = 0;
-				for (Pair<String, Integer> fatherCatalogNumberAndQuantityToAssociate : fathersCatalogNumberAndQuantityToAssociate) 
-				{
-					List<String> patriarchsFatherCatalogNumber = db.getAllDescendantCatalogNumber(fatherCatalogNumberAndQuantityToAssociate.getLeft());
-					patriarchsFatherCatalogNumber.add(fatherCatalogNumberAndQuantityToAssociate.getLeft());
-					
-					for (String fatherCatalogNumber : patriarchsFatherCatalogNumber) 
-					{
-							QuantityPerDate fatherWorkOrder = db.getProductWOQuantityOnDate(fatherCatalogNumber , monthDate);
-							
-							int quantityToAssociate = fatherCatalogNumberAndQuantityToAssociate.getRight();
-							materialAvailabilityFix += quantityToAssociate * fatherWorkOrder.getQuantity();
-					}
-					
-				}
-				
-				materialAvailability = forecast.getQuantity() + previousMaterialAvailability - workOrder.getQuantity() + materialAvailabilityFix;
-				
-				
-				if(map.containsKey(monthDate))
-				{
-					if(map.get(monthDate).containsKey(descendantCatalogNumber))
-					{
-						Double value = 	map.get(monthDate).get(descendantCatalogNumber);
-						value += materialAvailability;
-						map.get(monthDate).put(descendantCatalogNumber, value);
-					}
-					else
-						map.get(monthDate).put(descendantCatalogNumber, materialAvailability);
-				}
-				else
-				{
-					Map<String,Double> productPerProductColumn = new HashMap<String,Double>();
-					productPerProductColumn.put(descendantCatalogNumber, materialAvailability);
-					map.put(monthDate, productPerProductColumn);
-				}
-				
-				if(helpedMap.containsKey(monthDate))
-				{
-					if(helpedMap.get(monthDate).containsKey(catalogNumber))
-					{
-						Double value = 	helpedMap.get(monthDate).get(descendantCatalogNumber);
-						value += materialAvailability;
-						helpedMap.get(monthDate).put(descendantCatalogNumber, value);
-					}
-					else
-						helpedMap.get(monthDate).put(catalogNumber, materialAvailability);
-				}
-				else
-				{
-					Map<String,Double> productPerProductColumn = new HashMap<String,Double>();
-					productPerProductColumn.put(catalogNumber, materialAvailability);
-					helpedMap.put(monthDate, productPerProductColumn);
-				}
-			}
-		}
 		
 		int indexOfToday = monthToCalculate.indexOf(new MonthDate(Globals.getTodayDate()));
 		int startIndex = 0;
@@ -884,12 +784,14 @@ public class Analyzer
 			for (int index = monthsToView.size() - 1 ; index >= 0 ; index--) 
 			{
 				MonthDate monthDate = monthsToView.get(index);
-				double materialAvailability = map.get(monthDate).get(catalogNumber);
+				ProductColumn productColumn = map.get(monthDate).get(catalogNumber);
+				double materialAvailability = productColumn.getMaterialAvailability();
 				
 				double previousMaterialAvailability = 0;
 				if(index != 0)
 				{
-					previousMaterialAvailability = map.get(monthsToView.get(index - 1)).get(catalogNumber);
+					ProductColumn previousProductColumn = map.get(monthsToView.get(index - 1)).get(catalogNumber);;
+					previousMaterialAvailability = previousProductColumn.getMaterialAvailability();
 				}
 				
 				double quantity = materialAvailability - previousMaterialAvailability;
