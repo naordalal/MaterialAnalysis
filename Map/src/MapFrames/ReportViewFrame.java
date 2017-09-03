@@ -119,7 +119,7 @@ public class ReportViewFrame implements ActionListener
 		frame = new JFrame(frameName);
 		frame.setLayout(null);
 		frame.getRootPane().setFocusable(true);
-		frame.setBounds(300, 100, 900, 780);
+		frame.setBounds(300, 100, 950, 780);
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frame.setResizable(false);
 		frame.setIconImage(globals.frameImage);
@@ -142,14 +142,14 @@ public class ReportViewFrame implements ActionListener
 			flowLayout.setAlignment(FlowLayout.LEADING);
 			filterPanel = new JPanel();
 			filterPanel.setLocation(0 , 0);
-			filterPanel.setSize(900, yPanelLocation);
+			filterPanel.setSize(950, yPanelLocation);
 			filterPanel.setLayout(flowLayout);
 			frame.add(filterPanel);
 		}
 		
 		panel = new JPanel();
 		panel.setLocation(0 , yPanelLocation);
-		panel.setSize(900, 780);
+		panel.setSize(950, 780);
 		panel.setLayout(null);
 		frame.add(panel);
 		
@@ -212,7 +212,7 @@ public class ReportViewFrame implements ActionListener
 
 		scrollPane = new JScrollPane(table);
 		scrollPane.setLocation(30, 30);
-		scrollPane.setSize(850,600);
+		scrollPane.setSize(900,600);
 		scrollPane.setVisible(true);
 		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -464,7 +464,7 @@ public class ReportViewFrame implements ActionListener
 				
 				int column = filterColumns.get(comboxIndex);
 				List<RowFilter<TableModel, Integer>> rowFilters = new ArrayList<>();
-				selectionItems.forEach(selectionItem -> rowFilters.add(RowFilter.regexFilter("(?i)" + selectionItem , column)));
+				selectionItems.forEach(selectionItem -> rowFilters.add(RowFilter.regexFilter("(?i)^" + selectionItem + "$" , column)));
 				if(rowFilters.size() > 0)
 				{
 					RowFilter<TableModel, Integer> rowFilter = RowFilter.orFilter(rowFilters);

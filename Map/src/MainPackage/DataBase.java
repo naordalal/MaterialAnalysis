@@ -1,4 +1,5 @@
 package MainPackage;
+import java.awt.Component;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
@@ -2589,12 +2590,12 @@ public class DataBase {
 		List<String> customers = getCustomersOfUser(userName);
 		
 		for (String customer : customers) 
-			catalogNumbers.addAll(getAllCatlogNumberOfCustomer(customer));
+			catalogNumbers.addAll(getAllCatalogNumberOfCustomer(customer));
 		
 		return catalogNumbers;
 	}
 	
-	public List<String> getAllCatlogNumberOfCustomer(String customer) 
+	public List<String> getAllCatalogNumberOfCustomer(String customer) 
 	{
 		List<String> catalogNumbers = new ArrayList<>();
 		try{
@@ -2988,7 +2989,8 @@ public class DataBase {
 			
 			connect();	
 			stmt =  c.prepareStatement("SELECT MAX(date(date)) AS date FROM (SELECT date FROM MaterialAvailability UNION "
-					+ "SELECT date FROM WorkOrderAfterSupplied UNION SELECT date FROM OpenCustomerOrder)");
+					+ "SELECT date FROM WorkOrderAfterSupplied UNION SELECT date FROM OpenCustomerOrder UNION "
+					+ "SELECT date FROM WorkOrderAfterCustomerOrderAndParentWorkOrder)");
 			ResultSet rs = stmt.executeQuery();
 
 			if(rs.next())
@@ -3036,6 +3038,7 @@ public class DataBase {
 				double materialAvailability = 0;
 				double workOrderAfterSupplied = 0;
 				double openCustomerOrder = 0;
+				double workOrderAfterCustomerOrderAndParentWorkOrder = 0;
 	
 				stmt =  c.prepareStatement("SELECT * FROM MaterialAvailability where CN = ? AND date(date) = date(?)");
 				stmt.setString(1, catalogNumber);
@@ -3060,8 +3063,17 @@ public class DataBase {
 		
 				if(rs.next())
 					openCustomerOrder = rs.getDouble("quantity");
+				
+				stmt =  c.prepareStatement("SELECT * FROM WorkOrderAfterCustomerOrderAndParentWorkOrder where CN = ? AND date(date) = date(?)");
+				stmt.setString(1, catalogNumber);
+				stmt.setString(2, Globals.dateToSqlFormatString(lastCalculateMapDate));
+				rs = stmt.executeQuery();
+		
+				if(rs.next())
+					workOrderAfterCustomerOrderAndParentWorkOrder = rs.getDouble("quantity");
 					
-				ProductColumn productColumn = new ProductColumn(catalogNumber, catalogNumbers.get(catalogNumber), 0, materialAvailability, 0, workOrderAfterSupplied, 0, 0, openCustomerOrder);
+				ProductColumn productColumn = new ProductColumn(catalogNumber, catalogNumbers.get(catalogNumber), 0, materialAvailability
+						, 0, workOrderAfterSupplied, workOrderAfterCustomerOrderAndParentWorkOrder , 0, 0, 0 , 0 ,openCustomerOrder);
 				lastMap.put(catalogNumber, productColumn);
 			}
 			
@@ -3088,6 +3100,7 @@ public class DataBase {
 				double materialAvailability = productColumn.getMaterialAvailability();
 				double workOrderAfterSupplied = productColumn.getWorkOrderAfterSupplied();
 				double openCustomerOrder = productColumn.getOpenCustomerOrder();
+				double workOrderAfterCustomerOrderAndParentWorkOrder = productColumn.getWorkOrderAfterCustomerOrderAndParentWorkOrder();
 	
 				stmt =  c.prepareStatement("UPDATE MaterialAvailability SET quantity = ? , date = ? where CN = ?");
 				stmt.setDouble(1, materialAvailability);
@@ -3130,6 +3143,19 @@ public class DataBase {
 					connect();
 				}
 				
+				stmt =  c.prepareStatement("UPDATE WorkOrderAfterCustomerOrderAndParentWorkOrder SET quantity = ? , date = ? where CN = ?");
+				stmt.setDouble(1, workOrderAfterCustomerOrderAndParentWorkOrder);
+				stmt.setString(2, Globals.dateToSqlFormatString(newCalculateMapDate));
+				stmt.setString(3, catalogNumber);
+				rows = stmt.executeUpdate();
+				c.commit();
+				if(rows == 0)
+				{
+					closeConnection();
+					addNewWorkOrderAfterCustomerOrderAndParentWorkOrder(catalogNumber , newCalculateMapDate , workOrderAfterCustomerOrderAndParentWorkOrder);
+					connect();
+				}
+				
 			}
 			
 			closeConnection();
@@ -3143,6 +3169,38 @@ public class DataBase {
 			} catch (SQLException e1) {
 				e1.printStackTrace();
 			}
+			closeConnection();
+		}
+		
+	}
+	
+	private void addNewWorkOrderAfterCustomerOrderAndParentWorkOrder(String catalogNumber,java.util.Date newCalculateMapDate
+			, double workOrderAfterCustomerOrderAndParentWorkOrder) 
+	{
+		try
+		{
+			connect();
+			stmt = c.prepareStatement("INSERT INTO WorkOrderAfterCustomerOrderAndParentWorkOrder (CN , quantity , date) VALUES (?,?,?)");
+			stmt.setString(1, catalogNumber);
+			stmt.setDouble(2, workOrderAfterCustomerOrderAndParentWorkOrder);
+			stmt.setString(3, Globals.dateToSqlFormatString(newCalculateMapDate));
+			stmt.executeUpdate();
+			
+			c.commit();
+			
+			closeConnection();
+					
+		}
+		catch(Exception e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			
+			e.printStackTrace();
+			
 			closeConnection();
 		}
 		
@@ -3259,6 +3317,11 @@ public class DataBase {
 			
 			c.commit();
 			
+			stmt = c.prepareStatement("DELETE FROM WorkOrderAfterCustomerOrderAndParentWorkOrder");
+			stmt.executeUpdate();
+			
+			c.commit();
+			
 			closeConnection();
 					
 		}
@@ -3275,6 +3338,59 @@ public class DataBase {
 			closeConnection();
 		}
 	
+	}
+	public List<String> getSons(String catalogNumber) 
+	{
+		List<String> sons = new ArrayList<>();
+		try{
+			
+			connect();
+			stmt = c.prepareStatement("SELECT CN FROM Tree where fatherCN = ?");
+			stmt.setString(1, catalogNumber);
+			ResultSet rs = stmt.executeQuery();
+			
+			while(rs.next())
+			{
+				String sonCatalogNumber = rs.getString("CN");
+				sons.add(sonCatalogNumber);
+			}
+			
+			closeConnection();
+			
+			return sons;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return new ArrayList<>();
+		}
+	}
+	
+	private boolean hisFather(String catalogNumber, String fatherCatalogNumber) 
+	{
+		boolean hisFather;
+		try{
+			
+			connect();
+			stmt = c.prepareStatement("SELECT fatherCN,quantity FROM Tree where CN = ?");
+			stmt.setString(1, catalogNumber);
+			ResultSet rs = stmt.executeQuery();
+			
+			hisFather = rs.next();
+			
+			closeConnection();
+			
+			return hisFather;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return false;
+		}
 	}
 	
 	

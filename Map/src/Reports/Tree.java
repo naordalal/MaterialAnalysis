@@ -133,7 +133,7 @@ public class Tree extends Report
 				this.description = newValue;
 				break;
 			case 3:
-				if(!db.getAllCatlogNumberOfCustomer(customer).contains(newValue.trim()))
+				if(!db.getAllCatalogNumberOfCustomer(customer).contains(newValue.trim()))
 					throw new Exception("Invalid catalog number , catalog number does not exist");
 				if(newValue.trim().equals(catalogNumber.trim()))
 					throw new Exception("Invalid catalog number , cannot be defined as a child and a father");
@@ -163,7 +163,7 @@ public class Tree extends Report
 				ignorePast = false;
 				break;
 			case 5:
-				if(!db.getAllCatlogNumberOfCustomer(customer).contains(newValue))
+				if(!db.getAllCatalogNumberOfCustomer(customer).contains(newValue))
 					throw new Exception("Invalid catalog number , catalog number does not exist");
 				
 				this.alias = newValue;

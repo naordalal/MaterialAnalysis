@@ -136,7 +136,7 @@ public class AddProductFrame implements ActionListener
 		panel.add(fatherLabel);
 		
 		model = new DefaultComboBoxModel<String>();
-		catalogNumbers = db.getAllCatlogNumberOfCustomer((String) customerComboBox.getModel().getSelectedItem());
+		catalogNumbers = db.getAllCatalogNumberOfCustomer((String) customerComboBox.getModel().getSelectedItem());
 		for (String catalogNumber : catalogNumbers) 
 			model.addElement(catalogNumber);
 		
@@ -204,7 +204,7 @@ public class AddProductFrame implements ActionListener
 				descriptionText.setEnabled(false);
 				
 				List<String> fathers = trees.stream().map(tree -> tree.getFatherCN()).collect(Collectors.toList());
-				List<String> fatherCatalogNumbers = db.getAllCatlogNumberOfCustomer(customerName);
+				List<String> fatherCatalogNumbers = db.getAllCatalogNumberOfCustomer(customerName);
 				fatherCatalogNumbers.removeAll(fathers);
 				fatherCatalogNumbers.remove(catalogNumber);
 				DefaultComboBoxModel<String> fatherComboBoxModel = (DefaultComboBoxModel<String>) fatherComboBox.getModel();
@@ -241,7 +241,7 @@ public class AddProductFrame implements ActionListener
 				
 				DefaultComboBoxModel<String> fatherComboBoxModel = (DefaultComboBoxModel<String>) fatherComboBox.getModel();
 				fatherComboBox.removeAllItems();
-				List<String> fatherCatalogNumbers = db.getAllCatlogNumberOfCustomer((String) customerComboBox.getSelectedItem());
+				List<String> fatherCatalogNumbers = db.getAllCatalogNumberOfCustomer((String) customerComboBox.getSelectedItem());
 				for (String fatherCatalogNumber : fatherCatalogNumbers) 
 				{
 					fatherComboBoxModel.addElement(fatherCatalogNumber);
@@ -259,7 +259,7 @@ public class AddProductFrame implements ActionListener
 			DefaultComboBoxModel<String> customerComboBoxModel = (DefaultComboBoxModel<String>) customerComboBox.getModel();
 			if(customerComboBoxModel.getSelectedItem() != null)
 			{
-				List<String> catalogNumbers = db.getAllCatlogNumberOfCustomer((String) customerComboBoxModel.getSelectedItem());
+				List<String> catalogNumbers = db.getAllCatalogNumberOfCustomer((String) customerComboBoxModel.getSelectedItem());
 				String catalogNumber = catalogNumberComboBox.getText();
 				
 				catalogNumbers.remove(catalogNumber.trim());

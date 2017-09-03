@@ -3,8 +3,13 @@ package MainPackage;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
+import java.util.Vector;
 
 public class Globals 
 {
@@ -219,6 +224,77 @@ public class Globals
 		
 		return c.get(Calendar.DAY_OF_MONTH) == 1;
 	}
+
+	public static <T> List<T> topologicalSort(List<T> tree , CallBack<List<T>> callBack)
+    {
+		int V = tree.size();
+        // Create a array to store indegrees of all
+        // vertices. Initialize all indegrees as 0.
+        int indegree[] = new int[V];
+         
+        // Traverse adjacency lists to fill indegrees of
+        // vertices. This step takes O(V+E) time        
+        for(T node : tree)
+        {
+            List<T> temp = callBack.execute(node);
+            for(T elem : temp)
+            {
+                indegree[tree.indexOf(elem)]++;
+            }
+        }
+         
+        // Create a queue and enqueue all vertices with
+        // indegree 0
+        Queue<Integer> q = new LinkedList<Integer>();
+        for(int i = 0; i < V; i++)
+        {
+            if(indegree[i] == 0)
+                q.add(i);
+        }
+         
+        // Initialize count of visited vertices
+        int cnt = 0;
+         
+        // Create a vector to store result (A topological
+        // ordering of the vertices)
+        Vector <Integer> topOrder=new Vector<Integer>();
+        while(!q.isEmpty())
+        {
+            // Extract front of queue (or perform dequeue)
+            // and add it to topological order
+            int u = q.poll();
+            topOrder.add(u);
+             
+            // Iterate through all its neighboring nodes
+            // of dequeued node u and decrease their in-degree
+            // by 1
+            List<T> temp = callBack.execute(tree.get(u));
+            for(T elem : temp)
+            {
+            	int index = tree.indexOf(elem);
+                // If in-degree becomes zero, add it to queue
+                if(--indegree[index] == 0)
+                    q.add(index);
+            }
+            cnt++;
+        }
+         
+        // Check if there was a cycle       
+        if(cnt != V)
+        {
+            System.out.println("There exists a cycle in the graph");
+            return null;
+        }
+         
+        // Print topological order   
+        List<T> topologicList = new ArrayList<>();
+        for(int i : topOrder)
+        {
+        	topologicList.add(tree.get(i));
+        }
+        
+        return topologicList;
+    }
 	
 	
 }

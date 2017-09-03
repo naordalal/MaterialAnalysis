@@ -28,11 +28,11 @@ import MainPackage.Pair;
 import MainPackage.Globals.FormType;
 import MapFrames.ReportViewFrame;
 import Reports.MrpHeader;
-import Reports.ProductInit;
 
 public class Analyzer 
 {
 	public static final int ConstantColumnsCount = 4;
+	public static final int CatalogColumn = 3;
 	private DataBase db;
 	
 	public Analyzer() 
@@ -266,8 +266,19 @@ public class Analyzer
 			return map;
 		
 		List<MonthDate> monthToCalculate = createDates(minimumDate , maximumDate);
+		List<String> catalogNumbersSorted = new ArrayList<>(catalogNumbers.keySet());
+		catalogNumbersSorted = Globals.topologicalSort(catalogNumbersSorted, (objects) ->{
+			String catalogNumber = (String) objects[0];
+			List<String> sons = db.getSons(catalogNumber);
+			
+			return sons;
+		});
 		
-		for (String catalogNumber : catalogNumbers.keySet()) 
+		if(catalogNumbersSorted == null)
+			return null;
+		
+		
+		for (String catalogNumber : catalogNumbersSorted) 
 		{
 			String descendantCatalogNumber = db.getDescendantCatalogNumber(catalogNumber);
 			
@@ -278,9 +289,11 @@ public class Analyzer
 				QuantityPerDate workOrder = db.getProductWOQuantityOnDate(catalogNumber , monthDate);
 				QuantityPerDate forecast = db.getProductFCQuantityOnDate(catalogNumber , monthDate);
 				
-				double materialAvailability = 0 ,workOrderAfterSupplied = 0 , openCustomerOrder = 0;
+				double materialAvailability = 0 ,workOrderAfterSupplied = 0 , openCustomerOrder = 0 , workOrderAfterCustomerOrderAndParentWorkOrder= 0 ,
+						parentWorkOrder = 0 , parentWorkOrderSupplied = 0;
 				
-				double previousOpenCustomerOrder = 0 , previousWorkOrderAfterSupplied = 0 , previousMaterialAvailability = 0;
+				double previousOpenCustomerOrder = 0 , previousWorkOrderAfterSupplied = 0 , previousMaterialAvailability = 0 ,
+						previousWorkOrderAfterCustomerOrderAndParentWorkOrder = 0;
 				int indexOfCurrentMonth = monthToCalculate.indexOf(monthDate);
 				if(indexOfCurrentMonth != 0)
 				{
@@ -289,6 +302,7 @@ public class Analyzer
 					previousOpenCustomerOrder = previousProductColumn.getOpenCustomerOrder();
 					previousWorkOrderAfterSupplied = previousProductColumn.getWorkOrderAfterSupplied();
 					previousMaterialAvailability = previousProductColumn.getMaterialAvailability();
+					previousWorkOrderAfterCustomerOrderAndParentWorkOrder = previousProductColumn.getWorkOrderAfterCustomerOrderAndParentWorkOrder();
 				}
 				else if(lastMap.containsKey(catalogNumber))
 				{
@@ -297,6 +311,7 @@ public class Analyzer
 					previousOpenCustomerOrder = previousProductColumn.getOpenCustomerOrder();
 					previousWorkOrderAfterSupplied = previousProductColumn.getWorkOrderAfterSupplied();
 					previousMaterialAvailability = previousProductColumn.getMaterialAvailability();
+					previousWorkOrderAfterCustomerOrderAndParentWorkOrder = previousProductColumn.getWorkOrderAfterCustomerOrderAndParentWorkOrder();
 				}
 
 				List<Pair<String, Integer>> fathersCatalogNumberAndQuantityToAssociate = db.getFathers(catalogNumber);
@@ -313,22 +328,28 @@ public class Analyzer
 						QuantityPerDate fatherWorkOrder = db.getProductWOQuantityOnDate(fatherCatalogNumber , monthDate);
 						
 						int quantityToAssociate = fatherCatalogNumberAndQuantityToAssociate.getRight();
-						customerOrders.setQuantity(customerOrders.getQuantity() + quantityToAssociate * fatherWorkOrder.getQuantity());
-						supplied.setQuantity(supplied.getQuantity() + quantityToAssociate * fatherSupplied.getQuantity());
+						//customerOrders.setQuantity(customerOrders.getQuantity() + quantityToAssociate * fatherWorkOrder.getQuantity());
+						//supplied.setQuantity(supplied.getQuantity() + quantityToAssociate * fatherSupplied.getQuantity());
 						materialAvailabilityFix += quantityToAssociate * fatherWorkOrder.getQuantity();
+						
+						parentWorkOrder += quantityToAssociate * fatherWorkOrder.getQuantity();
+						parentWorkOrderSupplied += quantityToAssociate * fatherSupplied.getQuantity(); 
 					}
-					
 				}
 				
 				materialAvailability = forecast.getQuantity() + previousMaterialAvailability - workOrder.getQuantity() + materialAvailabilityFix;
 				workOrderAfterSupplied = workOrder.getQuantity() - supplied.getQuantity() + previousWorkOrderAfterSupplied;
 				openCustomerOrder = customerOrders.getQuantity() - supplied.getQuantity() + previousOpenCustomerOrder;
+				workOrderAfterCustomerOrderAndParentWorkOrder = previousWorkOrderAfterCustomerOrderAndParentWorkOrder + workOrder.getQuantity()
+																					- customerOrders.getQuantity() - parentWorkOrder;
 				
 				ProductColumn productColumn = new ProductColumn(descendantCatalogNumber, catalogNumbers.get(descendantCatalogNumber), forecast.getQuantity(), materialAvailability, workOrder.getQuantity()
-						, workOrderAfterSupplied, customerOrders.getQuantity(), supplied.getQuantity(), openCustomerOrder);
+						, workOrderAfterSupplied, workOrderAfterCustomerOrderAndParentWorkOrder , customerOrders.getQuantity(), 
+						parentWorkOrder , parentWorkOrderSupplied , supplied.getQuantity(), openCustomerOrder);
 				
 				ProductColumn patriarchsProductColumn = new ProductColumn(catalogNumber, catalogNumbers.get(catalogNumber), forecast.getQuantity(), materialAvailability, workOrder.getQuantity()
-						, workOrderAfterSupplied, customerOrders.getQuantity(), supplied.getQuantity(), openCustomerOrder);
+						, workOrderAfterSupplied, workOrderAfterCustomerOrderAndParentWorkOrder , customerOrders.getQuantity(),
+						parentWorkOrder , parentWorkOrderSupplied , supplied.getQuantity(), openCustomerOrder);
 				
 				if(map.containsKey(monthDate))
 				{
@@ -393,9 +414,20 @@ public class Analyzer
 		Map<String,String> catalogNumbers = db.getAllCatalogNumbersPerDescription(null);
 		List<MonthDate> monthToCalculate = createDates(minimumDate , maximumDate);
 		
-		for (String catalogNumber : catalogNumbers.keySet()) 
-		{
+		List<String> catalogNumbersSorted = new ArrayList<>(catalogNumbers.keySet());
+		catalogNumbersSorted = Globals.topologicalSort(catalogNumbersSorted, (objects) ->{
+			String catalogNumber = (String) objects[0];
+			List<String> sons = db.getSons(catalogNumber);
 			
+			return sons;
+		});
+		
+		if(catalogNumbersSorted == null)
+			return;
+		
+		
+		for (String catalogNumber : catalogNumbersSorted) 
+		{
 			for (MonthDate monthDate : monthToCalculate) 
 			{
 				QuantityPerDate supplied = db.getProductShipmentQuantityOnDate(catalogNumber , monthDate);
@@ -403,9 +435,11 @@ public class Analyzer
 				QuantityPerDate workOrder = db.getProductWOQuantityOnDate(catalogNumber , monthDate);
 				QuantityPerDate forecast = db.getProductFCQuantityOnDate(catalogNumber , monthDate);
 				
-				double materialAvailability = 0 ,workOrderAfterSupplied = 0 , openCustomerOrder = 0;
+				double materialAvailability = 0 ,workOrderAfterSupplied = 0 , openCustomerOrder = 0 , workOrderAfterCustomerOrderAndParentWorkOrder= 0 ,
+						parentWorkOrder = 0 , parentWorkOrderSupplied = 0;
 				
-				double previousOpenCustomerOrder = 0 , previousWorkOrderAfterSupplied = 0 , previousMaterialAvailability = 0;
+				double previousOpenCustomerOrder = 0 , previousWorkOrderAfterSupplied = 0 , previousMaterialAvailability = 0 ,
+						previousWorkOrderAfterCustomerOrderAndParentWorkOrder = 0;
 				int indexOfCurrentMonth = monthToCalculate.indexOf(monthDate);
 				if(indexOfCurrentMonth != 0)
 				{
@@ -414,6 +448,7 @@ public class Analyzer
 					previousOpenCustomerOrder = previousProductColumn.getOpenCustomerOrder();
 					previousWorkOrderAfterSupplied = previousProductColumn.getWorkOrderAfterSupplied();
 					previousMaterialAvailability = previousProductColumn.getMaterialAvailability();
+					previousWorkOrderAfterCustomerOrderAndParentWorkOrder = previousProductColumn.getWorkOrderAfterCustomerOrderAndParentWorkOrder();
 				}
 
 				List<Pair<String, Integer>> fathersCatalogNumberAndQuantityToAssociate = db.getFathers(catalogNumber);
@@ -426,13 +461,16 @@ public class Analyzer
 					
 					for (String fatherCatalogNumber : patriarchsFatherCatalogNumber) 
 					{
-							QuantityPerDate fatherSupplied = db.getProductShipmentQuantityOnDate(fatherCatalogNumber , monthDate);
-							QuantityPerDate fatherWorkOrder = db.getProductWOQuantityOnDate(fatherCatalogNumber , monthDate);
-							
-							int quantityToAssociate = fatherCatalogNumberAndQuantityToAssociate.getRight();
-							customerOrders.setQuantity(customerOrders.getQuantity() + quantityToAssociate * fatherWorkOrder.getQuantity());
-							supplied.setQuantity(supplied.getQuantity() + quantityToAssociate * fatherSupplied.getQuantity());
-							materialAvailabilityFix += quantityToAssociate * fatherWorkOrder.getQuantity();
+						QuantityPerDate fatherSupplied = db.getProductShipmentQuantityOnDate(fatherCatalogNumber , monthDate);
+						QuantityPerDate fatherWorkOrder = db.getProductWOQuantityOnDate(fatherCatalogNumber , monthDate);
+						
+						int quantityToAssociate = fatherCatalogNumberAndQuantityToAssociate.getRight();
+						//customerOrders.setQuantity(customerOrders.getQuantity() + quantityToAssociate * fatherWorkOrder.getQuantity());
+						//supplied.setQuantity(supplied.getQuantity() + quantityToAssociate * fatherSupplied.getQuantity());
+						materialAvailabilityFix += quantityToAssociate * fatherWorkOrder.getQuantity();
+						
+						parentWorkOrder += quantityToAssociate * fatherWorkOrder.getQuantity();
+						parentWorkOrderSupplied += quantityToAssociate * fatherSupplied.getQuantity();
 					}
 					
 				}
@@ -440,9 +478,12 @@ public class Analyzer
 				materialAvailability = forecast.getQuantity() + previousMaterialAvailability - workOrder.getQuantity() + materialAvailabilityFix;
 				workOrderAfterSupplied = workOrder.getQuantity() - supplied.getQuantity() + previousWorkOrderAfterSupplied;
 				openCustomerOrder = customerOrders.getQuantity() - supplied.getQuantity() + previousOpenCustomerOrder;
+				workOrderAfterCustomerOrderAndParentWorkOrder = previousWorkOrderAfterCustomerOrderAndParentWorkOrder + workOrder.getQuantity()
+																				- customerOrders.getQuantity() - parentWorkOrder;
 				
 				ProductColumn productColumn = new ProductColumn(catalogNumber, catalogNumbers.get(catalogNumber), forecast.getQuantity(), materialAvailability, workOrder.getQuantity()
-						, workOrderAfterSupplied, customerOrders.getQuantity(), supplied.getQuantity(), openCustomerOrder);
+						, workOrderAfterSupplied, workOrderAfterCustomerOrderAndParentWorkOrder , customerOrders.getQuantity(), 
+						parentWorkOrder , parentWorkOrderSupplied , supplied.getQuantity(), openCustomerOrder);
 								
 				if(map.containsKey(monthDate))
 				{
@@ -498,7 +539,7 @@ public class Analyzer
 				ProductColumn productColumn = productColumnPerProduct.get(product);
 				if(months.indexOf(monthDate) == 0)
 				{
-					for(int i = 0 ; i < productColumn.getCategoriesCount() ; i++)
+					for(int i = 0 ; i < ProductColumn.CategoriesCount ; i++)
 					{
 						List<String> row = new ArrayList<>();
 						row.add(product);
@@ -509,9 +550,9 @@ public class Analyzer
 					}	
 				}
 				
-				for(int i = 0 ; i < productColumn.getCategoriesCount() ; i++)
+				for(int i = 0 ; i < ProductColumn.CategoriesCount ; i++)
 				{
-					List<String> row = rows.get(index * productColumn.getCategoriesCount() + i);
+					List<String> row = rows.get(index * ProductColumn.CategoriesCount + i);
 					row.add(Double.toString(productColumn.getColumnValue(i)));
 				}
 			}
@@ -540,20 +581,45 @@ public class Analyzer
 		FormType type = map.get(date).get(product).getFormType(category);
 		if(type == null)
 			return null;
+		List<? extends Form> forms = new ArrayList<>();
+		List<String> catalogNumbers = map.get(date).get(product).getCatalogNumbersOfForms(product, category);
 		
 		switch (type) 
 		{
-		case PO:
-			return getAllCustomerOrdersOnMonth(product, date);
-		case WO:
-			return getAllWorkOrderOnMonth(product, date);
-		case SHIPMENT:
-			return getAllShipmentsOnMonth(product, date);
-		case FC:
-			return getAllForecastOnMonth(product, date);
-		default:
-			return null;
+			case PO:
+				forms = new ArrayList<CustomerOrder>();
+				for (String catalogNumber : catalogNumbers) 
+				{
+					((ArrayList<CustomerOrder>)forms).addAll(getAllCustomerOrdersOnMonth(catalogNumber, date));
+				}
+				break;
+			case WO:
+				forms = new ArrayList<WorkOrder>();
+				for (String catalogNumber : catalogNumbers) 
+				{
+					((ArrayList<WorkOrder>)forms).addAll(getAllWorkOrderOnMonth(catalogNumber, date));
+				}
+				break;
+			case SHIPMENT:
+				forms = new ArrayList<Shipment>();
+				for (String catalogNumber : catalogNumbers) 
+				{
+					((ArrayList<Shipment>)forms).addAll(getAllShipmentsOnMonth(catalogNumber, date));
+				}
+				break;
+			case FC:
+				forms = new ArrayList<Forecast>();
+				for (String catalogNumber : catalogNumbers) 
+				{
+					((ArrayList<Forecast>)forms).addAll(getAllForecastOnMonth(catalogNumber, date));
+				}
+				break;
+			default:
+				break;
 		}
+		
+		return forms;
+		
 	}
 
 	public String getProductOnRow(JTable table, int row) 
@@ -564,6 +630,13 @@ public class Analyzer
 	public String getCategoryOnRow(JTable table, int row) 
 	{
 		return (String) table.getValueAt(row, 3);
+	}
+	
+	public String getDescriptionOfCategory(String product, String category)
+	{
+		String descriptionOfCategory = ProductColumn.getDescriptionOfCategory(product , category);
+		
+		return descriptionOfCategory;
 	}
 
 	public List<Integer> getFilterColumns() 
@@ -579,6 +652,11 @@ public class Analyzer
 	
 	public CallBack<Object> getValueCellChangeAction(String email , Authenticator auth , String userName , ReportViewFrame mapFrame , Map<MonthDate, Map<String, ProductColumn>> map) 
 	{
+		return null;
+	}
+
+	public CallBack<Object> getDoubleLeftClickAction(String email , Authenticator auth , String userName , ReportViewFrame mapFrame , Map<MonthDate, Map<String, ProductColumn>> map) 
+	{
 		CallBack<Object> doubleLeftClickAction = new CallBack<Object>()
 		{
 			@Override
@@ -587,13 +665,20 @@ public class Analyzer
 				TableCellListener tcl = (TableCellListener)objects[0];
 				int row = tcl.getRow();
 				int column = tcl.getColumn();
-				if(column < Analyzer.ConstantColumnsCount)
+				String product = getProductOnRow(tcl.getTable() , row);
+				String category = getCategoryOnRow(tcl.getTable() , row);
+				if(column < Analyzer.CatalogColumn)
 					return null;
+				else if(column == Analyzer.CatalogColumn)
+				{
+					String descriptionOfCategory = getDescriptionOfCategory(product , category);
+					if(!descriptionOfCategory.trim().equals(""))
+						JOptionPane.showConfirmDialog(null, descriptionOfCategory ,category + " Explanation",JOptionPane.PLAIN_MESSAGE);
+					return null; 
+				}
 				
 				String monthOnShortName = tcl.getTable().getColumnName(column);
-				String product = getProductOnRow(tcl.getTable() , row);
 				MonthDate monthDate = new MonthDate(monthOnShortName);
-				String category = getCategoryOnRow(tcl.getTable() , row);
 				List<? extends Form> forms = getFormsFromCell(map , product , monthDate , category);
 				
 				if(forms == null || forms.size() == 0)
@@ -650,11 +735,6 @@ public class Analyzer
 		};
 		
 		return doubleLeftClickAction;
-	}
-
-	public CallBack<Object> getDoubleLeftClickAction(String email , Authenticator auth , String userName , ReportViewFrame mapFrame , Map<MonthDate, Map<String, ProductColumn>> map) 
-	{
-		return null;
 	}
 
 	public CallBack<Object> getRightClickAction(String email , Authenticator auth , String userName , ReportViewFrame mapFrame , Map<MonthDate, Map<String, ProductColumn>> map) 
