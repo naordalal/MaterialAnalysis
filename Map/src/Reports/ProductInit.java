@@ -131,7 +131,7 @@ public class ProductInit extends Report
 				this.requireDate = Globals.dateWithoutHourToString(date);
 				break;
 			default:
-				break;
+				return null;
 		}
 
 		db.updateInitProduct(catalogNumber , quantity , initDate , previousRequireDate , requireDate , type);

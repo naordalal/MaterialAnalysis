@@ -4,7 +4,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.swing.AbstractAction;
@@ -24,6 +26,8 @@ import javax.swing.SwingUtilities;
 
 import org.apache.poi.ss.usermodel.Font;
 
+import AnalyzerTools.Analyzer;
+import AnalyzerTools.MonthDate;
 import Components.FilterCombo;
 import Components.MultiSelectionComboBox;
 import MainPackage.DataBase;
@@ -296,6 +300,7 @@ public class AddProductFrame implements ActionListener
 				}
 			}
 			
+			boolean updateMap = false;
 			String catalogNumber = catalogNumberComboBox.getText().trim();
 			DefaultComboBoxModel<String> customerComboBoxModel = (DefaultComboBoxModel<String>) customerComboBox.getModel();
 			String customer = (String) customerComboBoxModel.getSelectedItem();
@@ -304,7 +309,8 @@ public class AddProductFrame implements ActionListener
 			List<String> fathers = fatherComboBox.getSelectedItems();
 			
 			if(fathers.size() > 0)
-			{				
+			{		
+				updateMap = true;
 				for (String father : fatherComboBox.getSelectedItems()) 
 				{
 					boolean validInput = false;
@@ -326,13 +332,29 @@ public class AddProductFrame implements ActionListener
 					db.addNewProduct(catalogNumber, customer, description, father, quantity.trim());
 				}
 			}
-			else
+			else if(!aliasComboBox.isVisible())
 				db.addNewProduct(catalogNumber, customer, description, "", "0");
 			
 			
 			if(aliasComboBox.getSelectedItem() != null)
 			{
 				db.updateAlias(catalogNumber, (String) aliasComboBox.getSelectedItem());
+			}
+			
+			updateMap &= aliasComboBox.isVisible(); //Just if update product
+			if(updateMap)
+			{
+				Analyzer analyzer = new Analyzer();
+				Map<String, Date> inits = db.getInitProductsFCDates(catalogNumber);
+				if(inits.containsKey(catalogNumber))
+				{
+					MonthDate initMonth = new MonthDate(inits.get(catalogNumber));
+					MonthDate calculateMonth = new MonthDate(Globals.addMonths(Globals.getTodayDate(), -Globals.monthsToCalculate));
+					updateMap &= initMonth.before(calculateMonth);
+				}
+				
+				if(updateMap)
+					analyzer.updateLastMap(catalogNumber);
 			}
 			
 			JOptionPane.showConfirmDialog(null, "Added successfully","",JOptionPane.PLAIN_MESSAGE);
@@ -344,6 +366,7 @@ public class AddProductFrame implements ActionListener
 			descriptionText.setText("");
 			descriptionText.setEnabled(true);
 			customerComboBox.setEnabled(true);
+			aliasComboBox.clear();
 			
 			catalogNumberComboBox.requestFocusInWindow();
 			

@@ -139,7 +139,7 @@ public class Analyzer
 		}
 		
 		if(!ignorePast)
-			updateLastMap();
+			updateLastMap(null);
 		
 	}
 	
@@ -245,7 +245,7 @@ public class Analyzer
 		MonthDate lastCalculateMapDate = db.getLastCalculateMapDate();
 		MonthDate maximumDate = new MonthDate(Globals.addMonths(Globals.getTodayDate(), -Globals.monthsToCalculate - 1));
 		if(lastCalculateMapDate != null && !lastCalculateMapDate.equals(maximumDate))
-			updateLastMap();
+			updateLastMap(null);
 		
 		lastCalculateMapDate = db.getLastCalculateMapDate();
 		Map<String,ProductColumn> lastMap = (lastCalculateMapDate != null) ? db.getLastMap(userName, lastCalculateMapDate) : new HashMap<String,ProductColumn>();
@@ -398,7 +398,7 @@ public class Analyzer
 		
 	}
 	
-	private void updateLastMap() 
+	public void updateLastMap(String cn) 
 	{
 		Map<MonthDate,Map<String,ProductColumn>> map = new HashMap<MonthDate,Map<String,ProductColumn>>();
 		
@@ -411,7 +411,7 @@ public class Analyzer
 			return;
 		}
 		
-		Map<String,String> catalogNumbers = db.getAllCatalogNumbersPerDescription(null);
+		Map<String,String> catalogNumbers = (cn == null) ? db.getAllCatalogNumbersPerDescription(null) : db.getDescription(cn);
 		List<MonthDate> monthToCalculate = createDates(minimumDate , maximumDate);
 		
 		List<String> catalogNumbersSorted = new ArrayList<>(catalogNumbers.keySet());
@@ -752,7 +752,7 @@ public class Analyzer
 		MonthDate lastCalculateMapDate = db.getLastCalculateMapDate();
 		MonthDate maximumDate = new MonthDate(Globals.addMonths(Globals.getTodayDate(), -Globals.monthsToCalculate - 1));
 		if(lastCalculateMapDate != null && !lastCalculateMapDate.equals(maximumDate))
-			updateLastMap();
+			updateLastMap(null);
 		
 		lastCalculateMapDate = db.getLastCalculateMapDate();
 		Map<String,ProductColumn> lastMap = (lastCalculateMapDate != null) ? db.getLastMap(userName, lastCalculateMapDate) : new HashMap<String,ProductColumn>();

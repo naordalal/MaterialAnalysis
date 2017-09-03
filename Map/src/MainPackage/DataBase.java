@@ -1563,13 +1563,11 @@ public class DataBase {
 			String initDate = Globals.dateWithoutHourToString(Globals.getTodayDate());
 			if(!getInitProductsFCDates(catalogNumber).containsKey(catalogNumber))
 			{
-				insertNewInitProduct(catalogNumber, initDate, "0", initDate, FormType.FC);
-				insertNewInitProduct(catalogNumber, initDate, "0", initDate, FormType.WO);
-				insertNewInitProduct(catalogNumber, initDate, "0", initDate, FormType.PO);
-				insertNewInitProduct(catalogNumber, initDate, "0", initDate, FormType.SHIPMENT);	
+				insertNewInitProduct(catalogNumber, "0", initDate , initDate, FormType.FC);
+				insertNewInitProduct(catalogNumber, "0", initDate , initDate, FormType.WO);
+				insertNewInitProduct(catalogNumber, "0", initDate , initDate, FormType.PO);
+				insertNewInitProduct(catalogNumber, "0", initDate , initDate, FormType.SHIPMENT);	
 			}
-
-		
 		}
 		catch(Exception e)
 		{
@@ -3390,6 +3388,35 @@ public class DataBase {
 			e.printStackTrace();
 			closeConnection();
 			return false;
+		}
+	}
+	
+	public Map<String, String> getDescription(String catalogNumber) 
+	{
+		Map<String, String> catalogNumbers = new HashMap<String,String>();
+		try{
+			
+			connect();
+			stmt = c.prepareStatement("SELECT distinct description FROM Tree where CN = ?");
+			stmt.setString(1, catalogNumber);
+			ResultSet rs = stmt.executeQuery();
+			
+			if(rs.next())
+			{
+				String description = rs.getString("description");
+				catalogNumbers.put(catalogNumber,description);
+			}
+
+			
+			closeConnection();
+			return catalogNumbers;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return new HashMap<String,String>();
 		}
 	}
 	

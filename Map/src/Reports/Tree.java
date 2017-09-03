@@ -1,14 +1,18 @@
 package Reports;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JOptionPane;
 
 import AnalyzerTools.Analyzer;
+import AnalyzerTools.MonthDate;
 import Components.TableCellListener;
 import MainPackage.CallBack;
 import MainPackage.DataBase;
+import MainPackage.Globals;
 import MainPackage.Message;
 import MapFrames.ReportViewFrame;
 
@@ -122,7 +126,7 @@ public class Tree extends Report
 		DataBase db = new DataBase();
 		Message message = null;
 		String previousFatherCN = fatherCN;
-		boolean ignorePast = true;
+		boolean updateMap = false;
 		switch(column)
 		{
 			case 0 : 
@@ -143,9 +147,11 @@ public class Tree extends Report
 				if(quantity == null || quantity.equals("0") || quantity.equals(""))
 					message = new Message("Please enter a quantity" , 4);
 				else
+				{
 					message = null;
+					updateMap = true;
+				}	
 				this.fatherCN = newValue;
-				ignorePast = false;
 				break;
 			case 4:
 				if(!org.apache.commons.lang3.StringUtils.isNumeric(newValue.trim()))
@@ -160,7 +166,7 @@ public class Tree extends Report
 					this.fatherCN = "";	
 				}
 				message = null;
-				ignorePast = false;
+				updateMap = true;
 				break;
 			case 5:
 				if(!db.getAllCatalogNumberOfCustomer(customer).contains(newValue))
@@ -168,7 +174,6 @@ public class Tree extends Report
 				
 				this.alias = newValue;
 				message = null;
-				ignorePast = false;
 				break;
 				
 			default:
@@ -179,7 +184,17 @@ public class Tree extends Report
 		db.updateTree(catalogNumber, description , previousFatherCN , fatherCN , quantity , alias);
 		
 		Analyzer analyzer = new Analyzer();
-		analyzer.updateProductQuantities(catalogNumber , ignorePast);
+		Map<String, Date> inits = db.getInitProductsFCDates(catalogNumber);
+		if(inits.containsKey(catalogNumber))
+		{
+			MonthDate initMonth = new MonthDate(inits.get(catalogNumber));
+			MonthDate calculateMonth = new MonthDate(Globals.addMonths(Globals.getTodayDate(), -Globals.monthsToCalculate));
+			updateMap &= initMonth.before(calculateMonth);
+		}
+		
+		if(updateMap)
+			analyzer.updateLastMap(catalogNumber);
+		
 		return message;
 		
 	}
