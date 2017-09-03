@@ -139,7 +139,7 @@ public class Analyzer
 		}
 		
 		if(!ignorePast)
-			updateLastMap(null);
+			updateLastMap(null , null);
 		
 	}
 	
@@ -245,7 +245,7 @@ public class Analyzer
 		MonthDate lastCalculateMapDate = db.getLastCalculateMapDate();
 		MonthDate maximumDate = new MonthDate(Globals.addMonths(Globals.getTodayDate(), -Globals.monthsToCalculate - 1));
 		if(lastCalculateMapDate != null && !lastCalculateMapDate.equals(maximumDate))
-			updateLastMap(null);
+			updateLastMap(userName , null);
 		
 		lastCalculateMapDate = db.getLastCalculateMapDate();
 		Map<String,ProductColumn> lastMap = (lastCalculateMapDate != null) ? db.getLastMap(userName, lastCalculateMapDate) : new HashMap<String,ProductColumn>();
@@ -398,20 +398,28 @@ public class Analyzer
 		
 	}
 	
-	public void updateLastMap(String cn) 
+	public void updateLastMap(String userName , String cn) 
 	{
 		Map<MonthDate,Map<String,ProductColumn>> map = new HashMap<MonthDate,Map<String,ProductColumn>>();
 		
 		MonthDate maximumDate = new MonthDate(Globals.addMonths(Globals.getTodayDate(), -Globals.monthsToCalculate - 1));
 		MonthDate minimumDate = db.getMinimumInitDate();
 		
+		if(cn != null)
+		{
+			Map<String, Date> inits = db.getInitProductsFCDates(cn);
+			if(inits.containsKey(cn))
+				minimumDate = new MonthDate(inits.get(cn));
+		}
+		
 		if(minimumDate == null || maximumDate.before(minimumDate))
 		{
-			db.clearLastMap();
+			if(cn == null)
+				db.clearLastMap();
 			return;
 		}
 		
-		Map<String,String> catalogNumbers = (cn == null) ? db.getAllCatalogNumbersPerDescription(null) : db.getDescription(cn);
+		Map<String,String> catalogNumbers = (cn == null) ? db.getAllCatalogNumbersPerDescription(userName) : db.getDescription(cn);
 		List<MonthDate> monthToCalculate = createDates(minimumDate , maximumDate);
 		
 		List<String> catalogNumbersSorted = new ArrayList<>(catalogNumbers.keySet());
@@ -752,7 +760,7 @@ public class Analyzer
 		MonthDate lastCalculateMapDate = db.getLastCalculateMapDate();
 		MonthDate maximumDate = new MonthDate(Globals.addMonths(Globals.getTodayDate(), -Globals.monthsToCalculate - 1));
 		if(lastCalculateMapDate != null && !lastCalculateMapDate.equals(maximumDate))
-			updateLastMap(null);
+			updateLastMap(userName , null);
 		
 		lastCalculateMapDate = db.getLastCalculateMapDate();
 		Map<String,ProductColumn> lastMap = (lastCalculateMapDate != null) ? db.getLastMap(userName, lastCalculateMapDate) : new HashMap<String,ProductColumn>();

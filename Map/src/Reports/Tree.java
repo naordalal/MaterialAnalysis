@@ -184,16 +184,9 @@ public class Tree extends Report
 		db.updateTree(catalogNumber, description , previousFatherCN , fatherCN , quantity , alias);
 		
 		Analyzer analyzer = new Analyzer();
-		Map<String, Date> inits = db.getInitProductsFCDates(catalogNumber);
-		if(inits.containsKey(catalogNumber))
-		{
-			MonthDate initMonth = new MonthDate(inits.get(catalogNumber));
-			MonthDate calculateMonth = new MonthDate(Globals.addMonths(Globals.getTodayDate(), -Globals.monthsToCalculate));
-			updateMap &= initMonth.before(calculateMonth);
-		}
 		
 		if(updateMap)
-			analyzer.updateLastMap(catalogNumber);
+			analyzer.updateLastMap(null , catalogNumber);
 		
 		return message;
 		

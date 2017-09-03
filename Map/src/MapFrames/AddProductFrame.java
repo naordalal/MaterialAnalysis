@@ -333,7 +333,7 @@ public class AddProductFrame implements ActionListener
 				}
 			}
 			else if(!aliasComboBox.isVisible())
-				db.addNewProduct(catalogNumber, customer, description, "", "0");
+					db.addNewProduct(catalogNumber, customer, description, "", "0");
 			
 			
 			if(aliasComboBox.getSelectedItem() != null)
@@ -342,19 +342,11 @@ public class AddProductFrame implements ActionListener
 			}
 			
 			updateMap &= aliasComboBox.isVisible(); //Just if update product
+			
 			if(updateMap)
 			{
 				Analyzer analyzer = new Analyzer();
-				Map<String, Date> inits = db.getInitProductsFCDates(catalogNumber);
-				if(inits.containsKey(catalogNumber))
-				{
-					MonthDate initMonth = new MonthDate(inits.get(catalogNumber));
-					MonthDate calculateMonth = new MonthDate(Globals.addMonths(Globals.getTodayDate(), -Globals.monthsToCalculate));
-					updateMap &= initMonth.before(calculateMonth);
-				}
-				
-				if(updateMap)
-					analyzer.updateLastMap(catalogNumber);
+				analyzer.updateLastMap(null , catalogNumber);	
 			}
 			
 			JOptionPane.showConfirmDialog(null, "Added successfully","",JOptionPane.PLAIN_MESSAGE);
