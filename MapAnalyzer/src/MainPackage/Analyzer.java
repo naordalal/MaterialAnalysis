@@ -315,8 +315,8 @@ public class Analyzer
 				List<Pair<String, Integer>> fathersCatalogNumberAndQuantityToAssociate = db.getFathers(catalogNumber);
 				List<String> descendantsCatalogNumbers = db.getAllDescendantCatalogNumber(catalogNumber);
 				List<String> fathersOfDescendantsCatalogNumbers = descendantsCatalogNumbers.stream().map(cn -> db.getFathers(cn).stream().map(pair -> pair.getLeft())
-																		.collect(Collectors.toList())).reduce((a,b) -> {a.addAll(b) ; return a;}).get();	
-				List<String> descendantsFathersOfDescendantsCatalogNumbers = fathersOfDescendantsCatalogNumbers.stream().map(cn -> db.getAllDescendantCatalogNumber(cn)).reduce((a,b) -> {a.addAll(b) ; return a;}).get();
+																		.collect(Collectors.toList())).reduce((a,b) -> {a.addAll(b) ; return a;}).orElse(new ArrayList<>());	
+				List<String> descendantsFathersOfDescendantsCatalogNumbers = fathersOfDescendantsCatalogNumbers.stream().map(cn -> db.getAllDescendantCatalogNumber(cn)).reduce((a,b) -> {a.addAll(b) ; return a;}).orElse(new ArrayList<>());
 				
 				double materialAvailabilityFix = 0;
 				for (Pair<String, Integer> fatherCatalogNumberAndQuantityToAssociate : fathersCatalogNumberAndQuantityToAssociate) 
