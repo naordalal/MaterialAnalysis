@@ -159,7 +159,7 @@ public class AddProductFrame implements ActionListener
 		
 		model = new DefaultComboBoxModel<String>();
 		clearWhenFocusLost = true;
-		aliasComboBox = new FilterCombo(model , clearWhenFocusLost , false);
+		aliasComboBox = new FilterCombo(model , clearWhenFocusLost);
 		aliasComboBox.setLocation(150, 360);
 		aliasComboBox.setSize(150, 20);
 		aliasComboBox.setVisible(false);

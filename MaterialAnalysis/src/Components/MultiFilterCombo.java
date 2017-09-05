@@ -6,7 +6,10 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -16,7 +19,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
 import javax.swing.text.JTextComponent;
 
-public class FilterCombo extends JComboBox<String> implements KeyListener, FocusListener
+public class MultiFilterCombo extends JComboBox<String> implements KeyListener, FocusListener , ActionListener
 {
 	private static final long serialVersionUID = 1L;
 	
@@ -25,8 +28,13 @@ public class FilterCombo extends JComboBox<String> implements KeyListener, Focus
 	private List<String> baseValues;
 	private String lastText;
 	private boolean clearWhenFocusLost;
+	private List<String> selectedItems = new ArrayList<String>();
 
-	public FilterCombo(List<String> baseValues , DefaultComboBoxModel<String> model , boolean clearWhenFocusLost) 
+	private boolean fromClick = true;
+	private boolean close = false;
+
+
+	public MultiFilterCombo(List<String> baseValues , DefaultComboBoxModel<String> model , boolean clearWhenFocusLost) 
 	{
 		super(model);
 		this.model = model;
@@ -44,6 +52,9 @@ public class FilterCombo extends JComboBox<String> implements KeyListener, Focus
 		baseValues.stream().forEach(cn -> this.model.addElement(cn));     
 		model.setSelectedItem(null);
 		
+		BasicComboBoxRenderer renderer = new MyComboBoxRenderer(this);
+        this.setRenderer(renderer);          
+        
 		Component editor = this.getEditor().getEditorComponent();
 		if (editor instanceof JTextComponent)
 		{
@@ -52,20 +63,58 @@ public class FilterCombo extends JComboBox<String> implements KeyListener, Focus
 			this.tc.addFocusListener(this);
 		}
 		
-		this.addActionListener(new ActionListener() 
-		{
-			@Override
-			public void actionPerformed(ActionEvent e) 
-			{
-				if(model.getSelectedItem() == null)
-					lastText = "";
-				else
-					lastText = (String) model.getSelectedItem();
-			}
-		});
+		super.addActionListener(this);
+	}
+	
+	@Override
+	public void addActionListener(ActionListener l) 
+	{
+		this.removeActionListener(this);
+		super.addActionListener(l);
+		super.addActionListener(this);
+	}
+	
+	 @Override 
+    public void setPopupVisible(boolean v) 
+    {
+		if(close)
+			super.setPopupVisible(v);
+    }
+
+	public void updateSelectedItem()
+	{
+		Object item = this.getSelectedItem();
+        if(item == null)
+        	return;
+ 
+        if(!fromClick)
+        	return;
+        
+        if (selectedItems.contains(item)) 
+            selectedItems.remove(item);
+        else
+        	selectedItems.add((String) item);
+        
+        if(selectedItems.size() == 0)
+        	this.setSelectedItem(null);
+        else
+        	this.setSelectedItem(getFirstSelectedElementInItemsList((DefaultComboBoxModel<String>)this.getModel()));
+	}
+	
+	public Object getFirstSelectedElementInItemsList(DefaultComboBoxModel<String> model) 
+    {
+    	List<Object> ccList = new ArrayList<Object>();
+		for(int i =0 ; i < model.getSize() ; i++)
+			ccList.add(model.getElementAt(i));
+		
+		List<Integer> indexes = selectedItems.stream().map(obj->ccList.indexOf(obj)).collect(Collectors.toList());
+		int minIndex = indexes.stream().min((n1 , n2) -> Integer.compare(n1, n2)).get();
+		if(minIndex < 0)
+			return null;
+		return ccList.get(minIndex);
 	}
 
-	public FilterCombo(DefaultComboBoxModel<String> model , boolean clearWhenFocusLost) 
+	public MultiFilterCombo(DefaultComboBoxModel<String> model , boolean clearWhenFocusLost) 
 	{
 		super(model);
 		this.model = model;
@@ -84,7 +133,11 @@ public class FilterCombo extends JComboBox<String> implements KeyListener, Focus
 		}
 		
 		if (this.isPopupVisible()) 
+		{
+			close = true;
 			this.hidePopup();
+			close = false;
+		}
 		
         this.model.removeAllElements();
 		List<String> containsValue = getContainsValue(enteredText);
@@ -98,7 +151,9 @@ public class FilterCombo extends JComboBox<String> implements KeyListener, Focus
 		this.tc.setSelectionStart(enteredText.length());
 		this.tc.setSelectionEnd(enteredText.length());
 		
-		this.showPopup();	
+		close = true;
+		this.showPopup();
+		close = false;
 	
 				
 		for (ActionListener actionListener : actionListeners) 
@@ -106,12 +161,7 @@ public class FilterCombo extends JComboBox<String> implements KeyListener, Focus
 			this.addActionListener(actionListener);
 		}
 		
-		if(containsValue.size() == 1 && containsValue.get(0).equalsIgnoreCase(enteredText))
-		{
-			this.model.setSelectedItem(containsValue.get(0));
-		}
-		else
-			this.model.setSelectedItem(null);
+		this.model.setSelectedItem(null);
 		
 		setText(enteredText);
 		
@@ -146,24 +196,35 @@ public class FilterCombo extends JComboBox<String> implements KeyListener, Focus
             public void run() {
             	if(ke.getKeyCode() == KeyEvent.VK_ESCAPE)
             	{
+            		close = true;
             		hidePopup();
+            		close = false;
             		if(model.getSelectedItem() == null)
             			setText("");
             		return;
             	}
             	if(ke.getKeyCode() == KeyEvent.VK_ENTER)
             	{
+            		System.out.println(lastText + "  Y");
     				if(baseValues.contains(lastText))
     				{
+    					fromClick = true;
     					model.setSelectedItem(lastText);
+    					updateSelectedItem();
+    					close = true;
     					hidePopup();
+    					fromClick = false;
+    					close = false;
     				}
             	}
             	else if(ke.getKeyCode() == KeyEvent.VK_UP || ke.getKeyCode() == KeyEvent.VK_DOWN)
             	{
-            		String text = tc.getText();
-                	model.setSelectedItem(null);
+            		fromClick  = false;
+            		String text = (String) model.getSelectedItem();
+            		model.setSelectedItem(null);
             		setText(text);
+            		selectedItems.remove(text);
+            		fromClick  = true;
             	}
             	else
             		comboFilter(tc.getText());
@@ -255,6 +316,27 @@ public class FilterCombo extends JComboBox<String> implements KeyListener, Focus
 			this.addItem(val);
 		}
 		model.setSelectedItem(null);
+	}
+
+	public boolean isSelected(Object value) 
+	{
+		return selectedItems.contains(value);
+	}
+
+	public List<String> getSelectedItems() 
+	{
+		return selectedItems;
+	}
+	
+	@Override
+	public void actionPerformed(ActionEvent e) 
+	{
+		if(model.getSelectedItem() == null)
+			lastText = "";
+		else
+			lastText = (String) model.getSelectedItem();
+		
+		updateSelectedItem();
 	}
 
 

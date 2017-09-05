@@ -13,9 +13,15 @@ public class MyComboBoxRenderer extends BasicComboBoxRenderer
 	private static final long serialVersionUID = 1L;
 	
 	private SelectionManager selectionManager;
+
+	private MultiFilterCombo combo;
 	  
     public MyComboBoxRenderer(SelectionManager sm) {
         this.selectionManager = sm;
+    }
+    
+    public MyComboBoxRenderer(MultiFilterCombo combo) {
+        this.combo = combo;
     }
       
 
@@ -25,6 +31,12 @@ public class MyComboBoxRenderer extends BasicComboBoxRenderer
                                                   boolean isSelected,
                                                   boolean cellHasFocus) {
         if (selectionManager != null && (selectionManager.isSelected(value) || isSelected)) 
+        {
+            setBackground(list.getSelectionBackground());
+            setForeground(list.getSelectionForeground());
+            
+        }
+        else if (combo != null && (combo.isSelected(value) || isSelected)) 
         {
             setBackground(list.getSelectionBackground());
             setForeground(list.getSelectionForeground());
