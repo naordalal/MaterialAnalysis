@@ -313,15 +313,22 @@ public class Analyzer
 				}
 
 				List<Pair<String, Integer>> fathersCatalogNumberAndQuantityToAssociate = db.getFathers(catalogNumber);
-								
+				List<String> descendantsCatalogNumbers = db.getAllDescendantCatalogNumber(catalogNumber);
+				List<String> fathersOfDescendantsCatalogNumbers = descendantsCatalogNumbers.stream().map(cn -> db.getFathers(cn).stream().map(pair -> pair.getLeft())
+																		.collect(Collectors.toList())).reduce((a,b) -> {a.addAll(b) ; return a;}).get();	
+				List<String> descendantsFathersOfDescendantsCatalogNumbers = fathersOfDescendantsCatalogNumbers.stream().map(cn -> db.getAllDescendantCatalogNumber(cn)).reduce((a,b) -> {a.addAll(b) ; return a;}).get();
+				
 				double materialAvailabilityFix = 0;
 				for (Pair<String, Integer> fatherCatalogNumberAndQuantityToAssociate : fathersCatalogNumberAndQuantityToAssociate) 
 				{
-					List<String> patriarchsFatherCatalogNumber = db.getAllDescendantCatalogNumber(fatherCatalogNumberAndQuantityToAssociate.getLeft());
-					patriarchsFatherCatalogNumber.add(fatherCatalogNumberAndQuantityToAssociate.getLeft());
+					List<String> descendantsFatherCatalogNumbers = db.getAllDescendantCatalogNumber(fatherCatalogNumberAndQuantityToAssociate.getLeft());
+					descendantsFatherCatalogNumbers.add(fatherCatalogNumberAndQuantityToAssociate.getLeft());
 					
-					for (String fatherCatalogNumber : patriarchsFatherCatalogNumber) 
+					for (String fatherCatalogNumber : descendantsFatherCatalogNumbers) 
 					{
+						if(descendantsFathersOfDescendantsCatalogNumbers.contains(fatherCatalogNumber))
+							continue;
+						
 						QuantityPerDate fatherSupplied = db.getProductShipmentQuantityOnDate(fatherCatalogNumber , monthDate);
 						QuantityPerDate fatherWorkOrder = db.getProductWOQuantityOnDate(fatherCatalogNumber , monthDate);
 						
