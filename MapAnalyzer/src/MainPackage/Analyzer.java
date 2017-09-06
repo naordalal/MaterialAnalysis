@@ -316,7 +316,7 @@ public class Analyzer
 				List<String> descendantsCatalogNumbers = db.getAllDescendantCatalogNumber(catalogNumber);
 				List<String> fathersOfDescendantsCatalogNumbers = descendantsCatalogNumbers.stream().map(cn -> db.getFathers(cn).stream().map(pair -> pair.getLeft())
 																		.collect(Collectors.toList())).reduce((a,b) -> {a.addAll(b) ; return a;}).orElse(new ArrayList<>());	
-				List<String> descendantsFathersOfDescendantsCatalogNumbers = fathersOfDescendantsCatalogNumbers.stream().map(cn -> db.getAllDescendantCatalogNumber(cn)).reduce((a,b) -> {a.addAll(b) ; return a;}).orElse(new ArrayList<>());
+				List<String> descendantsFathersOfDescendantsCatalogNumbers = fathersOfDescendantsCatalogNumbers.stream().map(el ->{ List<String> desCN = db.getAllDescendantCatalogNumber(el); desCN.add(el); return desCN;}).reduce((a,b) -> {a.addAll(b) ; return a;}).orElse(new ArrayList<>());
 				
 				double materialAvailabilityFix = 0;
 				for (Pair<String, Integer> fatherCatalogNumberAndQuantityToAssociate : fathersCatalogNumberAndQuantityToAssociate) 
@@ -331,11 +331,12 @@ public class Analyzer
 						
 						QuantityPerDate fatherSupplied = db.getProductShipmentQuantityOnDate(fatherCatalogNumber , monthDate);
 						QuantityPerDate fatherWorkOrder = db.getProductWOQuantityOnDate(fatherCatalogNumber , monthDate);
+						QuantityPerDate fatherForecast = db.getProductFCQuantityOnDate(fatherCatalogNumber , monthDate);
 						
 						int quantityToAssociate = fatherCatalogNumberAndQuantityToAssociate.getRight();
 						//customerOrders.setQuantity(customerOrders.getQuantity() + quantityToAssociate * fatherWorkOrder.getQuantity());
 						//supplied.setQuantity(supplied.getQuantity() + quantityToAssociate * fatherSupplied.getQuantity());
-						materialAvailabilityFix += quantityToAssociate * fatherWorkOrder.getQuantity();
+						materialAvailabilityFix += quantityToAssociate * fatherForecast.getQuantity();
 						
 						parentWorkOrder += quantityToAssociate * fatherWorkOrder.getQuantity();
 						parentWorkOrderSupplied += quantityToAssociate * fatherSupplied.getQuantity();

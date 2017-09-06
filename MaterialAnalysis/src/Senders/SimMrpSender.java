@@ -231,7 +231,18 @@ public class SimMrpSender extends Sender {
 					continue;
 				}
 				
-				Date cellDate = currentDateCell.getDateCellValue();
+				Date cellDate;
+				if (currentDateCell.getCellType() == Cell.CELL_TYPE_STRING)
+				{
+					if((cellDate = Globals.isValidDate(currentDateCell.getStringCellValue().trim())) == null)
+					{
+						orderIndex++;
+						continue;
+					}
+				}
+				else
+					cellDate = currentDateCell.getDateCellValue();
+				
 				if(cellDate == null)
 				{
 					orderIndex++;
@@ -604,7 +615,7 @@ public class SimMrpSender extends Sender {
     	cell.setCellStyle(style2);
     	
     	cell = newRow.createCell(11);	    
-	    cell.setCellValue("הזמנות פתוחות לאחר 6 סבבים");
+	    cell.setCellValue("הזמנות פתוחות לאחר 12 סבבים");
     	cell.setCellStyle(style2);
     	
     	Cell priceCell = Excel.findCell(ordersSheet, globals.priceColumn2);

@@ -199,7 +199,18 @@ public class SimSender extends Sender{
 					continue;
 				}
 				
-				Date cellDate = currentDateCell.getDateCellValue();
+				Date cellDate;
+				if (currentDateCell.getCellType() == Cell.CELL_TYPE_STRING)
+				{
+					if((cellDate = Globals.isValidDate(currentDateCell.getStringCellValue().trim())) == null)
+					{
+						orderIndex++;
+						continue;
+					}
+				}
+				else
+					cellDate = currentDateCell.getDateCellValue();
+				
 				if(cellDate == null)
 				{
 					orderIndex++;

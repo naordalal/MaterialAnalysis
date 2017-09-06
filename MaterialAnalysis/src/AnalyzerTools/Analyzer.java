@@ -1,9 +1,11 @@
 package AnalyzerTools;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -318,7 +320,7 @@ public class Analyzer
 				List<String> descendantsCatalogNumbers = db.getAllDescendantCatalogNumber(catalogNumber);
 				List<String> fathersOfDescendantsCatalogNumbers = descendantsCatalogNumbers.stream().map(cn -> db.getFathers(cn).stream().map(pair -> pair.getLeft())
 																		.collect(Collectors.toList())).reduce((a,b) -> {a.addAll(b) ; return a;}).orElse(new ArrayList<>());
-				List<String> descendantsFathersOfDescendantsCatalogNumbers = fathersOfDescendantsCatalogNumbers.stream().map(cn -> db.getAllDescendantCatalogNumber(cn)).reduce((a,b) -> {a.addAll(b) ; return a;}).orElse(new ArrayList<>());
+				List<String> descendantsFathersOfDescendantsCatalogNumbers = fathersOfDescendantsCatalogNumbers.stream().map(el -> { List<String> desCN = db.getAllDescendantCatalogNumber(el); desCN.add(el); return desCN;}).reduce((a,b) -> {a.addAll(b) ; return a;}).orElse(new ArrayList<>());
 				
 				double materialAvailabilityFix = 0;
 				for (Pair<String, Integer> fatherCatalogNumberAndQuantityToAssociate : fathersCatalogNumberAndQuantityToAssociate) 
@@ -333,11 +335,12 @@ public class Analyzer
 						
 						QuantityPerDate fatherSupplied = db.getProductShipmentQuantityOnDate(fatherCatalogNumber , monthDate);
 						QuantityPerDate fatherWorkOrder = db.getProductWOQuantityOnDate(fatherCatalogNumber , monthDate);
+						QuantityPerDate fatherForecast = db.getProductFCQuantityOnDate(fatherCatalogNumber , monthDate);
 						
 						int quantityToAssociate = fatherCatalogNumberAndQuantityToAssociate.getRight();
 						//customerOrders.setQuantity(customerOrders.getQuantity() + quantityToAssociate * fatherWorkOrder.getQuantity());
 						//supplied.setQuantity(supplied.getQuantity() + quantityToAssociate * fatherSupplied.getQuantity());
-						materialAvailabilityFix += quantityToAssociate * fatherWorkOrder.getQuantity();
+						materialAvailabilityFix += quantityToAssociate * fatherForecast.getQuantity();
 						
 						parentWorkOrder += quantityToAssociate * fatherWorkOrder.getQuantity();
 						parentWorkOrderSupplied += quantityToAssociate * fatherSupplied.getQuantity(); 
@@ -467,10 +470,11 @@ public class Analyzer
 				}
 
 				List<Pair<String, Integer>> fathersCatalogNumberAndQuantityToAssociate = db.getFathers(catalogNumber);
+				
 				List<String> descendantsCatalogNumbers = db.getAllDescendantCatalogNumber(catalogNumber);
 				List<String> fathersOfDescendantsCatalogNumbers = descendantsCatalogNumbers.stream().map(el -> db.getFathers(el).stream().map(pair -> pair.getLeft())
 																		.collect(Collectors.toList())).reduce((a,b) -> {a.addAll(b) ; return a;}).orElse(new ArrayList<>());				
-				List<String> descendantsFathersOfDescendantsCatalogNumbers = fathersOfDescendantsCatalogNumbers.stream().map(el -> db.getAllDescendantCatalogNumber(el)).reduce((a,b) -> {a.addAll(b) ; return a;}).orElse(new ArrayList<>());
+				List<String> descendantsFathersOfDescendantsCatalogNumbers = fathersOfDescendantsCatalogNumbers.stream().map(el ->{ List<String> desCN = db.getAllDescendantCatalogNumber(el); desCN.add(el); return desCN;}).reduce((a,b) -> {a.addAll(b) ; return a;}).orElse(new ArrayList<>());
 				
 				double materialAvailabilityFix = 0;
 				for (Pair<String, Integer> fatherCatalogNumberAndQuantityToAssociate : fathersCatalogNumberAndQuantityToAssociate) 
@@ -787,13 +791,12 @@ public class Analyzer
 		
 		List<MonthDate> monthsToView = monthToCalculate.subList(startIndex, monthToCalculate.size());
 		
-		for (String catalogNumber : catalogNumbers.keySet()) 
+		for (String realCatalogNumber : catalogNumbers.keySet()) 
 		{
-			catalogNumber = db.getDescendantCatalogNumber(catalogNumber);
+			String catalogNumber = db.getDescendantCatalogNumber(realCatalogNumber);
 			String description = catalogNumbers.get(catalogNumber);
 			String customer = db.getCustomerOfCatalogNumber(catalogNumber);
 			Map<MonthDate , Double> quantityPerMonth = new HashMap<>();
-			boolean isSon = isSon(catalogNumber);
 			
 			for (int index = monthsToView.size() - 1 ; index >= 0 ; index--) 
 			{
@@ -804,34 +807,39 @@ public class Analyzer
 				double previousMaterialAvailability = 0;
 				if(index != 0)
 				{
-					ProductColumn previousProductColumn = map.get(monthsToView.get(index - 1)).get(catalogNumber);;
+					ProductColumn previousProductColumn = map.get(monthsToView.get(index - 1)).get(catalogNumber);
 					previousMaterialAvailability = previousProductColumn.getMaterialAvailability();
 				}
 				
 				double quantity = materialAvailability - previousMaterialAvailability;
 				
-				if(isSon)
+				List<Pair<String, Integer>> fathersCatalogNumberAndQuantityToAssociate = db.getFathers(realCatalogNumber);
+				
+				List<String> descendantsCatalogNumbers = db.getAllDescendantCatalogNumber(realCatalogNumber);
+				List<String> fathersOfDescendantsCatalogNumbers = descendantsCatalogNumbers.stream().map(el -> db.getFathers(el).stream().map(pair -> pair.getLeft()).collect(Collectors.toList())).reduce((a,b) -> {a.addAll(b) ; return a;}).orElse(new ArrayList<>());				
+				List<String> descendantsFathersOfDescendantsCatalogNumbers = fathersOfDescendantsCatalogNumbers.stream().map(el ->{ List<String> desCN = db.getAllDescendantCatalogNumber(el); desCN.add(el); return desCN;}).reduce((a,b) -> {a.addAll(b) ; return a;}).orElse(new ArrayList<>());
+				
+				for (Pair<String, Integer> fatherCatalogNumberAndQuantityToAssociate : fathersCatalogNumberAndQuantityToAssociate) 
 				{
-					if(materialAvailability < 0)
-					{
-						if(quantity != 0)
-							quantity = materialAvailability;
-						else if(previousMaterialAvailability < 0)
-							quantity = 0;
-						else
-							quantity = materialAvailability;
-					}
-					else if(quantity < 0)
-							quantity = materialAvailability;
-				}
-				else
-				{
-					if(previousMaterialAvailability < 0)
-						quantity = materialAvailability;
+					List<String> descendantsFatherCatalogNumbers = db.getAllDescendantCatalogNumber(fatherCatalogNumberAndQuantityToAssociate.getLeft());
+					descendantsFatherCatalogNumbers.add(fatherCatalogNumberAndQuantityToAssociate.getLeft());
 					
-					if(materialAvailability < 0)
+					for (String fatherCatalogNumber : descendantsFatherCatalogNumbers) 
 					{
-						quantity = 0;
+						if(descendantsFathersOfDescendantsCatalogNumbers.contains(fatherCatalogNumber))
+							continue;
+				
+						ProductColumn fatherProductColumn = map.get(monthDate).get(fatherCatalogNumber);
+						double fatherMaterialAvailability = fatherProductColumn.getMaterialAvailability();
+						double previousFatherMaterialAvailability = 0;
+						if(index != 0)
+						{
+							ProductColumn previousFatherProductColumn = map.get(monthsToView.get(index - 1)).get(fatherCatalogNumber);
+							previousFatherMaterialAvailability = previousFatherProductColumn.getMaterialAvailability();
+						}
+						
+						int quantityToAssociate = fatherCatalogNumberAndQuantityToAssociate.getRight();
+						quantity -= (fatherMaterialAvailability - previousFatherMaterialAvailability) * quantityToAssociate;
 					}
 				}
 				
