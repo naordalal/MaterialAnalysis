@@ -277,6 +277,7 @@ public class ProductColumn
 			catalogNumbers.add(catalogNumber);
 			break;
 		case SuppliedString:
+			catalogNumbers.add(catalogNumber);
 			break;
 		case OpenCustomerOrderString:
 			break;	

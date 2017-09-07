@@ -34,7 +34,7 @@ import Reports.MrpHeader;
 public class Analyzer 
 {
 	public static final int ConstantColumnsCount = 4;
-	public static final int CatalogColumn = 3;
+	public static final int CategoryColumn = 3;
 	private DataBase db;
 	
 	public Analyzer() 
@@ -162,7 +162,7 @@ public class Analyzer
 		for (Form form : forms) 
 		{
 			if(productsInitDates.containsKey(form.getCatalogNumber()))
-				if(form.getCreateDate().before(productsInitDates.get(form.getCatalogNumber())))
+				if(form.getCreateDate().before(productsInitDates.get(form.getCatalogNumber())) || form.getCreateDate().equals(productsInitDates.get(form.getCatalogNumber())))
 					continue;
 			MonthDate monthDate = new MonthDate(form.getRequestDate());
 			if(newFormsPerDate.containsKey(monthDate))
@@ -228,7 +228,7 @@ public class Analyzer
 				}
 	        	
         		List<MonthDate> removedDateList = currentDateList.stream().filter(date -> !newDateList.contains(date)).collect(Collectors.toList());
-        		removedDateList.stream().forEach(date -> db.removeProductQuantity(entry.getKey() , date));
+        		removedDateList.stream().forEach(date -> db.removeProductQuantity(entry.getKey() , date , type));
 	        }
 	    }
 	    
@@ -237,7 +237,7 @@ public class Analyzer
 	    {
 	        Map.Entry<String,List<QuantityPerDate>> entry = (Map.Entry<String,List<QuantityPerDate>>)productsQuantityIterator.next();
 	        if(!initProductsQuantityPerDate.containsKey(entry.getKey()))
-	        	db.removeProductQuantity(entry.getKey() , null);
+	        	db.removeProductQuantity(entry.getKey() , null , type);
 	    }
 	    
 	}
@@ -693,9 +693,9 @@ public class Analyzer
 				int column = tcl.getColumn();
 				String product = getProductOnRow(tcl.getTable() , row);
 				String category = getCategoryOnRow(tcl.getTable() , row);
-				if(column < Analyzer.CatalogColumn)
+				if(column < Analyzer.CategoryColumn)
 					return null;
-				else if(column == Analyzer.CatalogColumn)
+				else if(column == Analyzer.CategoryColumn)
 				{
 					String descriptionOfCategory = getDescriptionOfCategory(product , category);
 					if(!descriptionOfCategory.trim().equals(""))

@@ -1367,35 +1367,49 @@ public class DataBase {
 		}
 	}
 	
-	public void removeProductQuantity(String CatalogNumber, MonthDate date)
+	public void removeProductQuantity(String CatalogNumber, MonthDate date , FormType type)
 	{
-		String[] tablesName = {"productShipments" ,"productCustomerOrders" ,"productWorkOrder" , "productForecast"}  ;
-
-		for (String tableName : tablesName) 
+		String tableName;
+		switch (type) 
 		{
-			try{
-				
-				connect();
-				stmt = (date == null) ? c.prepareStatement("DELETE FROM " + tableName + " Where CN = ?") : c.prepareStatement("DELETE FROM " + tableName +" Where CN = ? AND date(date) = date(?)");		
-				stmt.setString(1, CatalogNumber);
-				if(date != null)
-					stmt.setString(2, Globals.dateToSqlFormatString(date));
-				
-				stmt.executeUpdate();
-				c.commit();
-				closeConnection();
+			case SHIPMENT:
+				tableName = "productShipments";
+				break;
+			case PO:
+				tableName = "productCustomerOrders";
+				break;
+			case WO:
+				tableName = "productWorkOrder";
+				break;
+			case FC:
+				tableName = "productForecast";
+				break;
+			default:
+				return;
+		}
+
+		try{
 			
+			connect();
+			stmt = (date == null) ? c.prepareStatement("DELETE FROM " + tableName + " Where CN = ?") : c.prepareStatement("DELETE FROM " + tableName +" Where CN = ? AND date(date) = date(?)");		
+			stmt.setString(1, CatalogNumber);
+			if(date != null)
+				stmt.setString(2, Globals.dateToSqlFormatString(date));
+			
+			stmt.executeUpdate();
+			c.commit();
+			closeConnection();
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
 			}
-			catch(Exception e)
-			{
-				e.printStackTrace();
-				try {
-					c.rollback();
-				} catch (SQLException e1) {
-					e1.printStackTrace();
-				}
-				closeConnection();
-			}
+			closeConnection();
 		}
 		
 	}
@@ -1643,10 +1657,11 @@ public class DataBase {
 			
 			connect();
 			stmt = c.prepareStatement("SELECT * FROM Shipments where CN = ? AND date(shipmentDate) >= date(?) AND date(shipmentDate) < date(?) "
-					+ "AND date(shipmentDate) >= (SELECT COALESCE(MAX(date(initDate)), date('0001-01-01')) FROM InitProductShipments) order by shipmentDate");
+					+ "AND date(shipmentDate) > (SELECT COALESCE(MAX(date(initDate)), date('0001-01-01')) FROM InitProductShipments where CN = ?) order by shipmentDate");
 			stmt.setString(1, catalogNumber);
 			stmt.setString(2, Globals.dateToSqlFormatString(date));
 			stmt.setString(3, Globals.dateToSqlFormatString(Globals.addMonths(date, 1)));
+			stmt.setString(4, catalogNumber);
 			
 			ResultSet rs = stmt.executeQuery();
 			
@@ -1691,11 +1706,12 @@ public class DataBase {
 			
 			connect();
 			stmt = c.prepareStatement("SELECT * FROM CustomerOrders where CN = ? AND date(guaranteedDate) >= date(?) AND date(guaranteedDate) < date(?) "
-					+ "AND date(orderDate) >= (SELECT COALESCE(MAX(date(initDate)), date('0001-01-01')) FROM InitProductCustomerOrders) order by guaranteedDate");
+					+ "AND date(orderDate) > (SELECT COALESCE(MAX(date(initDate)), date('0001-01-01')) FROM InitProductCustomerOrders WHERE CN = ?) order by guaranteedDate");
 			
 			stmt.setString(1, catalogNumber);
 			stmt.setString(2, Globals.dateToSqlFormatString(date));
 			stmt.setString(3, Globals.dateToSqlFormatString(Globals.addMonths(date, 1)));
+			stmt.setString(4, catalogNumber);
 			ResultSet rs = stmt.executeQuery();
 			
 			while(rs.next())
@@ -1740,11 +1756,12 @@ public class DataBase {
 			
 			connect();
 			stmt = c.prepareStatement("SELECT * FROM WorkOrder where CN = ? AND date(date) >= date(?) AND date(date) < date(?) "
-					+ "AND date(date) >= (SELECT COALESCE(MAX(date(initDate)), date('0001-01-01')) FROM InitProductWorkOrder) order by date");
+					+ "AND date(date) > (SELECT COALESCE(MAX(date(initDate)), date('0001-01-01')) FROM InitProductWorkOrder where CN = ?) order by date");
 			
 			stmt.setString(1, catalogNumber);
 			stmt.setString(2, Globals.dateToSqlFormatString(date));
 			stmt.setString(3, Globals.dateToSqlFormatString(Globals.addMonths(date, 1)));
+			stmt.setString(4, catalogNumber);
 			ResultSet rs = stmt.executeQuery();
 			
 			while(rs.next())
@@ -1786,11 +1803,12 @@ public class DataBase {
 			
 			connect();
 			stmt = c.prepareStatement("SELECT * FROM Forecast where CN = ? AND date(requireDate) >= date(?) AND date(requireDate) < date(?) "
-					+ "AND date(initDate) >= (SELECT COALESCE(MAX(date(initDate)), date('0001-01-01')) FROM InitProductForecast) order by requireDate");
+					+ "AND date(initDate) > (SELECT COALESCE(MAX(date(initDate)), date('0001-01-01')) FROM InitProductForecast where CN = ?) order by requireDate");
 			
 			stmt.setString(1, catalogNumber);
 			stmt.setString(2, Globals.dateToSqlFormatString(date));
 			stmt.setString(3, Globals.dateToSqlFormatString(Globals.addMonths(date, 1)));
+			stmt.setString(4, catalogNumber);
 			ResultSet rs = stmt.executeQuery();
 			
 			while(rs.next())

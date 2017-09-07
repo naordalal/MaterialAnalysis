@@ -656,36 +656,50 @@ public class DataBase
 		return getInitProductsFormDates(FormType.SHIPMENT);
 	}
 
-	public void removeProductQuantity(String CatalogNumber, MonthDate date)
+	public void removeProductQuantity(String CatalogNumber, MonthDate date , FormType type)
 	{
-		String[] tablesName = {"productShipments" ,"productCustomerOrders" ,"productWorkOrder" , "productForecast"}  ;
-
-		for (String tableName : tablesName) 
+		String tableName;
+		switch (type) 
 		{
-			try{
-				
-				connect();
-				stmt = (date == null) ? c.prepareStatement("DELETE FROM " + tableName +" Where CN = ?") : c.prepareStatement("DELETE FROM " + tableName +" Where CN = ? AND date(date) = date(?)");
-				stmt.setString(1, CatalogNumber);
-				if(date != null)
-					stmt.setString(2, Globals.dateToSqlFormatString(date));
-				
-				stmt.executeUpdate();
-				
-				c.commit();
-				closeConnection();
+			case SHIPMENT:
+				tableName = "productShipments";
+				break;
+			case PO:
+				tableName = "productCustomerOrders";
+				break;
+			case WO:
+				tableName = "productWorkOrder";
+				break;
+			case FC:
+				tableName = "productForecast";
+				break;
+			default:
+				return;
+		}
+		
+		try{
 			
+			connect();
+			stmt = (date == null) ? c.prepareStatement("DELETE FROM " + tableName +" Where CN = ?") : c.prepareStatement("DELETE FROM " + tableName +" Where CN = ? AND date(date) = date(?)");
+			stmt.setString(1, CatalogNumber);
+			if(date != null)
+				stmt.setString(2, Globals.dateToSqlFormatString(date));
+			
+			stmt.executeUpdate();
+			
+			c.commit();
+			closeConnection();
+		
+		}
+		catch(Exception e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
 			}
-			catch(Exception e)
-			{
-				try {
-					c.rollback();
-				} catch (SQLException e1) {
-					e1.printStackTrace();
-				}
-				e.printStackTrace();
-				closeConnection();
-			}
+			e.printStackTrace();
+			closeConnection();
 		}
 		
 	}
