@@ -32,15 +32,15 @@ public class Analyzer
 	
 	public void analyze() throws IOException
 	{
-	//	db.removeHistoryOfForm(FormType.PO, Globals.monthsToIgnore);
-	//	db.removeHistoryOfForm(FormType.WO, Globals.monthsToIgnore);
+		db.removeHistoryOfForm(FormType.PO, Globals.monthsToIgnore);
+		db.removeHistoryOfForm(FormType.WO, Globals.monthsToIgnore);
 		
-	//	analyzeWO(globals.WOFilePath);
-	//	analyzeCustomerOrders(globals.customerOrdersFilePath);
+		analyzeWO(globals.WOFilePath);
+		analyzeCustomerOrders(globals.customerOrdersFilePath);
 		analyzeShipments(globals.shipmentsFilePath);
 		
-	//	updateProductQuantities(db.getAllPO(), db.getAllProductsPOQuantityPerDate(), db.getInitProductsPOQuantityPerDate() , db.getInitProductsPODates(),  FormType.PO);
-	//	updateProductQuantities(db.getAllWO(), db.getAllProductsWOQuantityPerDate(),db.getInitProductsWOQuantityPerDate(),db.getInitProductsWODates() , FormType.WO);
+		updateProductQuantities(db.getAllPO(), db.getAllProductsPOQuantityPerDate(), db.getInitProductsPOQuantityPerDate() , db.getInitProductsPODates(),  FormType.PO);
+		updateProductQuantities(db.getAllWO(), db.getAllProductsWOQuantityPerDate(),db.getInitProductsWOQuantityPerDate(),db.getInitProductsWODates() , FormType.WO);
 		updateProductQuantities(db.getAllShipments(), db.getAllProductsShipmentQuantityPerDate(),db.getInitProductsShipmentQuantityPerDate(),db.getInitProductsShipmentsDates() , FormType.SHIPMENT);
 		
 		updateMap();
