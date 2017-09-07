@@ -178,6 +178,8 @@ public class LoginFrame implements ActionListener
 				{
 					UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
 					new LoginFrame();
+					//Analyzer analyzer = new Analyzer();
+					//analyzer.updateProductQuantities(null, false);
 					//new AddProductFrame("1");
 					/*List<FormType> formsType = new ArrayList<>();
 					formsType.add(FormType.FC);

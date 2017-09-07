@@ -32,15 +32,15 @@ public class Analyzer
 	
 	public void analyze() throws IOException
 	{
-		db.removeHistoryOfForm(FormType.PO, Globals.monthsToIgnore);
-		db.removeHistoryOfForm(FormType.WO, Globals.monthsToIgnore);
+	//	db.removeHistoryOfForm(FormType.PO, Globals.monthsToIgnore);
+	//	db.removeHistoryOfForm(FormType.WO, Globals.monthsToIgnore);
 		
-		analyzeWO(globals.WOFilePath);
-		analyzeCustomerOrders(globals.customerOrdersFilePath);
+	//	analyzeWO(globals.WOFilePath);
+	//	analyzeCustomerOrders(globals.customerOrdersFilePath);
 		analyzeShipments(globals.shipmentsFilePath);
 		
-		updateProductQuantities(db.getAllPO(), db.getAllProductsPOQuantityPerDate(), db.getInitProductsPOQuantityPerDate() , db.getInitProductsPODates(),  FormType.PO);
-		updateProductQuantities(db.getAllWO(), db.getAllProductsWOQuantityPerDate(),db.getInitProductsWOQuantityPerDate(),db.getInitProductsWODates() , FormType.WO);
+	//	updateProductQuantities(db.getAllPO(), db.getAllProductsPOQuantityPerDate(), db.getInitProductsPOQuantityPerDate() , db.getInitProductsPODates(),  FormType.PO);
+	//	updateProductQuantities(db.getAllWO(), db.getAllProductsWOQuantityPerDate(),db.getInitProductsWOQuantityPerDate(),db.getInitProductsWODates() , FormType.WO);
 		updateProductQuantities(db.getAllShipments(), db.getAllProductsShipmentQuantityPerDate(),db.getInitProductsShipmentQuantityPerDate(),db.getInitProductsShipmentsDates() , FormType.SHIPMENT);
 		
 		updateMap();
@@ -119,6 +119,7 @@ public class Analyzer
 	
 	private void analyzeShipments(String filePath) throws IOException 
 	{
+		Date maximumShipmentDate = db.getMaximumShipmentDate();
 		int customerColumn = -1 , orderIdColumn = -1 , orderCustomerIdColumn = -1 , catalogNumberColumn = -1 , quantityColumn = -1 , shipmentDateColumn = -1 , descriptionColumn = -1;
 		for (String line : Files.readAllLines(Paths.get(filePath),Charset.forName(globals.charsetName)))
 		{
@@ -142,7 +143,6 @@ public class Analyzer
 				Date date = Globals.parseDate(columns.get(shipmentDateColumn));
 				if(date == null || columns.get(catalogNumberColumn).trim().equals("") || !NumberUtils.isCreatable(columns.get(quantityColumn)))
 					continue;
-				Date maximumShipmentDate = db.getMaximumShipmentDate();
 				if(maximumShipmentDate == null || maximumShipmentDate.before(date))
 					db.addShipment(columns.get(customerColumn), columns.get(orderIdColumn), columns.get(orderCustomerIdColumn) ,columns.get(catalogNumberColumn)
 							, columns.get(quantityColumn), columns.get(shipmentDateColumn), columns.get(descriptionColumn));

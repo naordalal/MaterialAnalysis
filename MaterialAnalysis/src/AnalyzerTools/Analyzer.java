@@ -124,20 +124,20 @@ public class Analyzer
 	{
 		switch (type) 
 		{
-		case PO:
-			updateProductQuantities(db.getAllPO(catalogNumber , ignorePast), db.getAllProductsPOQuantityPerDate(catalogNumber , ignorePast),db.getInitProductsPOQuantityPerDate(catalogNumber),db.getInitProductsPODates(catalogNumber) , FormType.PO);
-			break;
-		case WO:
-			updateProductQuantities(db.getAllWO(catalogNumber , ignorePast), db.getAllProductsWOQuantityPerDate(catalogNumber , ignorePast),db.getInitProductsWOQuantityPerDate(catalogNumber),db.getInitProductsWODates(catalogNumber) , FormType.WO);
-			break;
-		case SHIPMENT:
-			updateProductQuantities(db.getAllShipments(catalogNumber , ignorePast), db.getAllProductsShipmentQuantityPerDate(catalogNumber , ignorePast),db.getInitProductsShipmentsQuantityPerDate(catalogNumber),db.getInitProductsShipmentsDates(catalogNumber) , FormType.SHIPMENT);
-			break;
-		case FC:
-			updateProductQuantities(db.getAllFC(catalogNumber, ignorePast), db.getAllProductsFCQuantityPerDate(catalogNumber , ignorePast),db.getInitProductsFCQuantityPerDate(catalogNumber),db.getInitProductsFCDates(catalogNumber) , FormType.FC);
-			break;
-		default:
-			break;
+			case PO:
+				updateProductQuantities(db.getAllPO(catalogNumber , ignorePast), db.getAllProductsPOQuantityPerDate(catalogNumber , ignorePast),db.getInitProductsPOQuantityPerDate(catalogNumber),db.getInitProductsPODates(catalogNumber) , FormType.PO);
+				break;
+			case WO:
+				updateProductQuantities(db.getAllWO(catalogNumber , ignorePast), db.getAllProductsWOQuantityPerDate(catalogNumber , ignorePast),db.getInitProductsWOQuantityPerDate(catalogNumber),db.getInitProductsWODates(catalogNumber) , FormType.WO);
+				break;
+			case SHIPMENT:
+				updateProductQuantities(db.getAllShipments(catalogNumber , ignorePast), db.getAllProductsShipmentQuantityPerDate(catalogNumber , ignorePast),db.getInitProductsShipmentsQuantityPerDate(catalogNumber),db.getInitProductsShipmentsDates(catalogNumber) , FormType.SHIPMENT);
+				break;
+			case FC:
+				updateProductQuantities(db.getAllFC(catalogNumber, ignorePast), db.getAllProductsFCQuantityPerDate(catalogNumber , ignorePast),db.getInitProductsFCQuantityPerDate(catalogNumber),db.getInitProductsFCDates(catalogNumber) , FormType.FC);
+				break;
+			default:
+				break;
 		}
 		
 		if(!ignorePast)
@@ -784,10 +784,10 @@ public class Analyzer
 		MonthDate minimumDate = db.getMinimumMapDate();
 		List<MonthDate> monthToCalculate = createDates(minimumDate , maximumDate);
 		
-		int indexOfToday = monthToCalculate.indexOf(new MonthDate(Globals.getTodayDate()));
+		int indexOfPreviousMonth = monthToCalculate.indexOf(new MonthDate(Globals.addMonths(Globals.getTodayDate() , -1)));
 		int startIndex = 0;
-		if(indexOfToday != -1)
-			startIndex = indexOfToday;
+		if(indexOfPreviousMonth != -1)
+			startIndex = indexOfPreviousMonth;
 		
 		List<MonthDate> monthsToView = monthToCalculate.subList(startIndex, monthToCalculate.size());
 		
@@ -798,18 +798,14 @@ public class Analyzer
 			String customer = db.getCustomerOfCatalogNumber(catalogNumber);
 			Map<MonthDate , Double> quantityPerMonth = new HashMap<>();
 			
-			for (int index = monthsToView.size() - 1 ; index >= 0 ; index--) 
+			for (int index = monthsToView.size() - 1 ; index > 0 ; index--) 
 			{
 				MonthDate monthDate = monthsToView.get(index);
 				ProductColumn productColumn = map.get(monthDate).get(catalogNumber);
 				double materialAvailability = productColumn.getMaterialAvailability();
 				
-				double previousMaterialAvailability = 0;
-				if(index != 0)
-				{
-					ProductColumn previousProductColumn = map.get(monthsToView.get(index - 1)).get(catalogNumber);
-					previousMaterialAvailability = previousProductColumn.getMaterialAvailability();
-				}
+				ProductColumn previousProductColumn = map.get(monthsToView.get(index - 1)).get(catalogNumber);
+				double previousMaterialAvailability = previousProductColumn.getMaterialAvailability();
 				
 				double quantity = materialAvailability - previousMaterialAvailability;
 				

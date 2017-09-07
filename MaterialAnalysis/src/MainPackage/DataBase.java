@@ -1146,7 +1146,7 @@ public class DataBase {
 			{
 				int id = rs.getInt("ID");
 				String customer = rs.getString("customer");
-				catalogNumber = (catalogNumber == null) ? rs.getString("CN") : catalogNumber;
+				catalogNumber = rs.getString("CN");
 				String description = rs.getString("description");
 				String quantity = rs.getString("quantity");
 				java.util.Date initDate = Globals.parseDateFromSqlFormat(rs.getString("initDate"));
@@ -2109,7 +2109,7 @@ public class DataBase {
 			{
 				int id = rs.getInt("id");
 				String woNumber = rs.getString("WOId");
-				catalogNumber = (catalogNumber == null) ? rs.getString("CN") : catalogNumber;
+				catalogNumber = rs.getString("CN");
 				String quantity = rs.getString("quantity");
 				java.util.Date orderDate = Globals.parseDateFromSqlFormat(rs.getString("date"));
 				
@@ -2165,7 +2165,7 @@ public class DataBase {
 				int id = rs.getInt("id");
 				String customerOrderNumber = rs.getString("customerOrderNumber");
 				String orderNumber = rs.getString("orderNumber");
-				catalogNumber = (catalogNumber == null) ? rs.getString("CN") : catalogNumber;
+				catalogNumber = rs.getString("CN");
 				
 				String quantity = rs.getString("quantity");
 				String price = rs.getString("price");
@@ -2248,7 +2248,7 @@ public class DataBase {
 				int id = rs.getInt("id");
 				String orderId = rs.getString("orderId");
 				String orderCustomerId = rs.getString("orderCustomerId");
-				catalogNumber = (catalogNumber == null) ? rs.getString("CN") : catalogNumber;			
+				catalogNumber = rs.getString("CN");			
 				String quantity = rs.getString("quantity");
 				String shipmentDate = rs.getString("shipmentDate");
 				
@@ -2322,7 +2322,7 @@ public class DataBase {
 			
 			while(rs.next())
 			{
-				catalogNumber = (catalogNumber == null) ? rs.getString("CN") : catalogNumber;
+				catalogNumber = rs.getString("CN");
 				String quantity = rs.getString("quantity");
 				MonthDate requireDate = new MonthDate(Globals.parseDateFromSqlFormat(rs.getString("date")));
 				
@@ -2404,7 +2404,7 @@ public class DataBase {
 
 			while(rs.next())
 			{
-				catalogNumber = (catalogNumber == null) ? rs.getString("CN") : catalogNumber;
+				catalogNumber = rs.getString("CN");
 				String quantity = rs.getString("quantity");
 				MonthDate requireDate = new MonthDate(Globals.parseDateFromSqlFormat(rs.getString("requireDate")));
 				
@@ -2491,7 +2491,7 @@ public class DataBase {
 			
 			while(rs.next())
 			{
-				catalogNumber = (catalogNumber == null) ? rs.getString("CN") : catalogNumber;
+				catalogNumber = rs.getString("CN");
 				java.util.Date initDate = Globals.parseDateFromSqlFormat(rs.getString("initDate"));
 				
 				productFormQuantityPerDate.put(catalogNumber, initDate);
