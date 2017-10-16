@@ -39,9 +39,9 @@ public class Analyzer
 		analyzeCustomerOrders(globals.customerOrdersFilePath);
 		analyzeShipments(globals.shipmentsFilePath);
 		
-		updateProductQuantities(db.getAllPO(), db.getAllProductsPOQuantityPerDate(), db.getInitProductsPOQuantityPerDate() , db.getInitProductsPODates(),  FormType.PO);
-		updateProductQuantities(db.getAllWO(), db.getAllProductsWOQuantityPerDate(),db.getInitProductsWOQuantityPerDate(),db.getInitProductsWODates() , FormType.WO);
-		updateProductQuantities(db.getAllShipments(), db.getAllProductsShipmentQuantityPerDate(),db.getInitProductsShipmentQuantityPerDate(),db.getInitProductsShipmentsDates() , FormType.SHIPMENT);
+		updateProductQuantities(db.getAllPO(), db.getAllProductsPOQuantityPerDate(), db.getInitProductsPODates(),  FormType.PO);
+		updateProductQuantities(db.getAllWO(), db.getAllProductsWOQuantityPerDate(),db.getInitProductsWODates() , FormType.WO);
+		updateProductQuantities(db.getAllShipments(), db.getAllProductsShipmentQuantityPerDate(),db.getInitProductsShipmentsDates() , FormType.SHIPMENT);
 		
 		updateMap();
 	}
@@ -151,7 +151,7 @@ public class Analyzer
 	}
 	
 	private void updateProductQuantities(List<? extends Form> forms ,  Map<String, List<QuantityPerDate>> productsQuantityPerDate 
-			, Map<String , List<QuantityPerDate>> initProductsQuantityPerDate, Map<String , Date> productsInitDates ,  FormType type)
+												,Map<String , Date> productsInitDates ,  FormType type)
 	{
 		Map<MonthDate,List<Form>> newFormsPerDate = new HashMap<>();
 		
@@ -173,7 +173,8 @@ public class Analyzer
 
 		
 		Iterator<Entry<MonthDate, List<Form>>> it = newFormsPerDate.entrySet().iterator();
-	    while (it.hasNext()) 
+		Map<String , List<QuantityPerDate>> initProductsQuantityPerDate = new HashMap<>(); 
+		while (it.hasNext()) 
 	    {
 	        Map.Entry<MonthDate,List<Form>> entry = (Map.Entry<MonthDate,List<Form>>)it.next();
 	        for (Form form : entry.getValue()) 
@@ -280,12 +281,37 @@ public class Analyzer
 		
 		for (String catalogNumber : catalogNumbersSorted) 
 		{
+			List<QuantityPerDate> initFCProductsQuantityPerDate = db.getInitProductsFCQuantityPerDate(catalogNumber).getOrDefault(catalogNumber, new ArrayList<>());
+			List<QuantityPerDate> initWOProductsQuantityPerDate = db.getInitProductsWOQuantityPerDate(catalogNumber).getOrDefault(catalogNumber, new ArrayList<>());
+			List<QuantityPerDate> initPOProductsQuantityPerDate = db.getInitProductsPOQuantityPerDate(catalogNumber).getOrDefault(catalogNumber, new ArrayList<>());
+			List<QuantityPerDate> initShipmentProductsQuantityPerDate = db.getInitProductsShipmentsQuantityPerDate(catalogNumber).getOrDefault(catalogNumber, new ArrayList<>());
+			
+			List<MonthDate> initFCProductsDates = initFCProductsQuantityPerDate.stream().map(pc -> pc.getDate()).collect(Collectors.toList());
+			List<MonthDate> initWOProductsDates = initWOProductsQuantityPerDate.stream().map(pc -> pc.getDate()).collect(Collectors.toList());
+			List<MonthDate> initPOProductsDates = initPOProductsQuantityPerDate.stream().map(pc -> pc.getDate()).collect(Collectors.toList());
+			List<MonthDate> initShipmentProductsDates = initShipmentProductsQuantityPerDate.stream().map(pc -> pc.getDate()).collect(Collectors.toList());
+			
 			for (MonthDate monthDate : monthToCalculate) 
 			{
 				QuantityPerDate supplied = db.getProductShipmentQuantityOnDate(catalogNumber , monthDate);
 				QuantityPerDate customerOrders = db.getProductPOQuantityOnDate(catalogNumber , monthDate);
 				QuantityPerDate workOrder = db.getProductWOQuantityOnDate(catalogNumber , monthDate);
 				QuantityPerDate forecast = db.getProductFCQuantityOnDate(catalogNumber , monthDate);
+				
+				int indexOfFC = initFCProductsDates.indexOf(monthDate);
+				int indexOfWO = initWOProductsDates.indexOf(monthDate);
+				int indexOfPO = initPOProductsDates.indexOf(monthDate);
+				int indexOfShipment = initShipmentProductsDates.indexOf(monthDate);
+				
+				double initFC = (indexOfFC < 0) ? 0 : initFCProductsQuantityPerDate.get(indexOfFC).getQuantity();
+				double initWO = (indexOfWO < 0) ? 0 : initWOProductsQuantityPerDate.get(indexOfWO).getQuantity();
+				double initPO = (indexOfPO < 0) ? 0 : initPOProductsQuantityPerDate.get(indexOfPO).getQuantity();
+				double initShipment = (indexOfShipment < 0) ? 0 : initShipmentProductsQuantityPerDate.get(indexOfShipment).getQuantity();
+				
+				forecast.addQuantity(initFC);
+				workOrder.addQuantity(initWO);
+				customerOrders.addQuantity(initPO);
+				supplied.addQuantity(initShipment);
 				
 				double materialAvailability = 0 ,workOrderAfterSupplied = 0 , openCustomerOrder = 0 , workOrderAfterCustomerOrderAndParentWorkOrder= 0 ,
 						parentWorkOrder = 0 , parentWorkOrderSupplied = 0;

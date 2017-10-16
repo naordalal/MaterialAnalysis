@@ -18,8 +18,11 @@ public class Globals
 	
 	public final String shipmentsFilePath = "C:\\Users\\naordalal\\Desktop\\SHIPMENTS.txt";
 	public final String customerOrdersFilePath = "C:\\Users\\naordalal\\Desktop\\PO.txt";
-	public final String WOFilePath = "C:\\Users\\naordalal\\Desktop\\WO.txt";;
+	public final String WOFilePath = "C:\\Users\\naordalal\\Desktop\\WO.txt";
 	
+	/*public final String shipmentsFilePath = "O:\\Purchasing\\PO_FollowUp\\Material Analysis\\MAP system\\Reports\\SHIPMENTS.txt";
+	public final String customerOrdersFilePath = "O:\\Purchasing\\PO_FollowUp\\Material Analysis\\MAP system\\Reports\\PO.txt";
+	public final String WOFilePath = "O:\\Purchasing\\PO_FollowUp\\Material Analysis\\MAP system\\Reports\\WO.txt";*/
 
 	public final String woNumberColumn = "מספר פקודה";
 	public final String catalogNumberColumn = "מקט";

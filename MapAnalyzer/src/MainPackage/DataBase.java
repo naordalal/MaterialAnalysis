@@ -523,7 +523,7 @@ public class DataBase
 		return getAllProductsFormQuantityPerDate(FormType.WO);
 	}
 
-	public Map<String,List<QuantityPerDate>> getInitProductsFormQuantityPerDate(FormType type)
+	public Map<String,List<QuantityPerDate>> getInitProductsFormQuantityPerDate(FormType type , String catalogNumber)
 	{
 		Map<String, List<QuantityPerDate>> productFormQuantityPerDate = new HashMap<>();
 		String tableName;
@@ -539,6 +539,9 @@ public class DataBase
 			case WO:
 				tableName = "InitProductWorkOrder";
 				break;
+			case FC:
+				tableName = "InitProductForecast";
+				break;
 			default:
 				return new HashMap<>();
 		}
@@ -546,12 +549,14 @@ public class DataBase
 		try{
 			
 			connect();
-			stmt = c.prepareStatement("SELECT * FROM " + tableName);		
+			stmt = (catalogNumber == null) ? c.prepareStatement("SELECT * FROM " + tableName) : c.prepareStatement("SELECT * FROM " + tableName +" where CN = ?");
+			if(catalogNumber != null)
+				stmt.setString(1, catalogNumber);		
 			ResultSet rs = stmt.executeQuery();
 			
 			while(rs.next())
 			{
-				String catalogNumber = rs.getString("CN");
+				catalogNumber = rs.getString("CN");
 				String quantity = rs.getString("quantity");
 				MonthDate requireDate = new MonthDate(Globals.parseDateFromSqlFormat(rs.getString("requireDate")));
 				
@@ -580,19 +585,24 @@ public class DataBase
 		}
 	}
 	
-	public Map<String, List<QuantityPerDate>> getInitProductsPOQuantityPerDate() 
+	public Map<String, List<QuantityPerDate>> getInitProductsFCQuantityPerDate(String catalogNumber) 
 	{
-		return getInitProductsFormQuantityPerDate(FormType.PO);
+		return getInitProductsFormQuantityPerDate(FormType.FC , catalogNumber);
+	}
+	
+	public Map<String, List<QuantityPerDate>> getInitProductsPOQuantityPerDate(String catalogNumber) 
+	{
+		return getInitProductsFormQuantityPerDate(FormType.PO , catalogNumber);
 	}
 
-	public Map<String, List<QuantityPerDate>> getInitProductsWOQuantityPerDate() 
+	public Map<String, List<QuantityPerDate>> getInitProductsWOQuantityPerDate(String catalogNumber) 
 	{
-		return getInitProductsFormQuantityPerDate(FormType.WO);
+		return getInitProductsFormQuantityPerDate(FormType.WO , catalogNumber);
 	}
 
-	public Map<String, List<QuantityPerDate>> getInitProductsShipmentQuantityPerDate() 
+	public Map<String, List<QuantityPerDate>> getInitProductsShipmentsQuantityPerDate(String catalogNumber) 
 	{
-		return getInitProductsFormQuantityPerDate(FormType.SHIPMENT);
+		return getInitProductsFormQuantityPerDate(FormType.SHIPMENT , catalogNumber);
 	}
 
 	public Map<String, Date> getInitProductsFormDates(FormType type)
