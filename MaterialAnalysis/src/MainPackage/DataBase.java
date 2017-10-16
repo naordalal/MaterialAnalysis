@@ -1992,7 +1992,7 @@ public class DataBase {
 				}
 				
 				closeConnection();
-				insertNewInitProduct(catalogNumber , quantity , Globals.parseDateToSqlFormatString(initDate) , Globals.parseDateToSqlFormatString(requireDate) , type);
+				insertNewInitProduct(catalogNumber , quantity , initDate , requireDate , type);
 				connect();
 			}
 
