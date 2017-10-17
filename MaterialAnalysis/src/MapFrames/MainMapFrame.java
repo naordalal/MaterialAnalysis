@@ -5,7 +5,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import javax.mail.Authenticator;
@@ -47,7 +49,9 @@ public class MainMapFrame implements ActionListener
 	private JButton initProductViewButton;
 	private DataBase db;
 	private Authenticator auth;
+	private JLabel lastLoadLabel;
 	private JButton mrpHeaderViewButton;
+	private JButton loadingReportsButton;
 
 	public MainMapFrame(String userName, String email , Authenticator auth , CallBack<Integer> callBack) 
 	{
@@ -96,6 +100,12 @@ public class MainMapFrame implements ActionListener
 		panel.setLayout(null);
 		frame.add(panel);
 		
+		String lastLoadDate = (db.getLastLoad() == null) ? "No Loaded Yet" : Globals.dateWithoutHourToString(db.getLastLoad());
+		lastLoadLabel = new JLabel("<html><b> Updated to date :  " + lastLoadDate + "</b></html>");
+		lastLoadLabel.setLocation(10, 0);
+		lastLoadLabel.setSize(200, 30);
+		panel.add(lastLoadLabel);
+		
 		mapButton = new JButton("<html><b>Map View</b></html>");
 		mapButton.setLocation(20 , 30);
 		mapButton.setSize(100, 60);
@@ -137,6 +147,12 @@ public class MainMapFrame implements ActionListener
 		mrpHeaderViewButton.setSize(100, 60);
 		mrpHeaderViewButton.addActionListener(this);
 		panel.add(mrpHeaderViewButton);
+		
+		loadingReportsButton = new JButton("<html><b>Load Reports</b></html>");
+		loadingReportsButton.setLocation(380 , 100);
+		loadingReportsButton.setSize(100, 60);
+		loadingReportsButton.addActionListener(this);
+		panel.add(loadingReportsButton);
 				
 		copyRight = new JLabel("<html><b>\u00a9 Naor Dalal</b></html>");
 		copyRight.setLocation(30 , 430);
@@ -144,6 +160,7 @@ public class MainMapFrame implements ActionListener
 		panel.add(copyRight);
 		
 		frame.setVisible(true);
+		
 	}
 
 	@Override
@@ -211,6 +228,18 @@ public class MainMapFrame implements ActionListener
 			ReportViewFrame mrpHeaderFrame = createReportViewFrame(mrpHeaders , "Mrp Header");
 			
 			mrpHeaderFrame.show();
+		}
+		else if(event.getSource() == loadingReportsButton)
+		{			
+			Runtime runTime = Runtime.getRuntime();
+			try 
+			{
+				runTime.exec("java -jar \"" + Globals.MapAnalyzerPath + "\"");
+			} 
+			catch (IOException e1) 
+			{
+				e1.printStackTrace();
+			}
 		}
 		
 		frame.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));

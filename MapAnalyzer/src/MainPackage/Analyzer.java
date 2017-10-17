@@ -1,5 +1,6 @@
 package MainPackage;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -23,6 +24,9 @@ public class Analyzer
 {
 	private Globals globals;
 	private DataBase db;
+	private String woFilePath;
+	private String customerOrdersFilePath;
+	private String shipmentsFilePath;
 
 	public Analyzer() 
 	{
@@ -30,14 +34,33 @@ public class Analyzer
 		db = new DataBase();
 	}
 	
+	public Analyzer(String woFilePath , String customerOrdersFilePath , String shipmentsFilePath) 
+	{
+		globals = new Globals();
+		db = new DataBase();
+		this.woFilePath = woFilePath;
+		this.customerOrdersFilePath = customerOrdersFilePath;
+		this.shipmentsFilePath = shipmentsFilePath;
+	}
+
 	public void analyze() throws IOException
 	{
 		db.removeHistoryOfForm(FormType.PO, Globals.monthsToIgnore);
 		db.removeHistoryOfForm(FormType.WO, Globals.monthsToIgnore);
 		
-		analyzeWO(globals.WOFilePath);
-		analyzeCustomerOrders(globals.customerOrdersFilePath);
-		analyzeShipments(globals.shipmentsFilePath);
+		if(woFilePath == null)
+		{
+			analyzeWO(globals.WOFilePath);
+			analyzeCustomerOrders(globals.customerOrdersFilePath);
+			analyzeShipments(globals.shipmentsFilePath);
+		}
+		else
+		{
+			analyzeWO(woFilePath);
+			analyzeCustomerOrders(customerOrdersFilePath);
+			analyzeShipments(shipmentsFilePath);
+		}
+
 		
 		updateProductQuantities(db.getAllPO(), db.getAllProductsPOQuantityPerDate(), db.getInitProductsPODates(),  FormType.PO);
 		updateProductQuantities(db.getAllWO(), db.getAllProductsWOQuantityPerDate(),db.getInitProductsWODates() , FormType.WO);

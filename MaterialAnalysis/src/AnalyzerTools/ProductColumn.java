@@ -320,7 +320,15 @@ public class ProductColumn
 				description.append("Work Order");
 				break;
 			case WorkOrderAfterSuppliedString:
-				description.append("Previous Work Order After Supplied + Work Order - Supplied");
+				description.append("Previous Work Order After Supplied + Work Order - Supplied ");
+				fathers = db.getFathers(catalogNumber);
+				for (Pair<String, Integer> father : fathers) 
+				{
+					description.append("- Supplied Of ");
+					description.append(father.getLeft() + "(father catalog number) * ");
+					description.append(father.getRight());
+					description.append("\n");
+				}
 				break;
 			case CustomerOrdersString:
 				description.append("Customer Orders ");

@@ -1,6 +1,7 @@
 package MainPackage;
 
-import java.io.IOException;
+import java.awt.EventQueue;
+import javax.swing.UIManager;
 
 public class Main {
 
@@ -18,12 +19,28 @@ public class Main {
 			e.printStackTrace();
 		}*/
 		 
-		 Analyzer analyzer = new Analyzer();
+		 /*Analyzer analyzer = new Analyzer();
 		 try {
 			analyzer.analyze();
 		} catch (IOException e) {
 			e.printStackTrace();
-		}
+		}*/
+		
+		EventQueue.invokeLater(new Runnable() 
+		{
+			public void run() 
+			{
+				try 
+				{
+					UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+					new LoadingFrame();
+				} 
+				catch (Exception e) 
+				{
+					e.printStackTrace();
+				}
+			}
+		});
 	}
 
 }

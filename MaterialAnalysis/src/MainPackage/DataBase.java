@@ -3438,6 +3438,35 @@ public class DataBase {
 		}
 	}
 	
+	public java.util.Date getLastLoad() 
+	{
+		java.util.Date lastLoadDate = null;
+		
+		try{
+			
+			connect();
+			stmt =  c.prepareStatement("SELECT Max(date(date)) AS date FROM (SELECT shipmentDate AS date FROM Shipments UNION SELECT date FROM WorkOrder UNION SELECT orderDate AS date FROM CustomerOrders)");
+			ResultSet rs = stmt.executeQuery();
+
+			if(rs.next())
+			{
+				String date = rs.getString("date");
+				if(date != null && !date.trim().equals(""))
+					lastLoadDate = Globals.parseDateFromSqlFormat(date);
+			}
+			
+			closeConnection();
+			return lastLoadDate;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return null;
+		}
+	}
+	
 	
 
 }
