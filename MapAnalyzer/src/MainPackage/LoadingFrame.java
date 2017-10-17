@@ -47,6 +47,7 @@ public class LoadingFrame
 		try 
 		{
 			analyzer.analyze();
+			JOptionPane.showConfirmDialog(null, "Done!","",JOptionPane.PLAIN_MESSAGE);
 		}
 		catch (Exception e) 
 		{
