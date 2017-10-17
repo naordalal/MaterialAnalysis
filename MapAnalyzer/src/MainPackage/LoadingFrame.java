@@ -23,7 +23,10 @@ public class LoadingFrame
 		for (int i = 0 ; i < filesNames.length ; i++) 
 		{
 			String fileName = filesNames[i];
-			JOptionPane.showConfirmDialog(null, "Please Load " + fileName + " File","",JOptionPane.PLAIN_MESSAGE);
+			int answer = JOptionPane.showConfirmDialog(null, "Please Load " + fileName + " File","",JOptionPane.PLAIN_MESSAGE);
+			if(answer != JOptionPane.OK_OPTION)
+				System.exit(0);
+			
 			fileChooser = new JFileChooser();
 			if(directoryPath != null)
 				fileChooser.setCurrentDirectory(new File(directoryPath));
