@@ -6,6 +6,7 @@ import java.awt.Cursor;
 import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Insets;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -18,7 +19,9 @@ import java.util.stream.Collectors;
 
 import javax.mail.Authenticator;
 import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -27,6 +30,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
@@ -78,6 +83,12 @@ public class ReportViewFrame implements ActionListener
 	private JPanel filterPanel;
 	private JButton exportReportButton;
 	private Authenticator auth;
+
+	private JTextField filterText;
+
+	private JButton searchButton;
+
+	private JLabel filterLabel;
 
 
 	public ReportViewFrame(String email , Authenticator auth , String frameName , String [] columns , String [][] content ,  boolean canEdit , List<Integer> invalidEditableColumns) 
@@ -211,12 +222,28 @@ public class ReportViewFrame implements ActionListener
 		});
 
 		scrollPane = new JScrollPane(table);
-		scrollPane.setLocation(30, 30);
+		scrollPane.setLocation(30, 50);
 		scrollPane.setSize(900,600);
 		scrollPane.setVisible(true);
 		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
 		panel.add(scrollPane);
+		
+		InputMap im = table.getInputMap(JComponent.WHEN_FOCUSED);
+		ActionMap am = table.getActionMap();
+		
+		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_F , Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()) , "Find");
+		
+		am.put("Find", new AbstractAction() 
+		{
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) 
+			{
+				findValue();		
+			}
+		});
 		
 		new TableCellListener(table, valueCellChangeAction, doubleLeftClickAction, rightClickAction);
 		
@@ -237,6 +264,21 @@ public class ReportViewFrame implements ActionListener
 			filterPanel.add(filterComboBoxs[index]);
 		}
 
+		filterLabel = new JLabel("Insert text: ");
+		filterLabel.setLocation(5, 10);
+		filterLabel.setSize(80, 20);
+		panel.add(filterLabel);
+		
+		filterText = new JTextField();
+		filterText.setLocation(95, 10);
+		filterText.setSize(100, 20);
+		panel.add(filterText);
+		
+		searchButton = new JButton("Search");
+		searchButton.setLocation(220, 10);
+		searchButton.setSize(100, 25);
+		searchButton.addActionListener(this);
+		panel.add(searchButton);
 		
 		exportReportButton = new JButton();
 		exportReportButton.setLocation(800 , 640);
@@ -257,6 +299,35 @@ public class ReportViewFrame implements ActionListener
 		
 		
 		frame.setVisible(true);
+	}
+
+	private void findValue() 
+	{		
+		String value = JOptionPane.showInputDialog(null , "Enter value" , "Find" , JOptionPane.QUESTION_MESSAGE);
+		if(value == null)
+			return;
+		
+		for (int row = 0; row <= table.getRowCount() - 1; row++) 
+		{
+
+            for (int col = 0; col <= table.getColumnCount() - 1; col++) 
+            {
+
+                if (table.getValueAt(row, col).toString().toLowerCase().contains(value.toLowerCase())) 
+                {
+
+                    // this will automatically set the view of the scroll in the location of the value
+                    table.scrollRectToVisible(table.getCellRect(row, 0, true));
+
+                    // this will automatically set the focus of the searched/selected row/value
+                    table.setRowSelectionInterval(row, row);
+
+                    table.changeSelection(row, col, false, false);
+                   
+                   return;
+                }
+            }
+        }
 	}
 
 	private void updateFilterComboBoxValues(int index) 
@@ -475,6 +546,15 @@ public class ReportViewFrame implements ActionListener
 			
 			TableRowSorter<TableModel> sorter = new TableRowSorter<TableModel>(((DefaultTableModel) table.getModel())); 
 		    sorter.setRowFilter(RowFilter.andFilter(rowsFilters));
+		    
+		    table.setRowSorter(sorter);
+		}
+		else if(event.getSource() == searchButton)
+		{
+			String text = filterText.getText();
+			RowFilter<TableModel, Integer> rowFilter = RowFilter.regexFilter("(?i)" + text , 0);
+			TableRowSorter<TableModel> sorter = new TableRowSorter<TableModel>(((DefaultTableModel) table.getModel())); 
+		    sorter.setRowFilter(rowFilter);
 		    
 		    table.setRowSorter(sorter);
 		}
