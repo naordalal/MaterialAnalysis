@@ -178,7 +178,7 @@ public class ReportViewFrame implements ActionListener
 		centerRenderer.setHorizontalAlignment(JLabel.CENTER);
 		setCellRenderer(new MyTableRenderer());
 		//table.setFont(new Font("Tahoma", Font.PLAIN, 16));
-		int lengthOfColumns = setColumnWidth(); 
+		
 		table.getTableHeader().setReorderingAllowed(false);
 		table.getTableHeader().setResizingAllowed(false);
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -196,6 +196,7 @@ public class ReportViewFrame implements ActionListener
 			{
 				 g.setColor(Color.RED);
 				 String lastVal = "";
+				 int lengthOfColumns = setColumnWidth(); 
 				 for (int rowIndex = 0 ; rowIndex < table.getRowCount() ; rowIndex++) 
 				 {
 					String [] row = getRow(rowIndex);
@@ -418,6 +419,7 @@ public class ReportViewFrame implements ActionListener
 			actionPerformed(new ActionEvent(filterComboBoxs[0], 0, null));
 			return;
 		}
+		
 
 		
 	}
@@ -426,6 +428,7 @@ public class ReportViewFrame implements ActionListener
 	{
 		table.getModel().setValueAt(newValue, row, column);
 		content[row][column] = newValue;
+		
 	}
 	
 	public int setColumnWidth() 

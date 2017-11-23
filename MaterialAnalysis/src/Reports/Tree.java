@@ -169,10 +169,10 @@ public class Tree extends Report
 				updateMap = true;
 				break;
 			case 5:
-				if(!db.getAllCatalogNumberOfCustomer(customer).contains(newValue))
+				if(!newValue.trim().equals("") && !db.getAllCatalogNumberOfCustomer(customer).contains(newValue))
 					throw new Exception("Invalid catalog number , catalog number does not exist");
 				
-				this.alias = newValue;
+				this.alias = (!newValue.trim().equals("")) ? newValue : null;
 				message = null;
 				break;
 				

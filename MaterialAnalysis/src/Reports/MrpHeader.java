@@ -28,6 +28,11 @@ public class MrpHeader extends Report
 		this.quantityPerMonth = quantityPerMonth;
 	}
 	
+	public Map<MonthDate , Double> getQuantityPerMonth()
+	{
+		return quantityPerMonth;
+	}
+	
 	@Override
 	public String[] getRow() 
 	{

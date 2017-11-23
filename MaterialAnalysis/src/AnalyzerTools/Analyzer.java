@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -841,9 +842,8 @@ public class Analyzer
 		
 		int indexOfCurrentMonth = monthToCalculate.indexOf(new MonthDate(Globals.getTodayDate()));
 				
-		for (String realCatalogNumber : catalogNumbers.keySet()) 
+		for (String catalogNumber : getCatalogNumbersFromMap(map)) 
 		{
-			String catalogNumber = db.getDescendantCatalogNumber(realCatalogNumber);
 			String description = catalogNumbers.get(catalogNumber);
 			String customer = db.getCustomerOfCatalogNumber(catalogNumber);
 			Map<MonthDate , Double> quantityPerMonth = new HashMap<>();
@@ -863,9 +863,9 @@ public class Analyzer
 				
 				double quantity = materialAvailability - previousMaterialAvailability;
 				
-				List<Pair<String, Integer>> fathersCatalogNumberAndQuantityToAssociate = db.getFathers(realCatalogNumber);
+				List<Pair<String, Integer>> fathersCatalogNumberAndQuantityToAssociate = db.getFathers(catalogNumber);
 				
-				List<String> descendantsCatalogNumbers = db.getAllDescendantCatalogNumber(realCatalogNumber);
+				List<String> descendantsCatalogNumbers = db.getAllDescendantCatalogNumber(catalogNumber);
 				List<String> fathersOfDescendantsCatalogNumbers = descendantsCatalogNumbers.stream().map(el -> db.getFathers(el).stream().map(pair -> pair.getLeft()).collect(Collectors.toList())).reduce((a,b) -> {a.addAll(b) ; return a;}).orElse(new ArrayList<>());				
 				List<String> descendantsFathersOfDescendantsCatalogNumbers = fathersOfDescendantsCatalogNumbers.stream().map(el ->{ List<String> desCN = db.getAllDescendantCatalogNumber(el); desCN.add(el); return desCN;}).reduce((a,b) -> {a.addAll(b) ; return a;}).orElse(new ArrayList<>());
 				
@@ -910,6 +910,13 @@ public class Analyzer
 		
 		return mrpHeaders;
 		
+	}
+
+	private Set<String> getCatalogNumbersFromMap(Map<MonthDate, Map<String, ProductColumn>> map) 
+	{
+		Set<String> catalogNumbers = new HashSet<>();
+		catalogNumbers.addAll(map.values().stream().findFirst().get().keySet());
+		return catalogNumbers;
 	}
 
 	private boolean isSon(String catalogNumber) 
