@@ -185,6 +185,8 @@ public class DataBase
 			case WO:
 				removeHistoryOfWO(months);
 				break;
+			case SHIPMENT:
+				removeHistoryOfShipments(months);
 			default:
 				return;
 		}
@@ -198,6 +200,31 @@ public class DataBase
 		{
 			connect();
 			stmt = c.prepareStatement("DELETE FROM WorkOrder Where date(date) >= date(?)");
+			stmt.setString(1, Globals.dateToSqlFormatString(Globals.setFirstDayOfMonth(Globals.addMonths(Globals.getTodayDate() , -months))));
+			stmt.executeUpdate();
+			
+			c.commit();
+			
+			closeConnection();
+			
+		}
+		catch(SQLException e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			closeConnection();
+		}
+	}
+	
+	private void removeHistoryOfShipments(int months) 
+	{
+		try
+		{
+			connect();
+			stmt = c.prepareStatement("DELETE FROM Shipments Where date(shipmentDate) >= date(?)");
 			stmt.setString(1, Globals.dateToSqlFormatString(Globals.setFirstDayOfMonth(Globals.addMonths(Globals.getTodayDate() , -months))));
 			stmt.executeUpdate();
 			

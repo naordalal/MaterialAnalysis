@@ -245,7 +245,7 @@ public class Analyzer
 	    
 	}
 	
-	public Map<MonthDate,Map<String,ProductColumn>> calculateMap(String userName)
+	public Map<MonthDate,Map<String,ProductColumn>> calculateMap(String userName , boolean forView)
 	{
 		MonthDate lastCalculateMapDate = db.getLastCalculateMapDate();
 		MonthDate maximumDate = new MonthDate(Globals.addMonths(Globals.getTodayDate(), -Globals.monthsToCalculate - 1));
@@ -254,10 +254,10 @@ public class Analyzer
 		
 		lastCalculateMapDate = db.getLastCalculateMapDate();
 		Map<String,ProductColumn> lastMap = (lastCalculateMapDate != null) ? db.getLastMap(userName, lastCalculateMapDate) : new HashMap<String,ProductColumn>();
-		return calculateMap(userName , lastMap);
+		return calculateMap(userName , lastMap , forView);
 	}
 	
-	private Map<MonthDate,Map<String,ProductColumn>> calculateMap(String userName , Map<String,ProductColumn> lastMap)
+	private Map<MonthDate,Map<String,ProductColumn>> calculateMap(String userName , Map<String,ProductColumn> lastMap , boolean forView)
 	{
 		
 		Map<MonthDate,Map<String,ProductColumn>> map = new HashMap<MonthDate,Map<String,ProductColumn>>();
@@ -430,8 +430,11 @@ public class Analyzer
 		
 		List<MonthDate> notMonthsToView = monthToCalculate.subList(0, endIndex);
 		
-		for (MonthDate month : notMonthsToView)
+		if(forView)
+		{
+			for (MonthDate month : notMonthsToView)
 				map.remove(month);
+		}
 		
 		return map;
 		
@@ -799,7 +802,7 @@ public class Analyzer
 						try 
 						{
 							updateForm.updateValue(column , newValue);
-							mapFrame.refresh(getRows(calculateMap(userName)));
+							mapFrame.refresh(getRows(calculateMap(userName , true)));
 							reportViewFrame.setColumnWidth();
 							return null;
 						} catch (Exception e) 
@@ -831,7 +834,7 @@ public class Analyzer
 	
 	public List<MrpHeader> getMrpHeaders(String userName)
 	{
-		Map<MonthDate , Map<String,ProductColumn>> map = calculateMap(userName);
+		Map<MonthDate , Map<String,ProductColumn>> map = calculateMap(userName , false);
 		List<MrpHeader> mrpHeaders = new ArrayList<>();
 		
 		Map<String,String> catalogNumbers = db.getAllCatalogNumbersPerDescription(userName);

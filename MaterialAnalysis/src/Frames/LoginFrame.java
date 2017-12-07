@@ -7,6 +7,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
@@ -29,6 +30,8 @@ import MainPackage.SimGlobals;
 import MainPackage.SimMrpGlobals;
 import MapFrames.AddProductFrame;
 import MapFrames.InitProductFrame;
+import Reports.ProductInit;
+import Reports.ProductInitHistory;
 
 public class LoginFrame implements ActionListener 
 {
@@ -48,6 +51,9 @@ public class LoginFrame implements ActionListener
 	public LoginFrame() 
 	{
 		db = new DataBase();
+		//List<ProductInit> productInits = db.getAllProductsInit("shmulik");
+		//List<ProductInitHistory> productInitsHistory = productInits.stream().map(p -> new ProductInitHistory(p.getCatalogNumber(), p.getQuantity(), p.getInitDate(), p.getRequireDate(), p.getInitDate(), "shmulik", "init", p.getType())).collect(Collectors.toList());
+		//productInitsHistory.stream().forEach(p -> db.addNewInitProductHistory(p.getCatalogNumber(), p.getQuantity(), p.getInitDate(), p.getRequireDate(),p.getChangeDate(), p.getNote(), p.getUserUpdate(), p.getType()));
 		initialize();
 	}
 	

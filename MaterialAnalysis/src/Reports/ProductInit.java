@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.mail.Authenticator;
 import javax.swing.JOptionPane;
 
 import AnalyzerTools.Analyzer;
@@ -14,6 +15,7 @@ import MainPackage.DataBase;
 import MainPackage.Globals;
 import MainPackage.Globals.FormType;
 import MainPackage.Message;
+import MapFrames.MainMapFrame;
 import MapFrames.ReportViewFrame;
 
 public class ProductInit extends Report
@@ -133,8 +135,21 @@ public class ProductInit extends Report
 			default:
 				return null;
 		}
-
+		
+		String note = "";
+		while(true)
+		{
+			note = JOptionPane.showInputDialog(null , "Enter note for this update", JOptionPane.OK_OPTION);
+			if(note == null)
+				continue;
+			
+			break;
+		}
+		
+		String changeDate = Globals.dateWithoutHourToString(Globals.getTodayDate());
+		db.addNewInitProductHistory(catalogNumber , quantity , initDate , requireDate , changeDate, note , userName ,  type);
 		db.updateInitProduct(catalogNumber , quantity , initDate , previousRequireDate , requireDate , type);
+		
 		Analyzer analyzer = new Analyzer();
 		MonthDate initMonth = new MonthDate(Globals.parseDate(initDate));
 		MonthDate calculateMonth = new MonthDate(Globals.addMonths(Globals.getTodayDate(), -Globals.monthsToCalculate - 1));
@@ -164,7 +179,7 @@ public class ProductInit extends Report
 	}
 
 	@Override
-	public CallBack<Object> getValueCellChangeAction(String userName , ReportViewFrame frame, Object... args) 
+	public CallBack<Object> getValueCellChangeAction(String email , Authenticator auth , String userName , ReportViewFrame frame, Object... args) 
 	{
 		List<ProductInit> productsInit = (List<ProductInit>) args[0];
 		DataBase db = new DataBase();
@@ -206,13 +221,39 @@ public class ProductInit extends Report
 	}
 
 	@Override
-	public CallBack<Object> getDoubleLeftClickAction(String userName , ReportViewFrame frame, Object... args) 
+	public CallBack<Object> getDoubleLeftClickAction(String email , Authenticator auth , String userName, ReportViewFrame frame, Object... args) 
 	{
-		return null;
+		List<ProductInit> productsInit = (List<ProductInit>) args[0];
+		DataBase db = new DataBase();
+		
+		CallBack<Object> doubleLeftClickAction = new CallBack<Object>()
+		{
+			@Override
+			public Object execute(Object... objects) 
+			{
+				TableCellListener tcl = (TableCellListener)objects[0];
+				int row = tcl.getRow();
+				int col = tcl.getColumn();
+				ProductInit productInit = productsInit.get(row);
+				if(col != 0)
+					return null;
+				
+				List<ProductInitHistory> productsInitHistory = db.getProductInitHistory(productInit.getCatalogNumber());
+				if(productsInitHistory == null || productsInitHistory.size() == 0)
+					return null;
+				ReportViewFrame initProductFrame = MainMapFrame.createReportViewFrame(email , auth , userName , productsInitHistory , "Init Product History View");
+				
+				initProductFrame.show();
+				
+				return null;
+			}
+		};
+		
+		return doubleLeftClickAction;
 	}
 
 	@Override
-	public CallBack<Object> getRightClickAction(String userName , ReportViewFrame frame, Object... args) 
+	public CallBack<Object> getRightClickAction(String email , Authenticator auth , String userName , ReportViewFrame frame, Object... args) 
 	{
 		return null;
 	}

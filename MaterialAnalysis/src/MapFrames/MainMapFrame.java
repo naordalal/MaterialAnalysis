@@ -28,6 +28,7 @@ import MainPackage.Globals;
 import MainPackage.Globals.FormType;
 import Reports.MrpHeader;
 import Reports.ProductInit;
+import Reports.ProductInitHistory;
 import Reports.Report;
 import Reports.Tree;
 
@@ -47,6 +48,7 @@ public class MainMapFrame implements ActionListener
 	private JLabel copyRight;
 	private JButton treeViewButton;
 	private JButton initProductViewButton;
+	private JButton initProductHistoryViewButton;
 	private DataBase db;
 	private Authenticator auth;
 	private JLabel lastLoadLabel;
@@ -153,6 +155,12 @@ public class MainMapFrame implements ActionListener
 		loadingReportsButton.setSize(100, 60);
 		loadingReportsButton.addActionListener(this);
 		panel.add(loadingReportsButton);
+		
+		initProductHistoryViewButton = new JButton("<html><b>Init Product History View</b></html>");
+		initProductHistoryViewButton.setLocation(20 , 170);
+		initProductHistoryViewButton.setSize(100, 60);
+		initProductHistoryViewButton.addActionListener(this);
+		panel.add(initProductHistoryViewButton);
 				
 		copyRight = new JLabel("<html><b>\u00a9 Naor Dalal</b></html>");
 		copyRight.setLocation(30 , 430);
@@ -170,7 +178,7 @@ public class MainMapFrame implements ActionListener
 		
 		if(event.getSource() == mapButton)
 		{
-			Map<MonthDate, Map<String, ProductColumn>> map = analyzer.calculateMap(userName);
+			Map<MonthDate, Map<String, ProductColumn>> map = analyzer.calculateMap(userName , true);
 			String [] columns = analyzer.getColumns(map);
 			String [][] rows = analyzer.getRows(map);
 			List<Integer> invalidEditableCoulmns = analyzer.getInvalidEditableCoulmns(columns);
@@ -211,21 +219,28 @@ public class MainMapFrame implements ActionListener
 		else if(event.getSource() == treeViewButton)
 		{
 			List<Tree> trees = db.getAllTrees(userName , null);
-			ReportViewFrame treeFrame = createReportViewFrame(trees , "Tree View");
+			ReportViewFrame treeFrame = createReportViewFrame(email , auth , userName, trees , "Tree View");
 
 			treeFrame.show();
 		}
 		else if(event.getSource() == initProductViewButton)
 		{
 			List<ProductInit> productsInit = db.getAllProductsInit(userName);
-			ReportViewFrame initProductFrame = createReportViewFrame(productsInit , "Init Product View");
+			ReportViewFrame initProductFrame = createReportViewFrame(email , auth , userName , productsInit , "Init Product View");
+			
+			initProductFrame.show();
+		}
+		else if(event.getSource() == initProductHistoryViewButton)
+		{
+			List<ProductInitHistory> productsInitHistory = db.getAllProductsInitHistory(userName);
+			ReportViewFrame initProductFrame = createReportViewFrame(email , auth , userName , productsInitHistory , "Init Product History View");
 			
 			initProductFrame.show();
 		}
 		else if(event.getSource() == mrpHeaderViewButton)
 		{
 			List<MrpHeader> mrpHeaders = analyzer.getMrpHeaders(userName);
-			ReportViewFrame mrpHeaderFrame = createReportViewFrame(mrpHeaders , "Mrp Header");
+			ReportViewFrame mrpHeaderFrame = createReportViewFrame(email , auth , userName , mrpHeaders , "Mrp Header");
 			
 			mrpHeaderFrame.show();
 		}
@@ -246,7 +261,7 @@ public class MainMapFrame implements ActionListener
 		
 	}
 	
-	public ReportViewFrame createReportViewFrame(List<? extends Report> data , String frameName)
+	public static ReportViewFrame createReportViewFrame(String email ,Authenticator auth , String userName , List<? extends Report> data , String frameName)
 	{		
 		String [] columns;
 		String [][] rows;
@@ -272,9 +287,9 @@ public class MainMapFrame implements ActionListener
 		CallBack<Object> rightClickAction = null;
 		if(data.size() > 0)
 		{
-			valueCellChangeAction = data.get(0).getValueCellChangeAction(userName, reportFrame, data);
-			doubleLeftClickAction = data.get(0).getDoubleLeftClickAction(userName, reportFrame, data);
-			rightClickAction = data.get(0).getRightClickAction(userName, reportFrame, data);
+			valueCellChangeAction = data.get(0).getValueCellChangeAction(email ,auth ,userName, reportFrame, data);
+			doubleLeftClickAction = data.get(0).getDoubleLeftClickAction(email ,auth ,userName, reportFrame, data);
+			rightClickAction = data.get(0).getRightClickAction(email ,auth ,userName, reportFrame, data);
 		}
 		reportFrame.setCallBacks(valueCellChangeAction, doubleLeftClickAction, rightClickAction);
 		

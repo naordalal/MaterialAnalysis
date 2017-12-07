@@ -399,7 +399,14 @@ public class ReportViewFrame implements ActionListener
 	private void createContent(DefaultTableModel model)
 	{		
 		for(int index = 0 ; index < content.length ; index++)
+		{
 			model.addRow(content[index]);
+			for(int cell = 0; cell < content[index].length ; cell++)
+			{
+				if(content[index][cell].trim().equals("0") || content[index][cell].trim().equals("0.0"))
+					updateCellValue(index, cell, "");
+			}
+		}
 	}
 
 	public void refresh(String[][] rows) 
@@ -426,8 +433,16 @@ public class ReportViewFrame implements ActionListener
 
 	public void updateCellValue(int row, int column, String newValue) 
 	{
-		table.getModel().setValueAt(newValue, row, column);
-		content[row][column] = newValue;
+		if(newValue.trim().equals("0") || newValue.trim().trim().equals("0.0"))
+		{
+			table.getModel().setValueAt("", row, column);
+			content[row][column] = "";
+		}
+		else
+		{
+			table.getModel().setValueAt(newValue, row, column);
+			content[row][column] = newValue;
+		}
 		
 	}
 	

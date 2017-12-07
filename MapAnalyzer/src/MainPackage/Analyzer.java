@@ -47,6 +47,7 @@ public class Analyzer
 	{
 		db.removeHistoryOfForm(FormType.PO, Globals.monthsToIgnore);
 		db.removeHistoryOfForm(FormType.WO, Globals.monthsToIgnore);
+		db.removeHistoryOfForm(FormType.SHIPMENT, Globals.monthsToIgnore);
 		
 		if(woFilePath == null)
 		{
@@ -142,7 +143,6 @@ public class Analyzer
 	
 	private void analyzeShipments(String filePath) throws IOException 
 	{
-		Date maximumShipmentDate = db.getMaximumShipmentDate();
 		int customerColumn = -1 , orderIdColumn = -1 , orderCustomerIdColumn = -1 , catalogNumberColumn = -1 , quantityColumn = -1 , shipmentDateColumn = -1 , descriptionColumn = -1;
 		for (String line : Files.readAllLines(Paths.get(filePath),Charset.forName(globals.charsetName)))
 		{
@@ -166,7 +166,7 @@ public class Analyzer
 				Date date = Globals.parseDate(columns.get(shipmentDateColumn));
 				if(date == null || columns.get(catalogNumberColumn).trim().equals("") || !NumberUtils.isCreatable(columns.get(quantityColumn)))
 					continue;
-				if(maximumShipmentDate == null || maximumShipmentDate.before(date))
+				if(Globals.addMonths(Globals.getTodayDate(), -Globals.monthsToIgnore - 1).before(date))
 					db.addShipment(columns.get(customerColumn), columns.get(orderIdColumn), columns.get(orderCustomerIdColumn) ,columns.get(catalogNumberColumn)
 							, columns.get(quantityColumn), columns.get(shipmentDateColumn), columns.get(descriptionColumn));
 			}

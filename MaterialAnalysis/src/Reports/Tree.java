@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import javax.mail.Authenticator;
 import javax.swing.JOptionPane;
 
 import AnalyzerTools.Analyzer;
@@ -212,7 +213,7 @@ public class Tree extends Report
 	}
 
 	@Override
-	public CallBack<Object> getValueCellChangeAction(String userName , ReportViewFrame frame, Object... args) 
+	public CallBack<Object> getValueCellChangeAction(String email , Authenticator auth, String userName , ReportViewFrame frame, Object... args) 
 	{
 		List<Tree> trees = (List<Tree>) args[0];
 		DataBase db = new DataBase();
@@ -276,13 +277,13 @@ public class Tree extends Report
 	}
 
 	@Override
-	public CallBack<Object> getDoubleLeftClickAction(String userName , ReportViewFrame frame, Object... args) 
+	public CallBack<Object> getDoubleLeftClickAction(String email , Authenticator auth, String userName , ReportViewFrame frame, Object... args) 
 	{
 		return null;
 	}
 
 	@Override
-	public CallBack<Object> getRightClickAction(String userName , ReportViewFrame frame, Object... args) 
+	public CallBack<Object> getRightClickAction(String email , Authenticator auth, String userName , ReportViewFrame frame, Object... args) 
 	{
 		return null;
 	}

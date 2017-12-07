@@ -329,11 +329,11 @@ public class AddProductFrame implements ActionListener
 						validInput = true;
 					}
 					
-					db.addNewProduct(catalogNumber, customer, description, father, quantity.trim());
+					db.addNewProduct(catalogNumber, customer, userName , description, father, quantity.trim());
 				}
 			}
 			else if(!aliasComboBox.isVisible())
-					db.addNewProduct(catalogNumber, customer, description, "", "0");
+					db.addNewProduct(catalogNumber, customer, userName, description, "", "0");
 			
 			
 			if(aliasComboBox.getSelectedItem() != null)

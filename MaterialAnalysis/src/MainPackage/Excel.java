@@ -363,7 +363,10 @@ public class Excel
 	    			if(NumberUtils.isCreatable((String) value))
 	    			{
 	    				value = Double.parseDouble((String) value);
-	    				cell.setCellValue((double) value);
+	    				if((Double)value == 0)
+	    					cell.setCellValue("");
+	    				else
+	    					cell.setCellValue((Double) value);
 	    			}
 	    			else if((date = Globals.isValidDate((String) value)) != null)
 	    			{
@@ -374,7 +377,12 @@ public class Excel
 	    				cell.setCellValue((String) value);	
 	    		}
 	    		else if(rows[rowIndex - 1][columnIndex] instanceof Double)
-	    			cell.setCellValue((Double)rows[rowIndex - 1][columnIndex]);
+	    		{
+	    			if((Double)rows[rowIndex - 1][columnIndex] == 0)
+	    				cell.setCellValue("");
+	    			else
+	    				cell.setCellValue((Double)rows[rowIndex - 1][columnIndex]);
+	    		}
 	    		else if(rows[rowIndex - 1][columnIndex] instanceof Date)
 	    		{
 	    			cell.setCellValue((Date)rows[rowIndex - 1][columnIndex]);

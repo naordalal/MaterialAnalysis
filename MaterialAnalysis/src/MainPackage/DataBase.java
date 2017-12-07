@@ -29,6 +29,7 @@ import Forms.WorkOrder;
 import MainPackage.Globals;
 import MainPackage.Globals.FormType;
 import Reports.ProductInit;
+import Reports.ProductInitHistory;
 import Reports.Tree;
 
 public class DataBase {
@@ -1557,7 +1558,7 @@ public class DataBase {
 		}
 	}
 	
-	public void addNewProduct(String catalogNumber , String customer , String description , String father , String quantity) 
+	public void addNewProduct(String catalogNumber , String customer , String userName , String description , String father , String quantity) 
 	{
 		try{
 			
@@ -1581,6 +1582,12 @@ public class DataBase {
 				insertNewInitProduct(catalogNumber, "0", initDate , initDate, FormType.WO);
 				insertNewInitProduct(catalogNumber, "0", initDate , initDate, FormType.PO);
 				insertNewInitProduct(catalogNumber, "0", initDate , initDate, FormType.SHIPMENT);	
+				
+				String changeDate = Globals.parseDateToSqlFormatString(Globals.dateWithoutHourToString(Globals.getTodayDate()));
+				addNewInitProductHistory(catalogNumber, quantity, initDate, initDate, changeDate, "init", userName, FormType.FC);
+				addNewInitProductHistory(catalogNumber, quantity, initDate, initDate, changeDate, "init", userName, FormType.WO);
+				addNewInitProductHistory(catalogNumber, quantity, initDate, initDate, changeDate, "init", userName, FormType.PO);
+				addNewInitProductHistory(catalogNumber, quantity, initDate, initDate, changeDate, "init", userName, FormType.SHIPMENT);
 			}
 		}
 		catch(Exception e)
@@ -2997,6 +3004,132 @@ public class DataBase {
 		
 	}
 	
+	public List<ProductInitHistory> getAllProductsInitHistory(String userName) 
+	{
+		List<ProductInitHistory> productsInitHistory = new ArrayList<>();
+		List<String> catalogNumbers = getAllCatalogNumbers(userName);
+		List<FormType> formTypes = globals.getAllFormTypes();
+		
+		try
+		{
+			connect();
+			for (String catalogNumber : catalogNumbers) 
+			{
+				for (FormType formType : formTypes) 
+				{
+					String tableName = null;
+					
+					switch (formType) 
+					{
+						case SHIPMENT:
+							tableName = "InitProductShipmentsHistory";
+							break;
+						case PO:
+							tableName = "InitProductCustomerOrdersHistory";
+							break;
+						case WO:
+							tableName = "InitProductWorkOrderHistory";
+							break;
+						case FC:
+							tableName = "InitProductForecastHistory";
+							break;
+						default:
+							break;
+					}
+					
+					stmt = c.prepareStatement("SELECT * FROM " + tableName +" where CN = ? ORDER BY changeDate desc");
+					stmt.setString(1, catalogNumber);
+					ResultSet rs = stmt.executeQuery();
+					
+					while(rs.next())
+					{
+						String quantity = rs.getString("quantity");
+						String initDate = Globals.dateWithoutHourToString(Globals.parseDateFromSqlFormat(rs.getString("initDate")));
+						String requireDate = Globals.dateWithoutHourToString(Globals.parseDateFromSqlFormat(rs.getString("requireDate")));
+						String changeDate = Globals.dateWithoutHourToString(Globals.parseDateFromSqlFormat(rs.getString("changeDate")));
+						String userUpdate = rs.getString("userUpdate");
+						String note = rs.getString("note");
+						ProductInitHistory productInitHistory = new ProductInitHistory(catalogNumber, quantity, initDate, requireDate
+								, changeDate, userUpdate, note, formType);
+						
+						productsInitHistory.add(productInitHistory);
+					}
+					
+				}
+			}
+			
+			closeConnection();
+			return productsInitHistory;
+		
+		}catch(SQLException e)
+		{
+			closeConnection();
+			return new ArrayList<>();
+		}
+		
+	}
+	
+	public List<ProductInitHistory> getProductInitHistory(String catalogNumber) 
+	{
+		List<ProductInitHistory> productsInitHistory = new ArrayList<>();
+		List<FormType> formTypes = globals.getAllFormTypes();
+		
+		try
+		{
+			connect();
+			for (FormType formType : formTypes) 
+			{
+				String tableName = null;
+				
+				switch (formType) 
+				{
+					case SHIPMENT:
+						tableName = "InitProductShipmentsHistory";
+						break;
+					case PO:
+						tableName = "InitProductCustomerOrdersHistory";
+						break;
+					case WO:
+						tableName = "InitProductWorkOrderHistory";
+						break;
+					case FC:
+						tableName = "InitProductForecastHistory";
+						break;
+					default:
+						break;
+				}
+				
+				stmt = c.prepareStatement("SELECT * FROM " + tableName +" where CN = ? ORDER BY changeDate desc");
+				stmt.setString(1, catalogNumber);
+				ResultSet rs = stmt.executeQuery();
+				
+				while(rs.next())
+				{
+					String quantity = rs.getString("quantity");
+					String initDate = Globals.dateWithoutHourToString(Globals.parseDateFromSqlFormat(rs.getString("initDate")));
+					String requireDate = Globals.dateWithoutHourToString(Globals.parseDateFromSqlFormat(rs.getString("requireDate")));
+					String changeDate = Globals.dateWithoutHourToString(Globals.parseDateFromSqlFormat(rs.getString("changeDate")));
+					String userUpdate = rs.getString("userUpdate");
+					String note = rs.getString("note");
+					ProductInitHistory productInitHistory = new ProductInitHistory(catalogNumber, quantity, initDate, requireDate
+							, changeDate, userUpdate, note, formType);
+					
+					productsInitHistory.add(productInitHistory);
+				}
+				
+			}
+			
+			closeConnection();
+			return productsInitHistory;
+		
+		}catch(SQLException e)
+		{
+			closeConnection();
+			return new ArrayList<>();
+		}
+		
+	}
+	
 	public MonthDate getLastCalculateMapDate() 
 	{
 		MonthDate requireDate = null;
@@ -3464,6 +3597,59 @@ public class DataBase {
 			e.printStackTrace();
 			closeConnection();
 			return null;
+		}
+	}
+	public void addNewInitProductHistory(String catalogNumber, String quantity, String initDate, String requireDate,String changeDate
+			, String note,String userName,FormType type) 
+	{
+		
+		String tableName;
+		
+		switch (type) 
+		{
+			case SHIPMENT:
+				tableName = "InitProductShipmentsHistory";
+				break;
+			case PO:
+				tableName = "InitProductCustomerOrdersHistory";
+				break;
+			case WO:
+				tableName = "InitProductWorkOrderHistory";
+				break;
+			case FC:
+				tableName = "InitProductForecastHistory";
+				break;
+			default:
+				return;
+		}
+		
+		try
+		{
+			connect();		
+			
+			stmt = c.prepareStatement("INSERT INTO " + tableName +" (CN , quantity , initDate ,requireDate, changeDate , userUpdate , note) VALUES(?,?,?,?,?,?,?)");
+			stmt.setString(1, catalogNumber);
+			stmt.setString(2, quantity);
+			stmt.setString(3, Globals.parseDateToSqlFormatString(initDate));
+			stmt.setString(4, Globals.parseDateToSqlFormatString(requireDate));
+			stmt.setString(5, Globals.parseDateToSqlFormatString(changeDate));
+			stmt.setString(6, userName);
+			stmt.setString(7, note);
+			stmt.executeUpdate();
+			
+			c.commit();
+			
+			closeConnection();
+			
+		}
+		catch(SQLException e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			closeConnection();
 		}
 	}
 	

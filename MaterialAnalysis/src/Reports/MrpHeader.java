@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import javax.mail.Authenticator;
+
 import AnalyzerTools.MonthDate;
 import MainPackage.CallBack;
 import MainPackage.Message;
@@ -101,21 +103,22 @@ public class MrpHeader extends Report
 	}
 
 	@Override
-	public CallBack<Object> getValueCellChangeAction(String userName, ReportViewFrame frame, Object... args) 
-	{
+	public CallBack<Object> getValueCellChangeAction(String email, Authenticator auth, String userName,
+			ReportViewFrame frame, Object... args) {
 		return null;
 	}
 
 	@Override
-	public CallBack<Object> getDoubleLeftClickAction(String userName, ReportViewFrame frame, Object... args) 
-	{
+	public CallBack<Object> getDoubleLeftClickAction(String email, Authenticator auth, String userName,
+			ReportViewFrame frame, Object... args) {
 		return null;
 	}
 
 	@Override
-	public CallBack<Object> getRightClickAction(String userName, ReportViewFrame frame, Object... args) 
-	{
+	public CallBack<Object> getRightClickAction(String email, Authenticator auth, String userName,
+			ReportViewFrame frame, Object... args) {
 		return null;
 	}
+
 
 }

@@ -427,12 +427,24 @@ public class SimMrpSender extends Sender {
 				return null;
 			}
 			
+			if(ordersSheet.getRow(requiredAmountCell.getRowIndex() - 1) == null)
+			{
+				JOptionPane.showConfirmDialog(null, "missing month in file","",JOptionPane.PLAIN_MESSAGE);
+				return null;
+			}
+			
+			if(ordersSheet.getRow(requiredAmountCell.getRowIndex() - 2) == null)
+			{
+				JOptionPane.showConfirmDialog(null, "missing year in file","",JOptionPane.PLAIN_MESSAGE);
+				return null;
+			}
+			
 			Cell monthCell = ordersSheet.getRow(requiredAmountCell.getRowIndex() - 1).getCell(requiredAmountCell.getColumnIndex());
 			Cell yearCell = ordersSheet.getRow(requiredAmountCell.getRowIndex() - 2).getCell(requiredAmountCell.getColumnIndex());
 			
 			if(monthCell == null || yearCell == null)
 			{
-				JOptionPane.showConfirmDialog(null, "missing year or date in file","",JOptionPane.PLAIN_MESSAGE);
+				JOptionPane.showConfirmDialog(null, "missing year or month in file","",JOptionPane.PLAIN_MESSAGE);
 				return null;
 			}
 			
@@ -451,7 +463,7 @@ public class SimMrpSender extends Sender {
 				
 				if(currentShortageCell.getCellType() != Cell.CELL_TYPE_NUMERIC && currentShortageCell.getCellType() != Cell.CELL_TYPE_FORMULA)
 				{
-					JOptionPane.showConfirmDialog(null, "wrong file format , please remove make items","",JOptionPane.PLAIN_MESSAGE);
+					JOptionPane.showConfirmDialog(null, "current shortage is not a number","",JOptionPane.PLAIN_MESSAGE);
 					return null;
 				}
 				
