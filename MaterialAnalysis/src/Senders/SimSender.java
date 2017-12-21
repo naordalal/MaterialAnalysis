@@ -48,7 +48,8 @@ public class SimSender extends Sender{
 	private SimGlobals globals;
 	private ArrayList<Pair<Integer, Point>> expensiveOrders;
 	
-	public SimSender(String from , Authenticator auth, List<File> suppliersOrdersFiles) {
+	public SimSender(String from , Authenticator auth, List<File> suppliersOrdersFiles) 
+	{
 		
 		super(from, auth);
 		this.from = from;
@@ -126,7 +127,7 @@ public class SimSender extends Sender{
 		
 		if(polarizerCell == null || shortageCell == null)
 		{
-			JOptionPane.showConfirmDialog(null, "missing 'î÷èá' or 'çåñø ðåëçé' column","",JOptionPane.PLAIN_MESSAGE);
+			JOptionPane.showConfirmDialog(null, "missing 'Ã®Ã·Ã¨Ã¡' or 'Ã§Ã¥Ã±Ã¸ Ã°Ã¥Ã«Ã§Ã©' column","",JOptionPane.PLAIN_MESSAGE);
 			return null;
 		}
 		
@@ -485,11 +486,11 @@ public class SimSender extends Sender{
     	style2.setBorderLeft(HSSFCellStyle.BORDER_THIN);
     	
     	cell = newRow.createCell(7);	    
-	    cell.setCellValue("çåñø ìñáá");
+	    cell.setCellValue("Ã§Ã¥Ã±Ã¸ Ã¬Ã±Ã¡Ã¡");
     	cell.setCellStyle(style2);
     	
     	cell = newRow.createCell(8);	    
-	    cell.setCellValue("äæîðåú ôúåçåú ìàçø 3 ñááéí");
+	    cell.setCellValue("Ã¤Ã¦Ã®Ã°Ã¥Ãº Ã´ÃºÃ¥Ã§Ã¥Ãº Ã¬Ã Ã§Ã¸ 3 Ã±Ã¡Ã¡Ã©Ã­");
     	cell.setCellStyle(style2);
     	
 	    int rowStart = 1;
@@ -573,7 +574,7 @@ public class SimSender extends Sender{
 	    
 	    Cell cell = newRow.createCell(0);
 	    
-	    cell.setCellValue("î÷èá");
+	    cell.setCellValue("Ã®Ã·Ã¨Ã¡");
     	
     	XSSFCellStyle style = w.createCellStyle();
     	style.setFillForegroundColor(IndexedColors.TURQUOISE.index);
@@ -586,19 +587,19 @@ public class SimSender extends Sender{
     	cell.setCellStyle(style);
     	
     	cell = newRow.createCell(1);
-	    cell.setCellValue("úéàåø");
+	    cell.setCellValue("ÃºÃ©Ã Ã¥Ã¸");
 	    cell.setCellStyle(style);	
 	    
     	cell = newRow.createCell(2);
-	    cell.setCellValue("ëîåú çñøä");
+	    cell.setCellValue("Ã«Ã®Ã¥Ãº Ã§Ã±Ã¸Ã¤");
 	    cell.setCellStyle(style);	    
 	    
 	    cell = newRow.createCell(3);
-	    cell.setCellValue("ëîåú ðãøùú ìñáá");
+	    cell.setCellValue("Ã«Ã®Ã¥Ãº Ã°Ã£Ã¸Ã¹Ãº Ã¬Ã±Ã¡Ã¡");
 	    cell.setCellStyle(style);
 	    
     	cell = newRow.createCell(4);
-	    cell.setCellValue("úàøéê ðãøù");
+	    cell.setCellValue("ÃºÃ Ã¸Ã©Ãª Ã°Ã£Ã¸Ã¹");
 	    cell.setCellStyle(style);
 	    
 	    
