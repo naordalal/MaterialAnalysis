@@ -48,8 +48,7 @@ public class SimSender extends Sender{
 	private SimGlobals globals;
 	private ArrayList<Pair<Integer, Point>> expensiveOrders;
 	
-	public SimSender(String from , Authenticator auth, List<File> suppliersOrdersFiles) 
-	{
+	public SimSender(String from , Authenticator auth, List<File> suppliersOrdersFiles) {
 		
 		super(from, auth);
 		this.from = from;
