@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -407,7 +408,7 @@ public class SimSender extends Sender{
 	}
 	
 	private void sendAllExpediteOrders(
-			List<Map<String, List<Pair<Integer, Point>>>> listOfSuppliersOrders, Map<Pair<Integer, Point>, Double> MapOfOpenOrders) 
+			List<Map<String, List<Pair<Integer, Point>>>> listOfSuppliersOrders, Map<Pair<Integer, Point>, Double> mapOfOpenOrders) 
 	{
 		File file = new File(globals.expediteOrdersPath);
 		int index = 1;
@@ -496,15 +497,7 @@ public class SimSender extends Sender{
 	    
 	    Map<Pair<Integer,Point>,Integer> mapOfItemPerDate = createOrderPerDateMap(listOfSuppliersOrders);
 	    
-	    for (Map<String, List<Pair<Integer,Point>>> map : listOfSuppliersOrders) 
-	    {	
-		    for (Map.Entry<String, List<Pair<Integer,Point>>> entry : map.entrySet())
-		    {
-		    	createExpediteContent(w , excelSheet , entry , rowStart , mapOfItemPerDate , true , MapOfOpenOrders);
-		    	rowStart += entry.getValue().size();
-		    }
-		    
-	    }
+	    createExpediteContent(w , excelSheet , listOfSuppliersOrders , rowStart , mapOfItemPerDate , true , mapOfOpenOrders);
 
 	    for(int i = 0 ; i < 9 ; i++)
 	    	excelSheet.autoSizeColumn(i);  
@@ -519,7 +512,7 @@ public class SimSender extends Sender{
 	    sortMethods.add(Globals.Sort.ASC);
 	    sortMethods.add(Globals.Sort.ASC);
 	    
-	    Excel.sortSheet(excelSheet, columns, sortMethods , 1);
+	    //Excel.sortSheet(excelSheet, columns, sortMethods , 1);
 	    
 	    try {
 			fos = new FileOutputStream(file);
@@ -729,7 +722,7 @@ public class SimSender extends Sender{
 	}
 	
 	private void createExpediteContent(XSSFWorkbook workbook, XSSFSheet excelSheet,
-			Entry<String, List<Pair<Integer, Point>>> entry , int startNewRow, Map<Pair<Integer, Point>, Integer> expediteDateMap
+			List<Map<String, List<Pair<Integer, Point>>>> listOfSuppliersOrders , int startNewRow, Map<Pair<Integer, Point>, Integer> expediteDateMap
 			,boolean viewFile, Map<Pair<Integer, Point>, Double> MapOfOpenOrders) 
 	{
 		
@@ -737,279 +730,287 @@ public class SimSender extends Sender{
 		Cell polarizerCell = Excel.findCell(ordersSheet, globals.itemNumberColumn);
 		Cell descriptionCell = Excel.findCell(ordersSheet, globals.descriptionColumn);
 		Cell openOrdersCell = Excel.findCell(ordersSheet, globals.openOrdersColumn);
-		for (Pair<Integer, Point> pair : entry.getValue()) 
-		{
-			Row row = ordersSheet.getRow(pair.getLeft());
-			if(!viewFile)
-			{
-				Cell cellDate = row.getCell((int)(pair.getRight().getX() + globals.dateOffset));
-				try {
-					DateFormat sourceFormat = new SimpleDateFormat("dd/MM/yy");
-					Date date = sourceFormat.parse(globals.frozenDate);
-					
-					if(sourceFormat.format(date).equals(sourceFormat.format(cellDate.getDateCellValue())))
-						continue;
-					
-				} catch (ParseException e) {
-					e.printStackTrace();
-				}
-			}
-			
-			int newColumnNumber = 0;
-			Row newRow = excelSheet.createRow(newRowNumber);
 		
-			Cell itemCell = row.getCell(polarizerCell.getColumnIndex());
+		for (Map<String, List<Pair<Integer,Point>>> map : listOfSuppliersOrders) 
+	    {	
+			List<Pair<Integer,Point>> sortedRows = map.values().stream().reduce((l1 , l2) -> {l1.addAll(l2); return l1;}).get();
+			Collections.sort(sortedRows);
 			
-			Cell newItemCell = newRow.createCell(newColumnNumber);
-			String partNumber = itemCell.getStringCellValue();
-			newItemCell.setCellValue(partNumber);
-	    	
-	    	XSSFCellStyle Itemstyle = workbook.createCellStyle();
-	    	
-	    	Itemstyle.setBorderBottom(HSSFCellStyle.BORDER_THIN);
-	    	Itemstyle.setBorderTop(HSSFCellStyle.BORDER_THIN);
-	    	Itemstyle.setBorderRight(HSSFCellStyle.BORDER_THIN);
-	    	Itemstyle.setBorderLeft(HSSFCellStyle.BORDER_THIN);
-	    	
-	    	if(expensiveOrders.contains(pair))
-	    	{
-	    		Itemstyle.setFillForegroundColor(IndexedColors.YELLOW.index);
-	    		Itemstyle.setFillPattern(CellStyle.SOLID_FOREGROUND);
-	    	}
-	    	
-	    	newItemCell.setCellStyle(Itemstyle);
-	    	
-	    	newColumnNumber++;
-	    	
-	    	newItemCell = newRow.createCell(newColumnNumber);
-	    	Cell descCell = row.getCell(descriptionCell.getColumnIndex());
-	    	newItemCell.setCellValue(descCell.getStringCellValue());
-	    	
-	    	Itemstyle = workbook.createCellStyle();
-	    	
-	    	Itemstyle.setBorderBottom(HSSFCellStyle.BORDER_THIN);
-	    	Itemstyle.setBorderTop(HSSFCellStyle.BORDER_THIN);
-	    	Itemstyle.setBorderRight(HSSFCellStyle.BORDER_THIN);
-	    	Itemstyle.setBorderLeft(HSSFCellStyle.BORDER_THIN);
-	    	newItemCell.setCellStyle(Itemstyle);
-	    	
-			for (int column = (int) pair.getRight().getX() ; column <= pair.getRight().getY() ; column++) 
+	    	for (Pair<Integer, Point> pair : sortedRows) 
 			{
-				newColumnNumber++;
-				Cell cell = row.getCell(column);
-				
-				if (cell.getCellType() == Cell.CELL_TYPE_STRING) 
-				{					
-					Cell newCell = newRow.createCell(newColumnNumber);
-					String content = cell.getStringCellValue();
-			    	newCell.setCellValue(content);
-			    	
-			    	XSSFCellStyle style = workbook.createCellStyle();
-			    	
-			    	style.setBorderBottom(HSSFCellStyle.BORDER_THIN);
-			    	style.setBorderTop(HSSFCellStyle.BORDER_THIN);
-			    	style.setBorderRight(HSSFCellStyle.BORDER_THIN);
-			    	style.setBorderLeft(HSSFCellStyle.BORDER_THIN);
-			    	
-			    	newCell.setCellStyle(style);
-				}
-				else if(cell.getCellType() == Cell.CELL_TYPE_NUMERIC && DateUtil.isCellDateFormatted(cell))
+				Row row = ordersSheet.getRow(pair.getLeft());
+				if(!viewFile)
 				{
-					Cell newCell = newRow.createCell(newColumnNumber);
-					DateFormat sourceFormat = new SimpleDateFormat("dd/MM/yy");	 
-					DateFormat outsourceFormat = new SimpleDateFormat("dd/MM/yyyy");
-					
-					Date content = cell.getDateCellValue();
-					
-					Date tomorrow = new Date();
-					Date today = new Date();
-					
-					Calendar c = Calendar.getInstance();
-					c.setTime(content);
-					c.set(Calendar.HOUR_OF_DAY, 0);
-					c.set(Calendar.MINUTE, 0);
-					c.set(Calendar.SECOND, 0);
-					c.set(Calendar.MILLISECOND, 0);
-					content = c.getTime();
-					
-					c.setTime(tomorrow);
-					c.set(Calendar.HOUR_OF_DAY, 0);
-					c.set(Calendar.MINUTE, 0);
-					c.set(Calendar.SECOND, 0);
-					c.set(Calendar.MILLISECOND, 0);
-					c.add(Calendar.DAY_OF_MONTH, 1);
-					tomorrow = c.getTime();
-					
-					c.setTime(today);
-					c.set(Calendar.HOUR_OF_DAY, 0);
-					c.set(Calendar.MINUTE, 0);
-					c.set(Calendar.SECOND, 0);
-					c.set(Calendar.MILLISECOND, 0);
-					today = c.getTime();
-					
+					Cell cellDate = row.getCell((int)(pair.getRight().getX() + globals.dateOffset));
 					try {
-						Date date = sourceFormat.parse(globals.noDate);
+						DateFormat sourceFormat = new SimpleDateFormat("dd/MM/yy");
+						Date date = sourceFormat.parse(globals.frozenDate);
 						
-						Date dayAfterExpedite = sourceFormat.parse(untilDate.get(expediteDateMap.get(pair)));
-						c.setTime(dayAfterExpedite);
+						if(sourceFormat.format(date).equals(sourceFormat.format(cellDate.getDateCellValue())))
+							continue;
+						
+					} catch (ParseException e) {
+						e.printStackTrace();
+					}
+				}
+				
+				int newColumnNumber = 0;
+				Row newRow = excelSheet.createRow(newRowNumber);
+			
+				Cell itemCell = row.getCell(polarizerCell.getColumnIndex());
+				
+				Cell newItemCell = newRow.createCell(newColumnNumber);
+				String partNumber = itemCell.getStringCellValue();
+				newItemCell.setCellValue(partNumber);
+		    	
+		    	XSSFCellStyle Itemstyle = workbook.createCellStyle();
+		    	
+		    	Itemstyle.setBorderBottom(HSSFCellStyle.BORDER_THIN);
+		    	Itemstyle.setBorderTop(HSSFCellStyle.BORDER_THIN);
+		    	Itemstyle.setBorderRight(HSSFCellStyle.BORDER_THIN);
+		    	Itemstyle.setBorderLeft(HSSFCellStyle.BORDER_THIN);
+		    	
+		    	if(expensiveOrders.contains(pair))
+		    	{
+		    		Itemstyle.setFillForegroundColor(IndexedColors.YELLOW.index);
+		    		Itemstyle.setFillPattern(CellStyle.SOLID_FOREGROUND);
+		    	}
+		    	
+		    	newItemCell.setCellStyle(Itemstyle);
+		    	
+		    	newColumnNumber++;
+		    	
+		    	newItemCell = newRow.createCell(newColumnNumber);
+		    	Cell descCell = row.getCell(descriptionCell.getColumnIndex());
+		    	newItemCell.setCellValue(descCell.getStringCellValue());
+		    	
+		    	Itemstyle = workbook.createCellStyle();
+		    	
+		    	Itemstyle.setBorderBottom(HSSFCellStyle.BORDER_THIN);
+		    	Itemstyle.setBorderTop(HSSFCellStyle.BORDER_THIN);
+		    	Itemstyle.setBorderRight(HSSFCellStyle.BORDER_THIN);
+		    	Itemstyle.setBorderLeft(HSSFCellStyle.BORDER_THIN);
+		    	newItemCell.setCellStyle(Itemstyle);
+		    	
+				for (int column = (int) pair.getRight().getX() ; column <= pair.getRight().getY() ; column++) 
+				{
+					newColumnNumber++;
+					Cell cell = row.getCell(column);
+					
+					if (cell.getCellType() == Cell.CELL_TYPE_STRING) 
+					{					
+						Cell newCell = newRow.createCell(newColumnNumber);
+						String content = cell.getStringCellValue();
+				    	newCell.setCellValue(content);
+				    	
+				    	XSSFCellStyle style = workbook.createCellStyle();
+				    	
+				    	style.setBorderBottom(HSSFCellStyle.BORDER_THIN);
+				    	style.setBorderTop(HSSFCellStyle.BORDER_THIN);
+				    	style.setBorderRight(HSSFCellStyle.BORDER_THIN);
+				    	style.setBorderLeft(HSSFCellStyle.BORDER_THIN);
+				    	
+				    	newCell.setCellStyle(style);
+					}
+					else if(cell.getCellType() == Cell.CELL_TYPE_NUMERIC && DateUtil.isCellDateFormatted(cell))
+					{
+						Cell newCell = newRow.createCell(newColumnNumber);
+						DateFormat sourceFormat = new SimpleDateFormat("dd/MM/yy");	 
+						DateFormat outsourceFormat = new SimpleDateFormat("dd/MM/yyyy");
+						
+						Date content = cell.getDateCellValue();
+						
+						Date tomorrow = new Date();
+						Date today = new Date();
+						
+						Calendar c = Calendar.getInstance();
+						c.setTime(content);
+						c.set(Calendar.HOUR_OF_DAY, 0);
+						c.set(Calendar.MINUTE, 0);
+						c.set(Calendar.SECOND, 0);
+						c.set(Calendar.MILLISECOND, 0);
+						content = c.getTime();
+						
+						c.setTime(tomorrow);
 						c.set(Calendar.HOUR_OF_DAY, 0);
 						c.set(Calendar.MINUTE, 0);
 						c.set(Calendar.SECOND, 0);
 						c.set(Calendar.MILLISECOND, 0);
 						c.add(Calendar.DAY_OF_MONTH, 1);
-						dayAfterExpedite = c.getTime();
+						tomorrow = c.getTime();
 						
-						if(sourceFormat.format(date).equals(sourceFormat.format(content)))
-						{
-							newCell.setCellValue("");
-							XSSFCellStyle style = workbook.createCellStyle();
-					    	style.setFillForegroundColor(IndexedColors.RED.index);
-					    	style.setFillPattern(CellStyle.SOLID_FOREGROUND);
-					    	
-					    	style.setBorderBottom(HSSFCellStyle.BORDER_THIN);
-					    	style.setBorderTop(HSSFCellStyle.BORDER_THIN);
-					    	style.setBorderRight(HSSFCellStyle.BORDER_THIN);
-					    	style.setBorderLeft(HSSFCellStyle.BORDER_THIN);
-					    	
-					    	newCell.setCellStyle(style);
-						}
-						else
-						{
-							date = sourceFormat.parse(globals.frozenDate);
-							newCell.setCellValue(outsourceFormat.format(globals.convertDateToYYYY(content)));
-							XSSFCellStyle style = workbook.createCellStyle();
+						c.setTime(today);
+						c.set(Calendar.HOUR_OF_DAY, 0);
+						c.set(Calendar.MINUTE, 0);
+						c.set(Calendar.SECOND, 0);
+						c.set(Calendar.MILLISECOND, 0);
+						today = c.getTime();
+						
+						try {
+							Date date = sourceFormat.parse(globals.noDate);
+							
+							Date dayAfterExpedite = sourceFormat.parse(untilDate.get(expediteDateMap.get(pair)));
+							c.setTime(dayAfterExpedite);
+							c.set(Calendar.HOUR_OF_DAY, 0);
+							c.set(Calendar.MINUTE, 0);
+							c.set(Calendar.SECOND, 0);
+							c.set(Calendar.MILLISECOND, 0);
+							c.add(Calendar.DAY_OF_MONTH, 1);
+							dayAfterExpedite = c.getTime();
 							
 							if(sourceFormat.format(date).equals(sourceFormat.format(content)))
 							{
-								style.setFillForegroundColor(IndexedColors.LIGHT_GREEN.index);
-								style.setFillPattern(CellStyle.SOLID_FOREGROUND);
+								newCell.setCellValue("");
+								XSSFCellStyle style = workbook.createCellStyle();
+						    	style.setFillForegroundColor(IndexedColors.RED.index);
+						    	style.setFillPattern(CellStyle.SOLID_FOREGROUND);
+						    	
+						    	style.setBorderBottom(HSSFCellStyle.BORDER_THIN);
+						    	style.setBorderTop(HSSFCellStyle.BORDER_THIN);
+						    	style.setBorderRight(HSSFCellStyle.BORDER_THIN);
+						    	style.setBorderLeft(HSSFCellStyle.BORDER_THIN);
+						    	
+						    	newCell.setCellStyle(style);
 							}
-							else if(content.before(tomorrow))
+							else
 							{
-								style.setFillForegroundColor(IndexedColors.LIGHT_ORANGE.index);
-								style.setFillPattern(CellStyle.SOLID_FOREGROUND);
+								date = sourceFormat.parse(globals.frozenDate);
+								newCell.setCellValue(outsourceFormat.format(globals.convertDateToYYYY(content)));
+								XSSFCellStyle style = workbook.createCellStyle();
+								
+								if(sourceFormat.format(date).equals(sourceFormat.format(content)))
+								{
+									style.setFillForegroundColor(IndexedColors.LIGHT_GREEN.index);
+									style.setFillPattern(CellStyle.SOLID_FOREGROUND);
+								}
+								else if(content.before(tomorrow))
+								{
+									style.setFillForegroundColor(IndexedColors.LIGHT_ORANGE.index);
+									style.setFillPattern(CellStyle.SOLID_FOREGROUND);
+								}
+								else if(content.after(today) && content.before(dayAfterExpedite))
+								{
+									style.setFillForegroundColor(IndexedColors.BRIGHT_GREEN.index);
+									style.setFillPattern(CellStyle.SOLID_FOREGROUND);
+								}
+								
+						    	style.setBorderBottom(HSSFCellStyle.BORDER_THIN);
+						    	style.setBorderTop(HSSFCellStyle.BORDER_THIN);
+						    	style.setBorderRight(HSSFCellStyle.BORDER_THIN);
+						    	style.setBorderLeft(HSSFCellStyle.BORDER_THIN);
+						    	
+						    	newCell.setCellStyle(style);
 							}
-							else if(content.after(today) && content.before(dayAfterExpedite))
-							{
-								style.setFillForegroundColor(IndexedColors.BRIGHT_GREEN.index);
-								style.setFillPattern(CellStyle.SOLID_FOREGROUND);
-							}
-							
-					    	style.setBorderBottom(HSSFCellStyle.BORDER_THIN);
-					    	style.setBorderTop(HSSFCellStyle.BORDER_THIN);
-					    	style.setBorderRight(HSSFCellStyle.BORDER_THIN);
-					    	style.setBorderLeft(HSSFCellStyle.BORDER_THIN);
-					    	
-					    	newCell.setCellStyle(style);
+						} catch (ParseException e) {
+							e.printStackTrace();
 						}
-					} catch (ParseException e) {
-						e.printStackTrace();
+				    	
+				    	
 					}
-			    	
-			    	
+					else if(cell.getCellType() == Cell.CELL_TYPE_NUMERIC)
+					{
+						Cell newCell = newRow.createCell(newColumnNumber);
+						double content = cell.getNumericCellValue();
+				    	newCell.setCellValue(content);
+				    	
+				    	XSSFCellStyle style = workbook.createCellStyle();
+				    	
+				    	style.setBorderBottom(HSSFCellStyle.BORDER_THIN);
+				    	style.setBorderTop(HSSFCellStyle.BORDER_THIN);
+				    	style.setBorderRight(HSSFCellStyle.BORDER_THIN);
+				    	style.setBorderLeft(HSSFCellStyle.BORDER_THIN);
+				    	
+				    	newCell.setCellStyle(style);
+					}
+					else if(cell.getCellType() == Cell.CELL_TYPE_BLANK)
+					{
+						Cell newCell = newRow.createCell(newColumnNumber);
+						
+						newCell.setCellValue("");
+						XSSFCellStyle style = workbook.createCellStyle();
+						
+				    	style.setBorderBottom(HSSFCellStyle.BORDER_THIN);
+				    	style.setBorderTop(HSSFCellStyle.BORDER_THIN);
+				    	style.setBorderRight(HSSFCellStyle.BORDER_THIN);
+				    	style.setBorderLeft(HSSFCellStyle.BORDER_THIN);
+				    	
+				    	newCell.setCellStyle(style);
+					}
+					
 				}
-				else if(cell.getCellType() == Cell.CELL_TYPE_NUMERIC)
+				
+		    	Double openOrders = null;
+		    	boolean noOrder = false;
+		    	
+				if((int) pair.getRight().getX() == 0 && (int) pair.getRight().getY() == -1)
 				{
-					Cell newCell = newRow.createCell(newColumnNumber);
-					double content = cell.getNumericCellValue();
-			    	newCell.setCellValue(content);
-			    	
+					noOrder = true;
 			    	XSSFCellStyle style = workbook.createCellStyle();
 			    	
-			    	style.setBorderBottom(HSSFCellStyle.BORDER_THIN);
-			    	style.setBorderTop(HSSFCellStyle.BORDER_THIN);
-			    	style.setBorderRight(HSSFCellStyle.BORDER_THIN);
-			    	style.setBorderLeft(HSSFCellStyle.BORDER_THIN);
-			    	
-			    	newCell.setCellStyle(style);
-				}
-				else if(cell.getCellType() == Cell.CELL_TYPE_BLANK)
-				{
-					Cell newCell = newRow.createCell(newColumnNumber);
-					
-					newCell.setCellValue("");
-					XSSFCellStyle style = workbook.createCellStyle();
+			    	style.setFillForegroundColor(IndexedColors.ORANGE.index);
+					style.setFillPattern(CellStyle.SOLID_FOREGROUND);
 					
 			    	style.setBorderBottom(HSSFCellStyle.BORDER_THIN);
 			    	style.setBorderTop(HSSFCellStyle.BORDER_THIN);
 			    	style.setBorderRight(HSSFCellStyle.BORDER_THIN);
 			    	style.setBorderLeft(HSSFCellStyle.BORDER_THIN);
 			    	
-			    	newCell.setCellStyle(style);
+					for(int i = globals.orderOffset ; i <= globals.quantityOffset ; i++)
+					{
+						newColumnNumber++;
+						Cell newCell = newRow.createCell(newColumnNumber);
+				    	newCell.setCellStyle(style);
+				    	newCell.setCellValue("");
+					}
+					
+					openOrders = row.getCell(openOrdersCell.getColumnIndex()).getNumericCellValue();
 				}
+				newColumnNumber++;
 				
-			}
-			
-	    	Double openOrders = null;
-	    	boolean noOrder = false;
-	    	
-			if((int) pair.getRight().getX() == 0 && (int) pair.getRight().getY() == -1)
-			{
-				noOrder = true;
+	
 		    	XSSFCellStyle style = workbook.createCellStyle();
 		    	
-		    	style.setFillForegroundColor(IndexedColors.ORANGE.index);
-				style.setFillPattern(CellStyle.SOLID_FOREGROUND);
-				
 		    	style.setBorderBottom(HSSFCellStyle.BORDER_THIN);
 		    	style.setBorderTop(HSSFCellStyle.BORDER_THIN);
 		    	style.setBorderRight(HSSFCellStyle.BORDER_THIN);
 		    	style.setBorderLeft(HSSFCellStyle.BORDER_THIN);
 		    	
-				for(int i = globals.orderOffset ; i <= globals.quantityOffset ; i++)
-				{
-					newColumnNumber++;
-					Cell newCell = newRow.createCell(newColumnNumber);
-			    	newCell.setCellStyle(style);
-			    	newCell.setCellValue("");
-				}
+		    	int supplierColumn = (int) pair.getRight().getX() + globals.supplierOffset;
+		    	String supplierName = row.getCell(supplierColumn).getStringCellValue();
+		    	
+		    	Date expediteDate;
+		    	if(supplierName.trim().matches(".*[a-zA-Z].*") && !noOrder)
+		    		expediteDate = new Date(Math.max(globals.addDays(Globals.parseDate(untilDate.get(expediteDateMap.get(pair))) , -45).getTime() , Globals.getTodayDate().getTime()));
+		    	else
+		    		expediteDate = Globals.parseDate(untilDate.get(expediteDateMap.get(pair)));
+		    		
+				Cell newCell = newRow.createCell(newColumnNumber);
+				LocalDateTime ldt = LocalDateTime.ofInstant(expediteDate.toInstant(), ZoneId.systemDefault());
+		    	newCell.setCellValue(Globals.dateWithoutHourToString(ldt));
+		    	newCell.setCellStyle(style);
+		    	
+		    	newColumnNumber++;
+		    	newCell = newRow.createCell(newColumnNumber);
+		    	Double shortage = MapOfOpenOrders.get(pair);
+		    	if(shortage != null)
+		    		newCell.setCellValue(shortage);
+		    	else
+		    		newCell.setCellValue("");
+		    	newCell.setCellStyle(style);
 				
-				openOrders = row.getCell(openOrdersCell.getColumnIndex()).getNumericCellValue();
-			}
-			newColumnNumber++;
+		    	newColumnNumber++;
+		    	newCell = newRow.createCell(newColumnNumber);
+		    	if(openOrders != null)
+		    		newCell.setCellValue(openOrders);
+		    	else
+		    		newCell.setCellValue("");
+		    	newCell.setCellStyle(style);
+		    	
+				newRowNumber++;
 			
-
-	    	XSSFCellStyle style = workbook.createCellStyle();
-	    	
-	    	style.setBorderBottom(HSSFCellStyle.BORDER_THIN);
-	    	style.setBorderTop(HSSFCellStyle.BORDER_THIN);
-	    	style.setBorderRight(HSSFCellStyle.BORDER_THIN);
-	    	style.setBorderLeft(HSSFCellStyle.BORDER_THIN);
-	    	
-	    	int supplierColumn = (int) pair.getRight().getX() + globals.supplierOffset;
-	    	String supplierName = row.getCell(supplierColumn).getStringCellValue();
-	    	
-	    	Date expediteDate;
-	    	if(supplierName.trim().matches(".*[a-zA-Z].*") && !noOrder)
-	    		expediteDate = new Date(Math.max(globals.addDays(Globals.parseDate(untilDate.get(expediteDateMap.get(pair))) , -45).getTime() , Globals.getTodayDate().getTime()));
-	    	else
-	    		expediteDate = Globals.parseDate(untilDate.get(expediteDateMap.get(pair)));
-	    		
-			Cell newCell = newRow.createCell(newColumnNumber);
-			LocalDateTime ldt = LocalDateTime.ofInstant(expediteDate.toInstant(), ZoneId.systemDefault());
-	    	newCell.setCellValue(Globals.dateWithoutHourToString(ldt));
-	    	newCell.setCellStyle(style);
-	    	
-	    	newColumnNumber++;
-	    	newCell = newRow.createCell(newColumnNumber);
-	    	Double shortage = MapOfOpenOrders.get(pair);
-	    	if(shortage != null)
-	    		newCell.setCellValue(shortage);
-	    	else
-	    		newCell.setCellValue("");
-	    	newCell.setCellStyle(style);
-			
-	    	newColumnNumber++;
-	    	newCell = newRow.createCell(newColumnNumber);
-	    	if(openOrders != null)
-	    		newCell.setCellValue(openOrders);
-	    	else
-	    		newCell.setCellValue("");
-	    	newCell.setCellStyle(style);
-	    	
-			newRowNumber++;
-			
-		}
+			}	
+	    
+	    }
 		
 	}
 	
