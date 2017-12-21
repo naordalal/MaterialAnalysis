@@ -2,6 +2,8 @@ package MainPackage;
 
 import java.io.File;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
 public class LoadingFrame 
@@ -46,7 +48,22 @@ public class LoadingFrame
 		Analyzer analyzer = new Analyzer(filesPath[0] , filesPath[1] , filesPath[2]);
 		try 
 		{
+			JFrame frame = new JFrame("ND System");
+			frame.setLayout(null);
+			frame.getRootPane().setFocusable(true);
+			frame.setBounds(500, 200, 150, 150);
+			frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+			frame.setResizable(false);
+			
+			JLabel label = new JLabel("<html><b>Working...</b></html>");
+			label.setLocation(40, 20);
+			label.setSize(90 , 100);
+			frame.add(label);
+			
+			frame.setVisible(true);
+			
 			analyzer.analyze();
+			frame.dispose();
 			JOptionPane.showConfirmDialog(null, "Done!","",JOptionPane.PLAIN_MESSAGE);
 		}
 		catch (Exception e) 

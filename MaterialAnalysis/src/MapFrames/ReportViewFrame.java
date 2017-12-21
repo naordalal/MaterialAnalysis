@@ -40,8 +40,10 @@ import javax.swing.border.AbstractBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
@@ -180,12 +182,14 @@ public class ReportViewFrame implements ActionListener
 		//table.setFont(new Font("Tahoma", Font.PLAIN, 16));
 		
 		table.getTableHeader().setReorderingAllowed(false);
-		table.getTableHeader().setResizingAllowed(false);
+		//table.getTableHeader().setResizingAllowed(false);
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		
 		DefaultTableCellRenderer headerRenderer = new DefaultTableCellRenderer();
 		headerRenderer.setHorizontalAlignment(JLabel.CENTER);
 		setHeaderRenderer(headerRenderer);
+		
+		setColumnWidth();
 		
 		table.setBorder(new AbstractBorder() 
 		{
@@ -196,7 +200,7 @@ public class ReportViewFrame implements ActionListener
 			{
 				 g.setColor(Color.RED);
 				 String lastVal = "";
-				 int lengthOfColumns = setColumnWidth(); 
+				 int lengthOfColumns = getColumnWidth(); 
 				 for (int rowIndex = 0 ; rowIndex < table.getRowCount() ; rowIndex++) 
 				 {
 					String [] row = getRow(rowIndex);
@@ -454,8 +458,25 @@ public class ReportViewFrame implements ActionListener
         	width += adjustColumnSizes(table, i, 4);
         return width;
     }
+	
+	public int getColumnWidth() 
+    {
+		int width = 0;
+        for (int i = 0; i < table.getColumnCount(); i++) 
+        	width += getColumnSize(table, i);
+        return width;
+    }
 
-    private void adjustJTableRowSizes(JTable jTable) 
+    private int getColumnSize(MyJTable table, int column) 
+    {
+		JTableHeader th = table.getTableHeader();
+		TableColumnModel tcm = th.getColumnModel();
+		TableColumn tc = tcm.getColumn(column);
+		
+		return tc.getWidth();
+	}
+
+	private void adjustJTableRowSizes(JTable jTable) 
     {
         for (int row = 0; row < jTable.getRowCount(); row++) 
         {

@@ -241,7 +241,7 @@ public class SimMrpSender extends Sender {
 					}
 				}
 				else
-					cellDate = currentDateCell.getDateCellValue();
+					cellDate = currentDateCell.getDateCellValue();	
 				
 				if(cellDate == null)
 				{

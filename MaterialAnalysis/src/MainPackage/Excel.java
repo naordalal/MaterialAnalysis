@@ -346,7 +346,7 @@ public class Excel
     			else if(!previousItem.equals(rows[rowIndex - 1][0]))
         		{
     	        	contentStyle.setBorderTop(HSSFCellStyle.BORDER_THICK);
-        			contentStyle.setTopBorderColor(IndexedColors.BLUE.index);
+        			contentStyle.setTopBorderColor(IndexedColors.BLACK.index);
         			previousItem = rows[rowIndex - 1][0];
         		}
     			else if(columnIndex > 0)
