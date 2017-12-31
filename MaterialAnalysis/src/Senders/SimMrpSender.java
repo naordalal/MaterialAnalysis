@@ -640,10 +640,11 @@ public class SimMrpSender extends Sender {
     	Row row = priceCell.getRow();
     	int column = priceCell.getColumnIndex();
     	
-    	for(int i = 13 ; i < bomsQuantity + 13 ; i++)
+    	int startColumn = 13;
+    	for(int i = startColumn ; i < bomsQuantity + startColumn ; i++)
     	{
     		cell = newRow.createCell(i);
-    		Cell bomCell = row.getCell(column + (i - 12));
+    		Cell bomCell = row.getCell(column + (i - startColumn));
     	    cell.setCellValue(bomCell.getStringCellValue());
         	cell.setCellStyle(style2);
     	}
@@ -655,7 +656,7 @@ public class SimMrpSender extends Sender {
 		createExpediteContent(w , excelSheet , listOfSuppliersOrders , rowStart , mapOfItemPerDate , true , mapOfOpenOrders , bomsQuantity);
 	    
 	    
-	    for(int i = 0 ; i <= 12 + bomsQuantity ; i++)
+	    for(int i = 0 ; i < startColumn + bomsQuantity ; i++)
 	    	excelSheet.autoSizeColumn(i);  
 	    
 	    List<Integer> columns = new ArrayList<Integer>();
@@ -891,7 +892,7 @@ public class SimMrpSender extends Sender {
 		
 		for (Map<String, List<Pair<Integer,Point>>> map : listOfSuppliersOrders) 
 	    {	
-			List<Pair<Integer,Point>> sortedRows = map.values().stream().reduce((l1 , l2) -> {l1.addAll(l2); return l1;}).get();
+			List<Pair<Integer,Point>> sortedRows = map.values().stream().reduce((l1 , l2) -> {l1.addAll(l2); return l1;}).orElse(new ArrayList<>());
 			Collections.sort(sortedRows);
 			
 	    	for (Pair<Integer, Point> pair : sortedRows) 

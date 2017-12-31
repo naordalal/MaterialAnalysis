@@ -285,6 +285,7 @@ public class Analyzer
 		
 		for (String catalogNumber : catalogNumbersSorted) 
 		{
+			
 			String descendantCatalogNumber = db.getDescendantCatalogNumber(catalogNumber);
 			
 			List<QuantityPerDate> initFCProductsQuantityPerDate = db.getInitProductsFCQuantityPerDate(catalogNumber).getOrDefault(catalogNumber, new ArrayList<>());

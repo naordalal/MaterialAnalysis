@@ -733,7 +733,7 @@ public class SimSender extends Sender{
 		
 		for (Map<String, List<Pair<Integer,Point>>> map : listOfSuppliersOrders) 
 	    {	
-			List<Pair<Integer,Point>> sortedRows = map.values().stream().reduce((l1 , l2) -> {l1.addAll(l2); return l1;}).get();
+			List<Pair<Integer,Point>> sortedRows = map.values().stream().reduce((l1 , l2) -> {l1.addAll(l2); return l1;}).orElse(new ArrayList<>());
 			Collections.sort(sortedRows);
 			
 	    	for (Pair<Integer, Point> pair : sortedRows) 

@@ -23,7 +23,7 @@ public class Globals
 	/*public final String shipmentsFilePath = "O:\\Purchasing\\PO_FollowUp\\Material Analysis\\MAP system\\Reports\\SHIPMENTS.txt";
 	public final String customerOrdersFilePath = "O:\\Purchasing\\PO_FollowUp\\Material Analysis\\MAP system\\Reports\\PO.txt";
 	public final String WOFilePath = "O:\\Purchasing\\PO_FollowUp\\Material Analysis\\MAP system\\Reports\\WO.txt";*/
-
+	
 	public final String woNumberColumn = "מספר פקודה";
 	public final String catalogNumberColumn = "מקט";
 	public final String quantityColumn = "כמות";

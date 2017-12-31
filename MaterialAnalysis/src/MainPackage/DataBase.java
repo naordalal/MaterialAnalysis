@@ -2721,12 +2721,40 @@ public class DataBase {
 	}
 
 	
-	public void updateTree(String catalogNumber, String description, String fatherCN, String newFatherCN , String quantity, String alias) 
+	public void updateTree(String catalogNumber, String customer , String description, String fatherCN, String newFatherCN , String quantity, String alias) 
 	{
 		updateAlias(catalogNumber, alias);
 		updateQuantityToAssociate(catalogNumber, fatherCN, quantity);
 		updateDescription(catalogNumber , description);
 		updateFather(catalogNumber, fatherCN, newFatherCN);
+		updateCustomer(catalogNumber , customer);
+		
+	}
+	
+	private void updateCustomer(String catalogNumber, String customer) 
+	{
+		try{
+			
+			connect();
+			stmt = c.prepareStatement("UPDATE Tree SET customer = ? where CN = ?");
+			stmt.setString(1, customer);
+			stmt.setString(2, catalogNumber);
+			stmt.executeUpdate();
+			
+			c.commit();
+			closeConnection();
+		
+		}
+		catch(Exception e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			e.printStackTrace();
+			closeConnection();
+		}
 		
 	}
 	

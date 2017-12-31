@@ -79,6 +79,8 @@ public class Excel
 		for(int i = fromRow ; i < sheet.getPhysicalNumberOfRows() ; i++)
 		{	
 			Row row = sheet.getRow(i);
+			if(row == null)
+				return rows;
 			Cell cell = row.getCell(columnIndex);
 			
 			if(cell != null)

@@ -133,7 +133,12 @@ public class Tree extends Report
 			case 0 : 
 				return null;
 			case 1:
-				return null;
+				List<String> customers = db.getCustomersOfUser(userName);
+				if(!customers.contains(newValue))
+					throw new Exception("Invalid customer , customer does not exist");
+				
+				this.customer = newValue;
+				break;
 			case 2:
 				this.description = newValue;
 				break;
@@ -173,6 +178,9 @@ public class Tree extends Report
 				if(!newValue.trim().equals("") && !db.getAllCatalogNumberOfCustomer(customer).contains(newValue))
 					throw new Exception("Invalid catalog number , catalog number does not exist");
 				
+				if(newValue.trim().equals(this.catalogNumber.trim()))
+					throw new Exception("Invalid catalog number , rev cannot be equals to current catalog number");
+				
 				this.alias = (!newValue.trim().equals("")) ? newValue : null;
 				message = null;
 				break;
@@ -182,7 +190,7 @@ public class Tree extends Report
 				break;
 		}
 		
-		db.updateTree(catalogNumber, description , previousFatherCN , fatherCN , quantity , alias);
+		db.updateTree(catalogNumber, customer , description , previousFatherCN , fatherCN , quantity , alias);
 		
 		Analyzer analyzer = new Analyzer();
 		
@@ -197,7 +205,7 @@ public class Tree extends Report
 	{
 		List<Integer> invalidEditableColumns = new ArrayList<>();
 		invalidEditableColumns.add(0);
-		invalidEditableColumns.add(1);
+		//invalidEditableColumns.add(1);
 		
 		return invalidEditableColumns;
 	}
