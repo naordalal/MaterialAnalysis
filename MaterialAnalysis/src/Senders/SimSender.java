@@ -128,7 +128,7 @@ public class SimSender extends Sender{
 		
 		if(polarizerCell == null || shortageCell == null)
 		{
-			JOptionPane.showConfirmDialog(null, "missing 'Ã®Ã·Ã¨Ã¡' or 'Ã§Ã¥Ã±Ã¸ Ã°Ã¥Ã«Ã§Ã©' column","",JOptionPane.PLAIN_MESSAGE);
+			JOptionPane.showConfirmDialog(null, "missing 'î÷èá' or 'çåñø ðåëçé' column","",JOptionPane.PLAIN_MESSAGE);
 			return null;
 		}
 		
