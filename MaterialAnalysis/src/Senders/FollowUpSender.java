@@ -1,4 +1,4 @@
-package Senders;
+ï»¿package Senders;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -104,7 +104,7 @@ public class FollowUpSender extends Sender
 	 Cell commentsCell = Excel.findCell(ordersSheet, globals.notesColumn);
 	 if(commentsCell == null && acceptOrder)
 	 {
-		 JOptionPane.showConfirmDialog(null, "missing 'äòøåú ìñô÷' column","",JOptionPane.PLAIN_MESSAGE);
+		 JOptionPane.showConfirmDialog(null, "missing '×”×¢×¨×•×ª ×œ×¡×¤×§' column","",JOptionPane.PLAIN_MESSAGE);
 		 return null;
 	 }
 		
@@ -118,7 +118,7 @@ public class FollowUpSender extends Sender
 	 
 	 if(supplyDateCell == null || suppliersCell == null)
 	 {
-		 JOptionPane.showConfirmDialog(null, "missing 'ñô÷' or 'úàøéê îåáèç' column","",JOptionPane.PLAIN_MESSAGE);
+		 JOptionPane.showConfirmDialog(null, "missing '×¡×¤×§' or '×ª××¨×™×š ××•×‘×˜×—' column","",JOptionPane.PLAIN_MESSAGE);
 		 return null;
 	 }
 		 
@@ -490,7 +490,7 @@ public class FollowUpSender extends Sender
 	    {
 	    	Cell cell = iterator.next();
 	    	
-	    	if(cell.getCellType() == Cell.CELL_TYPE_STRING && cell.getStringCellValue().trim().equalsIgnoreCase("äòøåú ìñô÷"))
+	    	if(cell.getCellType() == Cell.CELL_TYPE_STRING && cell.getStringCellValue().trim().equalsIgnoreCase("×”×¢×¨×•×ª ×œ×¡×¤×§"))
 	    		continue;
 	    	
 	    	Cell newCell = newRow.createCell(cell.getColumnIndex());

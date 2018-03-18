@@ -1,4 +1,4 @@
-package Senders;
+ן»¿package Senders;
 
 import java.awt.Point;
 import java.io.File;
@@ -128,7 +128,7 @@ public class SimSender extends Sender{
 		
 		if(polarizerCell == null || shortageCell == null)
 		{
-			JOptionPane.showConfirmDialog(null, "missing 'מקטב' or 'חוסר נוכחי' column","",JOptionPane.PLAIN_MESSAGE);
+			JOptionPane.showConfirmDialog(null, "missing '׳׳§׳˜׳‘' or '׳—׳•׳¡׳¨ ׳ ׳•׳›׳—׳™' column","",JOptionPane.PLAIN_MESSAGE);
 			return null;
 		}
 		
@@ -487,11 +487,11 @@ public class SimSender extends Sender{
     	style2.setBorderLeft(HSSFCellStyle.BORDER_THIN);
     	
     	cell = newRow.createCell(7);	    
-	    cell.setCellValue("חוסר לסבב");
+	    cell.setCellValue("׳—׳•׳¡׳¨ ׳׳¡׳‘׳‘");
     	cell.setCellStyle(style2);
     	
     	cell = newRow.createCell(8);	    
-	    cell.setCellValue("הזמנות פתוחות לאחר 3 סבבים");
+	    cell.setCellValue("׳”׳–׳׳ ׳•׳× ׳₪׳×׳•׳—׳•׳× ׳׳׳—׳¨ 3 ׳¡׳‘׳‘׳™׳");
     	cell.setCellStyle(style2);
     	
 	    int rowStart = 1;
@@ -567,7 +567,7 @@ public class SimSender extends Sender{
 	    
 	    Cell cell = newRow.createCell(0);
 	    
-	    cell.setCellValue("מקטב");
+	    cell.setCellValue("׳׳§׳˜׳‘");
     	
     	XSSFCellStyle style = w.createCellStyle();
     	style.setFillForegroundColor(IndexedColors.TURQUOISE.index);
@@ -580,19 +580,19 @@ public class SimSender extends Sender{
     	cell.setCellStyle(style);
     	
     	cell = newRow.createCell(1);
-	    cell.setCellValue("תיאור");
+	    cell.setCellValue("׳×׳™׳׳•׳¨");
 	    cell.setCellStyle(style);	
 	    
     	cell = newRow.createCell(2);
-	    cell.setCellValue("כמות חסרה");
+	    cell.setCellValue("׳›׳׳•׳× ׳—׳¡׳¨׳”");
 	    cell.setCellStyle(style);	    
 	    
 	    cell = newRow.createCell(3);
-	    cell.setCellValue("כמות נדרשת לסבב");
+	    cell.setCellValue("׳›׳׳•׳× ׳ ׳“׳¨׳©׳× ׳׳¡׳‘׳‘");
 	    cell.setCellStyle(style);
 	    
     	cell = newRow.createCell(4);
-	    cell.setCellValue("תאריך נדרש");
+	    cell.setCellValue("׳×׳׳¨׳™׳ ׳ ׳“׳¨׳©");
 	    cell.setCellStyle(style);
 	    
 	    

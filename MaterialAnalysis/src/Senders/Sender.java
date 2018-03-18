@@ -1,4 +1,4 @@
-package Senders;
+ï»¿package Senders;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -58,7 +58,7 @@ public abstract class Sender<T>
 		    
 		    Cell cell = newRow.createCell(0);
 		    
-		    cell.setCellValue("ùí ñô÷");
+		    cell.setCellValue("×©× ×¡×¤×§");
 	    	
 	    	XSSFCellStyle style = w.createCellStyle();
 	    	style.setFillForegroundColor(IndexedColors.TURQUOISE.index);

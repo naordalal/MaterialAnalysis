@@ -1,4 +1,4 @@
-package Senders;
+п»їpackage Senders;
 
 import java.awt.Point;
 import java.io.File;
@@ -148,7 +148,7 @@ public class SimMrpSender extends Sender {
 		
 		if(polarizerCell == null || shortageCell == null || priceCell == null || descCell == null)
 		{
-			JOptionPane.showConfirmDialog(null, "missing 'очиб' or 'зесш релзй' or " + globals.priceColumn + " column or 'ъаеш' column","",JOptionPane.PLAIN_MESSAGE);
+			JOptionPane.showConfirmDialog(null, "missing 'ЧћЧ§ЧЧ‘' or 'Ч—Ч•ЧЎЧЁ Ч Ч•Ч›Ч—Ч™' or " + globals.priceColumn + " column or 'ЧЄЧђЧ•ЧЁ' column","",JOptionPane.PLAIN_MESSAGE);
 			return null;
 		}
 		
@@ -625,15 +625,15 @@ public class SimMrpSender extends Sender {
     	style2.setBorderLeft(HSSFCellStyle.BORDER_THIN);
     	
     	cell = newRow.createCell(10);	    
-	    cell.setCellValue("йой ощмез");
+	    cell.setCellValue("Ч™ЧћЧ™ ЧћЧ©ЧњЧ•Ч—");
     	cell.setCellStyle(style2);
     	
     	cell = newRow.createCell(11);	    
-	    cell.setCellValue("зесш мсбб");
+	    cell.setCellValue("Ч—Ч•ЧЎЧЁ ЧњЧЎЧ‘Ч‘");
     	cell.setCellStyle(style2);
     	
     	cell = newRow.createCell(12);	    
-	    cell.setCellValue("джореъ фъезеъ мазш 12 сббйн");
+	    cell.setCellValue("Ч”Ч–ЧћЧ Ч•ЧЄ Ч¤ЧЄЧ•Ч—Ч•ЧЄ ЧњЧђЧ—ЧЁ 12 ЧЎЧ‘Ч‘Ч™Чќ");
     	cell.setCellStyle(style2);
     	
     	Cell priceCell = Excel.findCell(ordersSheet, globals.priceColumn2);
@@ -723,7 +723,7 @@ public class SimMrpSender extends Sender {
 	    
 	    Cell cell = newRow.createCell(0);
 	    
-	    cell.setCellValue("очиб");
+	    cell.setCellValue("ЧћЧ§ЧЧ‘");
     	
     	XSSFCellStyle style = w.createCellStyle();
     	style.setFillForegroundColor(IndexedColors.TURQUOISE.index);
@@ -736,19 +736,19 @@ public class SimMrpSender extends Sender {
     	cell.setCellStyle(style);
     	
     	cell = newRow.createCell(1);
-	    cell.setCellValue("ъйаеш");
+	    cell.setCellValue("ЧЄЧ™ЧђЧ•ЧЁ");
 	    cell.setCellStyle(style);	
 	    
     	cell = newRow.createCell(2);
-	    cell.setCellValue("лоеъ зсшд");
+	    cell.setCellValue("Ч›ЧћЧ•ЧЄ Ч—ЧЎЧЁЧ”");
 	    cell.setCellStyle(style);	    
 	    
 	    cell = newRow.createCell(3);
-	    cell.setCellValue("лоеъ ргшщъ мсбб");
+	    cell.setCellValue("Ч›ЧћЧ•ЧЄ Ч Ч“ЧЁЧ©ЧЄ ЧњЧЎЧ‘Ч‘");
 	    cell.setCellStyle(style);
 	    
     	cell = newRow.createCell(4);
-	    cell.setCellValue("ъашйк ргшщ");
+	    cell.setCellValue("ЧЄЧђЧЁЧ™Чљ Ч Ч“ЧЁЧ©");
 	    cell.setCellStyle(style);
 	    
 	    

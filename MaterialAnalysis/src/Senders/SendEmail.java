@@ -1,4 +1,4 @@
-package Senders;
+﻿package Senders;
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;

@@ -1,4 +1,4 @@
-package MainPackage;
+﻿package MainPackage;
 public class Pair<L,R> implements Comparable<Pair<L,R>> {
 
   private L left;

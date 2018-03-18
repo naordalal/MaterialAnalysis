@@ -1,4 +1,4 @@
-package MainPackage;
+ï»¿package MainPackage;
 
 public class SimGlobals extends Globals
 {
@@ -13,11 +13,11 @@ public class SimGlobals extends Globals
 	public int quantityOffset = 3;
 	
 	
-	public String itemNumberColumn = "î÷èá";
-	public String descriptionColumn = "úàåø";
-	public String shortageColumn = "çåñø ğåëçé";
-	public String dateColumn = "úàøéê ";
-	public String priceColumn = "4-îçéø ú÷ï ùéåå÷";
-	public String openOrdersColumn = "äôøù äæ' ôúåçåú ìñéëåí 1-3";
+	public String itemNumberColumn = "××§×˜×‘";
+	public String descriptionColumn = "×ª××•×¨";
+	public String shortageColumn = "×—×•×¡×¨ × ×•×›×—×™";
+	public String dateColumn = "×ª××¨×™×š ";
+	public String priceColumn = "4-××—×™×¨ ×ª×§×Ÿ ×©×™×•×•×§";
+	public String openOrdersColumn = "×”×¤×¨×© ×”×–' ×¤×ª×•×—×•×ª ×œ×¡×™×›×•× 1-3";
 
 }

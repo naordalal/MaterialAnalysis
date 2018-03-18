@@ -1,4 +1,4 @@
-package AnalyzerTools;
+﻿package AnalyzerTools;
 
 import java.text.DateFormatSymbols;
 import java.util.Date;

@@ -1,4 +1,4 @@
-package MainPackage;
+ï»¿package MainPackage;
 
 public class SimMrpGlobals extends Globals
 {
@@ -15,17 +15,17 @@ public class SimMrpGlobals extends Globals
 	public int quantityOffset = 7;
 	
 
-	public String itemNumberColumn = "î÷èá";
-	public String descriptionColumn = "úéàåø ôøéè";
-	public String descriptionColumn2 = "úàåø";
-	public String aviableInventoryColumn = "îìàé æîéï ìàçø ô÷\"é";
-	public String allocationOfStock = "ä÷öàú îìàé úôé î MRP";
-	public String shortageColumn = "çåñø ğåëçé 1";
-	public String dateColumn = "îåòã àñô÷ä ";
-	public String requiredAmountCloumn = "ğãøù çåãù ";
-	public String balanceColumn = "ëîåú ôúåçä ";
-	public String balanceAfterOrdersColumn = "éúøú äæîğä îòáø ì  12";
-	public String priceColumn = " îçéø ú÷ï î Data MRP";
-	public String priceColumn2 = "4-îçéø ú÷ï ùéåå÷";
+	public String itemNumberColumn = "××§×˜×‘";
+	public String descriptionColumn = "×ª×™××•×¨ ×¤×¨×™×˜";
+	public String descriptionColumn2 = "×ª××•×¨";
+	public String aviableInventoryColumn = "××œ××™ ×–××™×Ÿ ×œ××—×¨ ×¤×§\"×™";
+	public String allocationOfStock = "×”×§×¦××ª ××œ××™ ×ª×¤×™ × MRP";
+	public String shortageColumn = "×—×•×¡×¨ × ×•×›×—×™ 1";
+	public String dateColumn = "××•×¢×“ ××¡×¤×§×” ";
+	public String requiredAmountCloumn = "× ×“×¨×© ×—×•×“×© ";
+	public String balanceColumn = "×›××•×ª ×¤×ª×•×—×” ";
+	public String balanceAfterOrdersColumn = "×™×ª×¨×ª ×”×–×× ×” ××¢×‘×¨ ×œ  12";
+	public String priceColumn = " ××—×™×¨ ×ª×§×Ÿ × Data MRP";
+	public String priceColumn2 = "4-××—×™×¨ ×ª×§×Ÿ ×©×™×•×•×§";
 	
 }

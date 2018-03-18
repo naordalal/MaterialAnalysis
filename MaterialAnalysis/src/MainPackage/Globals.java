@@ -1,4 +1,4 @@
-package MainPackage;
+ï»¿package MainPackage;
 import java.awt.ComponentOrientation;
 import java.awt.Image;
 import java.awt.Toolkit;
@@ -136,13 +136,13 @@ public class Globals {
 	public static final int monthsBackToView = 3;
 	
 	public String acceptNotes = "Please approve receipt of PO and delivery date";
-	public String promisedDateInHebrewColumn = "úàøéê îåáèç";
+	public String promisedDateInHebrewColumn = "×ª××¨×™×š ××•×‘×˜×—";
 	public String promisedDateInEnglishColumn = "delivery date";
-	public String requestDateInHebrewColumn = "úàøéê ğãøù";
+	public String requestDateInHebrewColumn = "×ª××¨×™×š × ×“×¨×©";
 	public String requestDateInEnglishColumn = "required date";
-	public String supplierInHebrewColumn = "ñô÷";
+	public String supplierInHebrewColumn = "×¡×¤×§";
 	public String supplierInEnglishColumn = "supplier";
-	public String notesColumn = "äòøåú ìñô÷";
+	public String notesColumn = "×”×¢×¨×•×ª ×œ×¡×¤×§";
 	
 	public String noDate = "11/11/19";
 	public String frozenDate = "12/12/19";
