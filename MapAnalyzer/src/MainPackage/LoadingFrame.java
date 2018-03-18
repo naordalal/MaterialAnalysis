@@ -1,4 +1,4 @@
-package MainPackage;
+﻿package MainPackage;
 
 import java.io.File;
 import javax.swing.JFileChooser;

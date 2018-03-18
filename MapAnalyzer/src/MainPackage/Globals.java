@@ -1,4 +1,4 @@
-package MainPackage;
+ï»¿package MainPackage;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -24,24 +24,24 @@ public class Globals
 	public final String customerOrdersFilePath = "O:\\All\\YR_Data\\SO\\SO_MAP";
 	public final String WOFilePath = "O:\\All\\YR_Data\\WO\\WO_MAP";*/
 	
-	public final String woNumberColumn = "îñôø ô÷åãä";
-	public final String catalogNumberColumn = "î÷è";
-	public final String quantityColumn = "ëîåú";
-	public final String customerColumn = "ì÷åç";
-	public final String dateColumn = "úàøéê ô÷åãä";
-	public final String descriptionColumn = "úàåø";
+	public final String woNumberColumn = "××¡×¤×¨ ×¤×§×•×“×”";
+	public final String catalogNumberColumn = "××§×˜";
+	public final String quantityColumn = "×›××•×ª";
+	public final String customerColumn = "×œ×§×•×—";
+	public final String dateColumn = "×ª××¨×™×š ×¤×§×•×“×”";
+	public final String descriptionColumn = "×ª××•×¨";
 	
-	public final String customerIdColumn = "îñ ì÷åç";
-	public final String orderNumberColumn = "îñ äæîğä";
-	public final String customerOrderNumberColumn = "îñ äæîğú ì÷åç";
-	public final String orderDateColumn = "úàøéê äæîğä";
-	public final String priceColumn = "îçéø éçéãä";
-	public final String quantityOrderColumn = "ëîåú îåæîğú";
-	public final String guaranteedDateColumn = "úàøéê îåáèç";
+	public final String customerIdColumn = "××¡ ×œ×§×•×—";
+	public final String orderNumberColumn = "××¡ ×”×–×× ×”";
+	public final String customerOrderNumberColumn = "××¡ ×”×–×× ×ª ×œ×§×•×—";
+	public final String orderDateColumn = "×ª××¨×™×š ×”×–×× ×”";
+	public final String priceColumn = "××—×™×¨ ×™×—×™×“×”";
+	public final String quantityOrderColumn = "×›××•×ª ××•×–×× ×ª";
+	public final String guaranteedDateColumn = "×ª××¨×™×š ××•×‘×˜×—";
 	
-	public final String orderIdColumn = "îñ äæ";
-	public final String orderCustomerIdColumn = "ñéîåëéï";
-	public final String shipmentDateColumn = "úàøéê îùìåç";
+	public final String orderIdColumn = "××¡ ×”×–";
+	public final String orderCustomerIdColumn = "×¡×™××•×›×™×Ÿ";
+	public final String shipmentDateColumn = "×ª××¨×™×š ××©×œ×•×—";
 	
 	public static final int monthsToIgnore = 6;
 	public final String charsetName = "IBM862";

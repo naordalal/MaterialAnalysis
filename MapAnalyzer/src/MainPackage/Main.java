@@ -1,4 +1,4 @@
-package MainPackage;
+﻿package MainPackage;
 
 import java.awt.EventQueue;
 import java.io.IOException;
