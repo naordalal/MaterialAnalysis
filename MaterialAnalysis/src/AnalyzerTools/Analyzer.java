@@ -254,6 +254,7 @@ public class Analyzer
 	
 	public Map<MonthDate,Map<String,ProductColumn>> calculateMap(String userName , boolean forView , List<String> customers)
 	{
+		db.clearLastMap();
 		Date lastCalculateMapDate = db.getLastUpdateDate(UpdateType.MAP);
 		Date lastCalculateProductQuantitiesDate = db.getLastUpdateDate(UpdateType.ProductQuantity);
 		
@@ -283,16 +284,15 @@ public class Analyzer
 		
 		List<MonthDate> notMonthsToView = monthToCalculate.subList(0, endIndex);
 		
+		for(MonthDate date : map.keySet())
+		{
+			db.updateMap(map.get(date), date);	
+		}
+		
 		if(forView)
 		{
 			for (MonthDate month : notMonthsToView)
 					map.remove(month);	
-		}
-		
-		for(MonthDate date : map.keySet())
-		{
-			if(!notMonthsToView.contains(date))
-				db.updateMap(map.get(date), date);	
 		}
 		
 		db.updateLastUpdateDate(UpdateType.MAP);
