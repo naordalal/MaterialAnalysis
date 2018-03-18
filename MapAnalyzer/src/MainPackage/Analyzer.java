@@ -3,11 +3,9 @@
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -48,9 +46,9 @@ public class Analyzer
 
 	public void analyze() throws IOException
 	{
-		/*db.removeHistoryOfForm(FormType.PO, Globals.monthsToIgnore);
+		db.removeHistoryOfForm(FormType.PO, Globals.monthsToIgnore);
 		db.removeHistoryOfForm(FormType.WO, Globals.monthsToIgnore);
-		db.removeHistoryOfForm(FormType.SHIPMENT, Globals.monthsToIgnore);*/
+		db.removeHistoryOfForm(FormType.SHIPMENT, Globals.monthsToIgnore);
 		
 		if(woFilePath == null)
 		{
@@ -513,15 +511,11 @@ public class Analyzer
 		
 				int quantityToAssociate = fatherCatalogNumberAndQuantityToAssociate.getRight();
 				
-				if(!isSon(fatherCatalogNumber))
-				{
-					QuantityPerDate fatherWorkOrder = db.getProductWOQuantityOnDate(fatherCatalogNumber , monthDate);
-					materialAvailabilityFix += fatherWorkOrder.getQuantity() * quantityToAssociate;
-				}
-				else
-				{
+				QuantityPerDate fatherForecast = db.getProductFCQuantityOnDate(fatherCatalogNumber , monthDate);
+				materialAvailabilityFix += fatherForecast.getQuantity() * quantityToAssociate;
+				
+				if(isSon(fatherCatalogNumber))
 					materialAvailabilityFix += calculateMaterialAvailabilityFix(fatherCatalogNumber, monthDate) * quantityToAssociate;
-				}
 			}
 		}
 		
