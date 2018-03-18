@@ -157,7 +157,7 @@ public class Tree extends Report
 					message = null;
 					updateMap = true;
 				}	
-				this.fatherCN = newValue;
+				this.fatherCN = newValue.trim();
 				break;
 			case 4:
 				if(!org.apache.commons.lang3.StringUtils.isNumeric(newValue.trim()))
@@ -165,7 +165,7 @@ public class Tree extends Report
 				else if(fatherCN == null || fatherCN.equals(""))
 					throw new Exception("You cannot change quantity for empty father catalog number");
 				
-				this.quantity = newValue;
+				this.quantity = newValue.trim();
 				if(quantity == null || quantity.equals("0") || quantity.equals(""))
 				{
 					this.quantity = "";

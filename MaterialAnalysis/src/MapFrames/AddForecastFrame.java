@@ -189,8 +189,9 @@ public class AddForecastFrame extends KeyAdapter implements ActionListener
 			String quantity = quantityText.getText();
 			String notes = notesText.getText();
 			
-			analyzer.addNewFC(customer, (String) catalogNumberComboBox.getSelectedItem(), quantity, Globals.dateWithoutHourToString(initDate), Globals.dateWithoutHourToString(requireDate), description, notes);
+			analyzer.addNewFC(customer, (String) catalogNumberComboBox.getSelectedItem(), quantity, Globals.dateWithoutHourToString(initDate), Globals.dateWithoutHourToString(requireDate), description, userName , notes);
 			JOptionPane.showConfirmDialog(null, "Added successfully","",JOptionPane.PLAIN_MESSAGE);
+			frame.dispose();
 		}
 		
 	}

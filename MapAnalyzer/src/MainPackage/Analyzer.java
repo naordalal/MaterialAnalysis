@@ -1,8 +1,12 @@
 package MainPackage;
 
+import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,9 +48,9 @@ public class Analyzer
 
 	public void analyze() throws IOException
 	{
-		db.removeHistoryOfForm(FormType.PO, Globals.monthsToIgnore);
+		/*db.removeHistoryOfForm(FormType.PO, Globals.monthsToIgnore);
 		db.removeHistoryOfForm(FormType.WO, Globals.monthsToIgnore);
-		db.removeHistoryOfForm(FormType.SHIPMENT, Globals.monthsToIgnore);
+		db.removeHistoryOfForm(FormType.SHIPMENT, Globals.monthsToIgnore);*/
 		
 		if(woFilePath == null)
 		{
@@ -71,10 +75,13 @@ public class Analyzer
 
 	private void analyzeWO(String filePath) throws IOException 
 	{
+		String fileDir = filePath.substring(0,filePath.lastIndexOf("\\"));
+		String filePrefix = filePath.substring(filePath.lastIndexOf("\\") + 1);
+		
 		int woNumberColumn = -1 , catalogNumberColumn = -1 , quantityColumn = -1 , customerColumn = -1 , dateColumn = -1 , descriptionColumn = -1;
-		for (String line : Files.readAllLines(Paths.get(filePath),Charset.forName(globals.charsetName)))
+		for (String line : Files.readAllLines(getFilePath(fileDir , filePrefix),Charset.forName(globals.charsetName)))
 		{
-			List<String> columns = Arrays.asList(line.split("\\|")).stream().map(s -> s.trim()).collect(Collectors.toList());
+			List<String> columns = Arrays.asList(line.split("\\|" , -1)).stream().map(s -> s.trim()).collect(Collectors.toList());
 			if(woNumberColumn == -1) 
 				woNumberColumn = columns.indexOf(globals.woNumberColumn);
 			if(catalogNumberColumn == -1) 
@@ -100,14 +107,17 @@ public class Analyzer
 			}
 		}	
 	}
-	
+
 	private void analyzeCustomerOrders(String filePath) throws IOException 
 	{
+		String fileDir = filePath.substring(0,filePath.lastIndexOf("\\"));
+		String filePrefix = filePath.substring(filePath.lastIndexOf("\\") + 1);
+		
 		int customerColumn = -1 , orderNumberColumn = -1 , customerOrderNumberColumn = -1 , catalogNumberColumn = -1 , descriptionColumn = -1 , quantityColumn = -1 , priceColumn = -1,
 				orderDateColumn = - 1 , guaranteedDateColumn = -1;
-		for (String line : Files.readAllLines(Paths.get(filePath),Charset.forName(globals.charsetName)))
+		for (String line : Files.readAllLines(getFilePath(fileDir , filePrefix),Charset.forName(globals.charsetName)))
 		{
-			List<String> columns = Arrays.asList(line.split("\\|")).stream().map(s -> s.trim()).collect(Collectors.toList());
+			List<String> columns = Arrays.asList(line.split("\\|" , -1)).stream().map(s -> s.trim()).collect(Collectors.toList());
 			if(customerColumn == -1) 
 				customerColumn = columns.indexOf(globals.customerIdColumn);
 			if(orderNumberColumn == -1) 
@@ -142,10 +152,13 @@ public class Analyzer
 	
 	private void analyzeShipments(String filePath) throws IOException 
 	{
+		String fileDir = filePath.substring(0,filePath.lastIndexOf("\\"));
+		String filePrefix = filePath.substring(filePath.lastIndexOf("\\") + 1);
+		
 		int customerColumn = -1 , orderIdColumn = -1 , orderCustomerIdColumn = -1 , catalogNumberColumn = -1 , quantityColumn = -1 , shipmentDateColumn = -1 , descriptionColumn = -1;
-		for (String line : Files.readAllLines(Paths.get(filePath),Charset.forName(globals.charsetName)))
+		for (String line : Files.readAllLines(getFilePath(fileDir , filePrefix),Charset.forName(globals.charsetName)))
 		{
-			List<String> columns = Arrays.asList(line.split("\\|")).stream().map(s -> s.trim()).collect(Collectors.toList());
+			List<String> columns = Arrays.asList(line.split("\\|" , -1)).stream().map(s -> s.trim()).collect(Collectors.toList());
 			if(customerColumn == -1) 
 				customerColumn = columns.indexOf(globals.customerIdColumn);
 			if(orderIdColumn == -1) 
@@ -170,6 +183,38 @@ public class Analyzer
 							, columns.get(quantityColumn), columns.get(shipmentDateColumn), columns.get(descriptionColumn));
 			}
 		}
+	}
+	
+	
+	private Path getFilePath(String fileDir , String filePrefix) 
+	{
+		File dir = new File(fileDir);
+		File[] foundFiles = dir.listFiles(new FilenameFilter() 
+		{
+		    public boolean accept(File dir, String name) 
+		    {
+		        return name.toLowerCase().startsWith(filePrefix.toLowerCase());
+		    }
+		});
+
+		if(foundFiles.length > 0)
+		{
+			File lastModifiedFile = foundFiles[0];
+			long lastModified = foundFiles[0].lastModified();
+			for(int i = 1 ; i < foundFiles.length ; i++)
+			{
+				File currentFile = foundFiles[i];
+				if(currentFile.lastModified() > lastModified)
+				{
+					lastModifiedFile = currentFile;
+					lastModified = currentFile.lastModified();
+				}
+			}
+			
+			return lastModifiedFile.toPath();
+		}
+		
+		return null;
 	}
 	
 	private void updateProductQuantities(List<? extends Form> forms ,  Map<String, List<QuantityPerDate>> productsQuantityPerDate 
@@ -468,7 +513,7 @@ public class Analyzer
 		
 				int quantityToAssociate = fatherCatalogNumberAndQuantityToAssociate.getRight();
 				
-				if(!isSon(catalogNumber))
+				if(!isSon(fatherCatalogNumber))
 				{
 					QuantityPerDate fatherWorkOrder = db.getProductWOQuantityOnDate(fatherCatalogNumber , monthDate);
 					materialAvailabilityFix += fatherWorkOrder.getQuantity() * quantityToAssociate;

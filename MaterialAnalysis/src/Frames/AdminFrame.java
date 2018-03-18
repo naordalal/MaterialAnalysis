@@ -7,12 +7,16 @@ import java.awt.event.WindowAdapter;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.util.List;
 
 import javax.swing.AbstractAction;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -31,6 +35,9 @@ public class AdminFrame implements ActionListener
 	private JPanel panel;
 	private JLabel viewUsersLabel;
 	private JButton viewUsersButton;
+	private JLabel connectingComputersLabel;
+	private JButton connectingComputersButton;
+	private JComboBox<String> connectingComputersComboBox;
 	private int clickedTimes;
 	private JTable usersTable;
 	private JScrollPane scrollPane;
@@ -153,10 +160,35 @@ public class AdminFrame implements ActionListener
 		usersTable.getTableHeader().setReorderingAllowed(false);
 		
 		scrollPane = new JScrollPane(usersTable);
-		scrollPane.setLocation(170, 145);
+		scrollPane.setLocation(185, 145);
 		scrollPane.setSize(350,140);
 		scrollPane.setVisible(false);
 		panel.add(scrollPane);
+		
+		
+		connectingComputersLabel = new JLabel("<html><u>View connecting users:</u></html>");
+		connectingComputersLabel.setLocation(30, 260);
+		connectingComputersLabel.setSize(120,20);
+		panel.add(connectingComputersLabel);
+		
+		connectingComputersButton = new JButton();
+		connectingComputersButton.setLocation(140, 245);
+		connectingComputersButton.setSize(50 , 50);
+		connectingComputersButton.addActionListener(this);
+		connectingComputersButton.setIcon(globals.viewIcon);
+		connectingComputersButton.setFocusable(false);
+		connectingComputersButton.setContentAreaFilled(false);
+		connectingComputersButton.setPressedIcon(globals.clickViewIcon);
+		connectingComputersButton.setToolTipText("View connecting users");
+		panel.add(connectingComputersButton);
+		
+		List<String> connectingComputers = db.getConnectingComputers();
+		DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>(connectingComputers.toArray(new String[connectingComputers.size()]));
+		connectingComputersComboBox = new JComboBox<>(model);
+		connectingComputersComboBox.setLocation(200, 260);
+		connectingComputersComboBox.setSize(70,20);
+		connectingComputersComboBox.setVisible(false);
+		panel.add(connectingComputersComboBox);
 		
 		copyRight = new JLabel("<html><b>\u00a9 Naor Dalal</b></html>");
 		copyRight.setLocation(30 , 430);
@@ -193,9 +225,37 @@ public class AdminFrame implements ActionListener
 		{		
 			clickedTimes++;
 			if(clickedTimes % 2 != 0)
+			{
+				if(connectingComputersComboBox.isVisible())
+				{
+					JOptionPane.showConfirmDialog(null, "Please close connecting users","",JOptionPane.PLAIN_MESSAGE);
+					clickedTimes--;
+					return;
+				}
+				
 				scrollPane.setVisible(true);
+			}
 			else
 				scrollPane.setVisible(false);
+		}
+		else if(event.getSource() == connectingComputersButton)
+		{
+			if(connectingComputersComboBox.isVisible())
+			{
+				connectingComputersComboBox.setVisible(false);
+			}
+			else if(scrollPane.isVisible())
+			{
+				JOptionPane.showConfirmDialog(null, "Please close users table","",JOptionPane.PLAIN_MESSAGE);
+				return;
+			}
+			else
+			{
+				DefaultComboBoxModel<String> model = ((DefaultComboBoxModel<String>)connectingComputersComboBox.getModel());
+				model.removeAllElements();
+				db.getConnectingComputers().stream().forEach(computer -> model.addElement(computer));
+				connectingComputersComboBox.setVisible(true);
+			}
 		}
 		else if(event.getSource() == permissionsButton)
 		{

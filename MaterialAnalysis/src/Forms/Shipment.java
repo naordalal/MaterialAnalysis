@@ -105,7 +105,7 @@ public class Shipment extends Form
 	}
 
 	@Override
-	public void updateValue(int column, String newValue) throws Exception 
+	public void updateValue(int column, String newValue , String userName) throws Exception 
 	{
 		if(!canEdit())
 			return;

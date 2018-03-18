@@ -68,6 +68,7 @@ public class LoginFrame implements ActionListener
 		frame.addWindowListener(new WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) 
             {
+                userExit();
             	frame.dispose();
                 System.exit(0);
             }
@@ -81,6 +82,7 @@ public class LoginFrame implements ActionListener
 
 				public void actionPerformed(ActionEvent e)
 	            {
+					userExit();
 					frame.dispose();
 					System.exit(0);
 	            }
@@ -183,6 +185,7 @@ public class LoginFrame implements ActionListener
 				try 
 				{
 					UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+					userEnter();
 					new LoginFrame();
 					//Analyzer analyzer = new Analyzer();
 					//analyzer.updateProductQuantities(null, false);
@@ -202,4 +205,18 @@ public class LoginFrame implements ActionListener
 		});
 		
 	}
+	
+	private static void userEnter() 
+	{
+		DataBase db = new DataBase();
+		db.addConnectingComputers(System.getProperty("user.name"));
+	}
+	
+	private static void userExit() 
+	{
+		DataBase db = new DataBase();
+		db.deleteConnectingComputers(System.getProperty("user.name"));
+	}
+	
+	
 }

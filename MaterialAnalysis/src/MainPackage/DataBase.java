@@ -34,6 +34,7 @@ import Reports.Tree;
 
 public class DataBase {
 
+	
 	private Connection c = null;
 	private PreparedStatement stmt = null;
 	private Globals globals;
@@ -913,20 +914,21 @@ public class DataBase {
 	}
 	
 	
-	public boolean addFC(String customer , String catalogNumber , String quantity , String initDate , String requireDate , String description , String notes) 
+	public boolean addFC(String customer , String catalogNumber , String quantity , String initDate , String requireDate , String description , String userName , String notes) 
 	{
 		try
 		{
 			
 			connect();
-			stmt = c.prepareStatement("INSERT INTO Forecast (customer , CN , description ,quantity , initDate , requireDate , notes) VALUES (?,?,?,?,?,?,?)");
+			stmt = c.prepareStatement("INSERT INTO Forecast (customer , CN , description ,quantity , initDate , requireDate , userName , notes) VALUES (?,?,?,?,?,?,?,?)");
 			stmt.setString(1, customer);
 			stmt.setString(2, catalogNumber);
 			stmt.setString(3, description);
 			stmt.setString(4, quantity);
 			stmt.setString(5, Globals.parseDateToSqlFormatString(initDate));
 			stmt.setString(6, Globals.parseDateToSqlFormatString(requireDate));
-			stmt.setString(7, notes);
+			stmt.setString(7, userName);
+			stmt.setString(8, notes);
 			stmt.executeUpdate();
 			
 			c.commit();
@@ -951,21 +953,22 @@ public class DataBase {
 		}
 	}
 	
-	public boolean updateFC(int id , String customer , String catalogNumber , String quantity , String initDate , String requireDate , String description , String notes) 
+	public boolean updateFC(int id , String customer , String catalogNumber , String quantity , String initDate , String requireDate , String description , String userName , String notes) 
 	{
 		try
 		{
 			
 			connect();
-			stmt = c.prepareStatement("UPDATE Forecast SET customer = ? , CN = ? , description = ? ,quantity = ? , initDate = ? , requireDate = ? , notes = ? where ID = ?");
+			stmt = c.prepareStatement("UPDATE Forecast SET customer = ? , CN = ? , description = ? ,quantity = ? , initDate = ? , requireDate = ? , userName = ? ,notes = ? where ID = ?");
 			stmt.setString(1, customer);
 			stmt.setString(2, catalogNumber);
 			stmt.setString(3, description);
 			stmt.setString(4, quantity);
 			stmt.setString(5, Globals.parseDateToSqlFormatString(initDate));
 			stmt.setString(6, Globals.parseDateToSqlFormatString(requireDate));
-			stmt.setString(7, notes);
-			stmt.setInt(8, id);
+			stmt.setString(7, userName);
+			stmt.setString(8, notes);
+			stmt.setInt(9, id);
 			stmt.executeUpdate();
 			
 			c.commit();
@@ -1152,9 +1155,10 @@ public class DataBase {
 				String quantity = rs.getString("quantity");
 				java.util.Date initDate = Globals.parseDateFromSqlFormat(rs.getString("initDate"));
 				java.util.Date requireDate = Globals.parseDateFromSqlFormat(rs.getString("requireDate"));
+				String userName = rs.getString("userName");
 				String notes = rs.getString("notes");
 						
-				Forecast forecast = new Forecast(id,customer, catalogNumber, quantity, initDate, requireDate, description, notes);
+				Forecast forecast = new Forecast(id,customer, catalogNumber, quantity, initDate, requireDate, description, userName , notes);
 				forecasts.add(forecast);
 			}
 			
@@ -1237,9 +1241,10 @@ public class DataBase {
 				String quantity = rs.getString("quantity");
 				java.util.Date initDate = Globals.parseDateFromSqlFormat(rs.getString("initDate"));
 				java.util.Date requireDate = Globals.parseDateFromSqlFormat(rs.getString("requireDate"));
+				String userName = rs.getString("userName");
 				String notes = rs.getString("notes");
 						
-				forecast =  new Forecast(id,customer, catalogNumber, quantity, initDate, requireDate, description, notes);
+				forecast =  new Forecast(id,customer, catalogNumber, quantity, initDate, requireDate, description, userName, notes);
 			}
 			
 			closeConnection();
@@ -1826,9 +1831,10 @@ public class DataBase {
 				String quantity = rs.getString("quantity");
 				java.util.Date initDate = Globals.parseDateFromSqlFormat(rs.getString("initDate"));
 				java.util.Date requireDate = Globals.parseDateFromSqlFormat(rs.getString("requireDate"));
+				String userName = rs.getString("userName");
 				String notes = rs.getString("notes");
 						
-				Forecast forecast = new Forecast(id,customer, catalogNumber, quantity, initDate, requireDate, description, notes);
+				Forecast forecast = new Forecast(id,customer, catalogNumber, quantity, initDate, requireDate, description, userName ,notes);
 				forecasts.add(forecast);
 			}
 			
@@ -3678,6 +3684,179 @@ public class DataBase {
 				e1.printStackTrace();
 			}
 			closeConnection();
+		}
+	}
+	
+	public List<Forecast> getForecastBetweenDates(String userName , java.util.Date from , java.util.Date to)
+	{
+		try{
+			List<Forecast> forecasts = new ArrayList<>();
+			
+			List<String> customers = getCustomersOfUser(userName);
+			
+			connect();
+			
+			for (String customer : customers) 
+			{
+				stmt = c.prepareStatement("SELECT * from Forecast where customer = ? AND date(initDate) >= date(?) AND date(initDate) <= date(?) order by CN");
+				stmt.setString(1, customer);
+				stmt.setString(2, Globals.dateToSqlFormatString(from));
+				stmt.setString(3, Globals.dateToSqlFormatString(to));
+				ResultSet rs = stmt.executeQuery();
+				
+				while(rs.next())
+				{
+					int id = rs.getInt("id");
+					String catalogNumber = rs.getString("CN");
+					String description = rs.getString("description");
+					String quantity = rs.getString("quantity");
+					java.util.Date initDate = Globals.parseDateFromSqlFormat(rs.getString("initDate"));
+					java.util.Date requireDate = Globals.parseDateFromSqlFormat(rs.getString("requireDate"));
+					String user = rs.getString("userName");
+					String notes = rs.getString("notes");
+							
+					Forecast forecast =  new Forecast(id,customer, catalogNumber, quantity, initDate, requireDate, description, user , notes);
+					forecasts.add(forecast);
+				}
+
+
+			}
+						
+			closeConnection();
+			return forecasts;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return new ArrayList<>();
+		}
+	}
+	
+	public boolean deleteProduct(String catalogNumber)
+	{
+		try
+		{
+			connect();
+			stmt = c.prepareStatement("DELETE FROM Tree Where CN = ?");
+			stmt.setString(1, catalogNumber);
+			int rowsNumber = stmt.executeUpdate();
+			
+			c.commit();
+			closeConnection();
+			
+			List<String> sons = getSons(catalogNumber);	
+			
+			for (String son : sons) 
+				updateFather(son, catalogNumber, "");	
+			
+			return rowsNumber > 0;
+			
+		}
+		catch(SQLException e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			closeConnection();
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
+	
+	public boolean addConnectingComputers(String  computerName)
+	{
+		try
+		{
+			connect();		
+			
+			stmt = c.prepareStatement("INSERT INTO ConnectingComputers (ComputerName) VALUES(?)");
+			stmt.setString(1, computerName);
+			stmt.executeUpdate();
+			
+			c.commit();
+			
+			closeConnection();
+			
+			return true;
+			
+		}
+		catch(SQLException e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			closeConnection();
+			
+			return false;
+		}
+	
+	}
+	
+	public boolean deleteConnectingComputers(String computerName)
+	{
+		try
+		{
+			connect();
+			stmt = c.prepareStatement("DELETE FROM ConnectingComputers where ComputerName = ? AND "
+					+ "rowid IN (Select rowid from ConnectingComputers where ComputerName = ? limit 1);");
+			stmt.setString(1, computerName);
+			stmt.setString(2, computerName);
+			int rowsNumber = stmt.executeUpdate();
+			
+			c.commit();
+			closeConnection();
+			
+			return rowsNumber > 0;
+			
+		}
+		catch(SQLException e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			closeConnection();
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
+	public List<String> getConnectingComputers()
+	{
+		List<String> computers = new ArrayList<>();
+		
+		try
+		{
+			connect();		
+			
+			stmt = c.prepareStatement("SELECT ComputerName FROM ConnectingComputers");
+			ResultSet rs = stmt.executeQuery();
+						
+			while(rs.next())
+			{
+				String computerName = rs.getString("ComputerName");
+				computers.add(computerName);
+			}
+			
+			
+			closeConnection();
+			
+			return computers;
+			
+		}
+		catch(SQLException e)
+		{
+			closeConnection();
+			
+			return new ArrayList<>();
 		}
 	}
 	

@@ -176,30 +176,30 @@ public class ProductColumn
 		return s;
 	}
 
-	public double getColumnValue(int index) 
+	public int getColumnValue(int index) 
 	{
 		switch (index) 
 		{
 			case ForecastColumn:
-				return this.forecast;
+				return (int) this.forecast;
 			case MaterialAvailabilityColumn:
-				return this.materialAvailability;
+				return (int) this.materialAvailability;
 			case WorkOrderColumn:
-				return this.workOrder;
+				return (int) this.workOrder;
 			case WorkOrderAfterSuppliedColumn:
-				return this.workOrderAfterSupplied;
+				return (int) this.workOrderAfterSupplied;
 			case WorkOrderAfterPOAndParentsWOColumn:
-				return this.workOrderAfterCustomerOrderAndParentsWorkOrder;
+				return (int) this.workOrderAfterCustomerOrderAndParentsWorkOrder;
 			case CustomerOrdersColumn:
-				return this.customerOrders;
+				return (int) this.customerOrders;
 			case ParentsWorkOrderColumn:
-				return this.parentsWorkOrder;
+				return (int) this.parentsWorkOrder;
 			case ParentsWorkOrderSuppliedColumn:
-				return this.parentsWorkOrderSupplied;
+				return (int) this.parentsWorkOrderSupplied;
 			case SuppliedColumn:
-				return this.supplied;
+				return (int) this.supplied;
 			case OpenCustomerOrderColumn:
-				return this.openCustomerOrder;
+				return (int) this.openCustomerOrder;
 	
 			default:
 				return 0;
@@ -310,7 +310,7 @@ public class ProductColumn
 				fathers = db.getFathers(catalogNumber);
 				for (Pair<String, Integer> father : fathers) 
 				{
-					description.append("+ Work Order Of ");
+					description.append("+ Forecast Of ");
 					description.append(father.getLeft() + "(father catalog number) * ");
 					description.append(father.getRight());
 					description.append("\n");

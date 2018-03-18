@@ -420,10 +420,10 @@ public class ReportViewFrame implements ActionListener
 				
 		DefaultTableModel model = (DefaultTableModel)table.getModel();
 		
-		for(int rowIndex = 	model.getRowCount() - 1 ; rowIndex >= 0 ; rowIndex --)
-				removeRow(rowIndex);
+		for(int rowIndex = model.getRowCount() - 1 ; rowIndex >= 0 ; rowIndex --)
+				updateRow(rowIndex);
 		
-		createContent(model);
+		//createContent(model);
 		
 		if(filterComboBoxs.length > 0)
 		{
@@ -523,10 +523,11 @@ public class ReportViewFrame implements ActionListener
         return width;
     }
 
-	public void removeRow(int row) 
+	public void updateRow(int row) 
 	{
         DefaultTableModel model = (DefaultTableModel)table.getModel();
-        model.removeRow(row);
+        for(int column = 0 ; column < model.getColumnCount() ; column++)
+        	updateCellValue(row, column, content[row][column]);
 	}
 
 	@Override
@@ -611,6 +612,16 @@ public class ReportViewFrame implements ActionListener
 		}
 		
 		return false;
+	}
+
+	public void setEditable(boolean editable)
+	{
+		this.canEdit = editable;
+	}
+	
+	public void setFrameName(String frameName)
+	{
+		this.frameName = frameName;
 	}
     
 

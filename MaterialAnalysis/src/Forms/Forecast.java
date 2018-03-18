@@ -17,17 +17,19 @@ public class Forecast extends Form
 	private String customer;
 	private String description;
 	private String notes;
+	private String userName;
 
 	public Forecast() 
 	{
 		super();
 	}
 	
-	public Forecast(int id , String customer , String catalogNumber , String quantity , Date initDate , Date requireDate , String description , String notes) 
+	public Forecast(int id , String customer , String catalogNumber , String quantity , Date initDate , Date requireDate , String description , String userName , String notes) 
 	{
 		super(id , catalogNumber, quantity, initDate, requireDate);
 		
 		this.customer = customer;
+		this.userName = (userName == null) ? "" : userName;
 		this.description = description;
 		this.notes = notes;
 	}
@@ -65,14 +67,15 @@ public class Forecast extends Form
 	@Override
 	public String[] getColumns() 
 	{
-		String [] columns = new String[7];
+		String [] columns = new String[8];
 		columns[0] = "Customer";
 		columns[1] = "Catalog Number";
 		columns[2] = "Description";
 		columns[3] = "Quantity";
 		columns[4] = "Init Date";
 		columns[5] = "Require Date";
-		columns[6] = "Notes";
+		columns[6] = "User Update";
+		columns[7] = "Notes";
 		
 		return columns;
 	}
@@ -80,14 +83,15 @@ public class Forecast extends Form
 	@Override
 	public String[] getRow() 
 	{
-		String [] row = new String[7];
+		String [] row = new String[8];
 		row[0] = this.customer;
 		row[1] = super.getCatalogNumber();
 		row[2] = this.description;
 		row[3] = super.getQuantity();
 		row[4] = Globals.dateWithoutHourToString(super.getCreateDate());
 		row[5] = Globals.dateWithoutHourToString(super.getRequestDate());
-		row[6] = this.notes;
+		row[6] = this.userName;
+		row[7] = this.notes;
 		
 		return row;
 	}
@@ -99,7 +103,7 @@ public class Forecast extends Form
 	}
 
 	@Override
-	public void updateValue(int column, String newValue) throws Exception 
+	public void updateValue(int column, String newValue , String userName) throws Exception 
 	{
 		if(!canEdit())
 			return;
@@ -131,6 +135,8 @@ public class Forecast extends Form
 					throw new Exception("Request date have to be a date format");
 				break;
 			case 6:
+				return;
+			case 7:
 				this.notes = newValue;
 				break;
 				
@@ -140,7 +146,7 @@ public class Forecast extends Form
 		
 		Analyzer analyzer = new Analyzer();
 		analyzer.updateFC(super.getId(), customer, super.getCatalogNumber(), super.getQuantity(), Globals.dateWithoutHourToString(super.getCreateDate())
-				, Globals.dateWithoutHourToString(super.getRequestDate()), this.description, this.notes);
+				, Globals.dateWithoutHourToString(super.getRequestDate()), this.description, userName , this.notes);
 		
 	}
 	
@@ -157,9 +163,13 @@ public class Forecast extends Form
 			columns.add(4);
 			columns.add(5);
 			columns.add(6);
+			columns.add(7);
 		}
 		else
+		{
 			columns.add(4);
+			columns.add(6);		
+		}
 		return columns;
 	}
 
@@ -185,6 +195,14 @@ public class Forecast extends Form
 		
 		return filterColumns;
 
+	}
+
+	public String getUserName() {
+		return userName;
+	}
+
+	public void setUserName(String userName) {
+		this.userName = userName;
 	}
 
 }

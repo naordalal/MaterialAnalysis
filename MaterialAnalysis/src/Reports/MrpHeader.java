@@ -49,7 +49,7 @@ public class MrpHeader extends Report
 		int index = 3;
 		for (MonthDate month : months)
 		{
-			row[index] = quantityPerMonth.get(month).toString();
+			row[index] = quantityPerMonth.get(month).intValue() + "";
 			index++;
 		}
 		

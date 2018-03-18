@@ -80,7 +80,7 @@ public abstract class Form
 	
 	public abstract boolean canEdit();
 
-	public abstract void updateValue(int column, String newValue) throws Exception;
+	public abstract void updateValue(int column, String newValue , String userName) throws Exception;
 	
 	public abstract List<Integer> getInvalidEditableColumns();
 

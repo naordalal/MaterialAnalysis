@@ -487,11 +487,11 @@ public class SimSender extends Sender{
     	style2.setBorderLeft(HSSFCellStyle.BORDER_THIN);
     	
     	cell = newRow.createCell(7);	    
-	    cell.setCellValue("Ã§Ã¥Ã±Ã¸ Ã¬Ã±Ã¡Ã¡");
+	    cell.setCellValue("çåñø ìñáá");
     	cell.setCellStyle(style2);
     	
     	cell = newRow.createCell(8);	    
-	    cell.setCellValue("Ã¤Ã¦Ã®Ã°Ã¥Ãº Ã´ÃºÃ¥Ã§Ã¥Ãº Ã¬Ã Ã§Ã¸ 3 Ã±Ã¡Ã¡Ã©Ã­");
+	    cell.setCellValue("äæîðåú ôúåçåú ìàçø 3 ñááéí");
     	cell.setCellStyle(style2);
     	
 	    int rowStart = 1;
@@ -567,7 +567,7 @@ public class SimSender extends Sender{
 	    
 	    Cell cell = newRow.createCell(0);
 	    
-	    cell.setCellValue("Ã®Ã·Ã¨Ã¡");
+	    cell.setCellValue("î÷èá");
     	
     	XSSFCellStyle style = w.createCellStyle();
     	style.setFillForegroundColor(IndexedColors.TURQUOISE.index);
@@ -580,19 +580,19 @@ public class SimSender extends Sender{
     	cell.setCellStyle(style);
     	
     	cell = newRow.createCell(1);
-	    cell.setCellValue("ÃºÃ©Ã Ã¥Ã¸");
+	    cell.setCellValue("úéàåø");
 	    cell.setCellStyle(style);	
 	    
     	cell = newRow.createCell(2);
-	    cell.setCellValue("Ã«Ã®Ã¥Ãº Ã§Ã±Ã¸Ã¤");
+	    cell.setCellValue("ëîåú çñøä");
 	    cell.setCellStyle(style);	    
 	    
 	    cell = newRow.createCell(3);
-	    cell.setCellValue("Ã«Ã®Ã¥Ãº Ã°Ã£Ã¸Ã¹Ãº Ã¬Ã±Ã¡Ã¡");
+	    cell.setCellValue("ëîåú ðãøùú ìñáá");
 	    cell.setCellStyle(style);
 	    
     	cell = newRow.createCell(4);
-	    cell.setCellValue("ÃºÃ Ã¸Ã©Ãª Ã°Ã£Ã¸Ã¹");
+	    cell.setCellValue("úàøéê ðãøù");
 	    cell.setCellStyle(style);
 	    
 	    

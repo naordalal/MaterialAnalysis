@@ -11,6 +11,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -36,6 +39,7 @@ public class Analyzer
 {
 	public static final int ConstantColumnsCount = 4;
 	public static final int CategoryColumn = 3;
+	private static final ExecutorService executor = Executors.newSingleThreadExecutor();
 	private DataBase db;
 	
 	public Analyzer() 
@@ -44,16 +48,17 @@ public class Analyzer
 		db = new DataBase();
 	}
 	
-	public void addNewFC(String customer , String catalogNumber , String quantity , String initDate , String requireDate , String description , String notes)
+	public void addNewFC(String customer , String catalogNumber , String quantity , String initDate , String requireDate , String description , String userName , String notes)
 	{
-		db.addFC(customer, catalogNumber, quantity, initDate, requireDate, description , notes);
+		db.addFC(customer, catalogNumber, quantity, initDate, requireDate, description , userName , notes);
 		updateProductQuantities(catalogNumber , FormType.FC , true);
 	}
 	
-	public void updateFC(int id , String customer , String catalogNumber , String quantity , String initDate , String requireDate , String description , String notes)
+	public void updateFC(int id , String customer , String catalogNumber , String quantity , String initDate , String requireDate 
+			, String description , String userName , String notes)
 	{
 		double remainder = Double.parseDouble(getForecast(id).getQuantity()) - Double.parseDouble(quantity);
-		boolean successUpdate = db.updateFC(id,customer, catalogNumber, quantity, initDate, requireDate, description , notes);
+		boolean successUpdate = db.updateFC(id,customer, catalogNumber, quantity, initDate, requireDate, description , userName , notes);
 		if(remainder != 0 && successUpdate)
 			updateProductQuantities(catalogNumber , FormType.FC , false);
 	}
@@ -245,7 +250,7 @@ public class Analyzer
 	    
 	}
 	
-	public Map<MonthDate,Map<String,ProductColumn>> calculateMap(String userName , boolean forView)
+	public Map<MonthDate,Map<String,ProductColumn>> calculateMap(String userName , boolean forView , List<String> customers)
 	{
 		MonthDate lastCalculateMapDate = db.getLastCalculateMapDate();
 		MonthDate maximumDate = new MonthDate(Globals.addMonths(Globals.getTodayDate(), -Globals.monthsToCalculate - 1));
@@ -254,16 +259,18 @@ public class Analyzer
 		
 		lastCalculateMapDate = db.getLastCalculateMapDate();
 		Map<String,ProductColumn> lastMap = (lastCalculateMapDate != null) ? db.getLastMap(userName, lastCalculateMapDate) : new HashMap<String,ProductColumn>();
-		return calculateMap(userName , lastMap , forView);
+		return calculateMap(userName , lastMap , forView , customers);
 	}
 	
-	private Map<MonthDate,Map<String,ProductColumn>> calculateMap(String userName , Map<String,ProductColumn> lastMap , boolean forView)
+	private Map<MonthDate,Map<String,ProductColumn>> calculateMap(String userName , Map<String,ProductColumn> lastMap , boolean forView , List<String> customers)
 	{
-		
 		Map<MonthDate,Map<String,ProductColumn>> map = new HashMap<MonthDate,Map<String,ProductColumn>>();
 		Map<MonthDate,Map<String,ProductColumn>> helpedMap = new HashMap<MonthDate,Map<String,ProductColumn>>();
 		
+		List<String> products = customers.stream().map(customer ->  db.getAllCatalogNumberOfCustomer(customer)).reduce(new ArrayList<String>(), (x,y) -> {x.addAll(y);return x;});
 		Map<String,String> catalogNumbers = db.getAllCatalogNumbersPerDescription(userName);
+		List<String> removeProdcuts = catalogNumbers.keySet().stream().filter(c -> !products.contains(c)).collect(Collectors.toList());
+		removeProdcuts.forEach(c -> catalogNumbers.remove(c));
 		
 		MonthDate maximumDate = db.getMaximumMapDate();
 		MonthDate minimumDate = db.getMinimumMapDate();
@@ -382,7 +389,6 @@ public class Analyzer
 					}
 				}
 				
-				
 				materialAvailability = forecast.getQuantity() + previousMaterialAvailability - workOrder.getQuantity() + materialAvailabilityFix;
 				workOrderAfterSupplied = workOrder.getQuantity() - supplied.getQuantity() - parentWorkOrderSupplied + previousWorkOrderAfterSupplied;
 				openCustomerOrder = customerOrders.getQuantity() - supplied.getQuantity() + previousOpenCustomerOrder;
@@ -471,15 +477,11 @@ public class Analyzer
 		
 				int quantityToAssociate = fatherCatalogNumberAndQuantityToAssociate.getRight();
 				
-				if(!isSon(catalogNumber))
-				{
-					QuantityPerDate fatherWorkOrder = db.getProductWOQuantityOnDate(fatherCatalogNumber , monthDate);
-					materialAvailabilityFix += fatherWorkOrder.getQuantity() * quantityToAssociate;
-				}
-				else
-				{
+				QuantityPerDate fatherForecast = db.getProductFCQuantityOnDate(fatherCatalogNumber , monthDate);
+				materialAvailabilityFix += fatherForecast.getQuantity() * quantityToAssociate;
+				
+				if(isSon(fatherCatalogNumber))
 					materialAvailabilityFix += calculateMaterialAvailabilityFix(fatherCatalogNumber, monthDate) * quantityToAssociate;
-				}
 			}
 		}
 		
@@ -693,7 +695,7 @@ public class Analyzer
 				for(int i = 0 ; i < ProductColumn.CategoriesCount ; i++)
 				{
 					List<String> row = rows.get(index * ProductColumn.CategoriesCount + i);
-					row.add(Double.toString(productColumn.getColumnValue(i)));
+					row.add(Integer.toString(productColumn.getColumnValue(i)));
 				}
 			}
 			
@@ -795,7 +797,7 @@ public class Analyzer
 		return null;
 	}
 
-	public CallBack<Object> getDoubleLeftClickAction(String email , Authenticator auth , String userName , ReportViewFrame mapFrame , Map<MonthDate, Map<String, ProductColumn>> map) 
+	public CallBack<Object> getDoubleLeftClickAction(String email , Authenticator auth , String userName , ReportViewFrame mapFrame , Map<MonthDate, Map<String, ProductColumn>> map , List<String> customers) 
 	{
 		CallBack<Object> doubleLeftClickAction = new CallBack<Object>()
 		{
@@ -824,23 +826,7 @@ public class Analyzer
 				if(forms == null || forms.size() == 0)
 					return null;
 				
-				String [] columns = forms.get(0).getColumns();
-				String [][] rows = new String[forms.size()][columns.length];
-				int index = 0;
-				for (Form form : forms) 
-				{
-					rows[index] = form.getRow();
-					index++;
-				}
-				
-				boolean canEdit = forms.get(0).canEdit();
-				ReportViewFrame reportViewFrame = new ReportViewFrame(email , auth , "Reports View" , columns, rows, canEdit , forms.get(0).getInvalidEditableColumns());
-				
-				List<Integer> filterColumns = forms.get(0).getFilterColumns();
-				List<String> filterNames = new ArrayList<>();
-				filterColumns.stream().forEach(col -> filterNames.add(columns[col] + ": "));
-				reportViewFrame.setFilters(filterColumns, filterNames);
-				
+				ReportViewFrame reportViewFrame = getFormsReportView(forms , email , auth);
 
 				CallBack<Object> valueCellChangeAction = new CallBack<Object>()
 				{
@@ -856,8 +842,8 @@ public class Analyzer
 						
 						try 
 						{
-							updateForm.updateValue(column , newValue);
-							mapFrame.refresh(getRows(calculateMap(userName , true)));
+							updateForm.updateValue(column , newValue , userName);
+							//mapFrame.refresh(getRows(calculateMap(userName , true , customers)));
 							reportViewFrame.setColumnWidth();
 							return null;
 						} catch (Exception e) 
@@ -877,6 +863,29 @@ public class Analyzer
 		return doubleLeftClickAction;
 	}
 
+	public static ReportViewFrame getFormsReportView(List<? extends Form> forms , String email ,Authenticator auth) 
+	{
+		String [] columns = forms.get(0).getColumns();
+		String [][] rows = new String[forms.size()][columns.length];
+		int index = 0;
+		for (Form form : forms) 
+		{
+			rows[index] = form.getRow();
+			index++;
+		}
+		
+		boolean canEdit = forms.get(0).canEdit();
+		ReportViewFrame reportViewFrame = new ReportViewFrame(email , auth , "Reports View" , columns, rows, canEdit , forms.get(0).getInvalidEditableColumns());
+		
+		List<Integer> filterColumns = forms.get(0).getFilterColumns();
+		List<String> filterNames = new ArrayList<>();
+		filterColumns.stream().forEach(col -> filterNames.add(columns[col] + ": "));
+		reportViewFrame.setFilters(filterColumns, filterNames);
+		
+		return reportViewFrame;
+
+	}
+
 	public CallBack<Object> getRightClickAction(String email , Authenticator auth , String userName , ReportViewFrame mapFrame , Map<MonthDate, Map<String, ProductColumn>> map) 
 	{
 		return null;
@@ -887,9 +896,9 @@ public class Analyzer
 		return IntStream.rangeClosed(0, columns.length - 1).boxed().collect(Collectors.toList());
 	}
 	
-	public List<MrpHeader> getMrpHeaders(String userName)
+	public List<MrpHeader> getMrpHeaders(String userName , List<String> customers)
 	{
-		Map<MonthDate , Map<String,ProductColumn>> map = calculateMap(userName , false);
+		Map<MonthDate , Map<String,ProductColumn>> map = calculateMap(userName , false , customers);
 		List<MrpHeader> mrpHeaders = new ArrayList<>();
 		
 		Map<String,String> catalogNumbers = db.getAllCatalogNumbersPerDescription(userName);
@@ -923,32 +932,35 @@ public class Analyzer
 				
 				List<Pair<String, Integer>> fathersCatalogNumberAndQuantityToAssociate = db.getFathers(catalogNumber);
 				
-				List<String> descendantsCatalogNumbers = db.getAllDescendantCatalogNumber(catalogNumber);
-				List<String> fathersOfDescendantsCatalogNumbers = descendantsCatalogNumbers.stream().map(el -> db.getFathers(el).stream().map(pair -> pair.getLeft()).collect(Collectors.toList())).reduce((a,b) -> {a.addAll(b) ; return a;}).orElse(new ArrayList<>());				
-				List<String> descendantsFathersOfDescendantsCatalogNumbers = fathersOfDescendantsCatalogNumbers.stream().map(el ->{ List<String> desCN = db.getAllDescendantCatalogNumber(el); desCN.add(el); return desCN;}).reduce((a,b) -> {a.addAll(b) ; return a;}).orElse(new ArrayList<>());
-				
 				for (Pair<String, Integer> fatherCatalogNumberAndQuantityToAssociate : fathersCatalogNumberAndQuantityToAssociate) 
 				{
-					List<String> descendantsFatherCatalogNumbers = db.getAllDescendantCatalogNumber(fatherCatalogNumberAndQuantityToAssociate.getLeft());
-					descendantsFatherCatalogNumbers.add(fatherCatalogNumberAndQuantityToAssociate.getLeft());
+					String fatherCatalogNumber = db.getDescendantCatalogNumber(fatherCatalogNumberAndQuantityToAssociate.getLeft());
+					List<QuantityPerDate> initFCProductsQuantityPerDate = db.getInitProductsFCQuantityPerDate(fatherCatalogNumber).getOrDefault(fatherCatalogNumber, new ArrayList<>());
+					List<QuantityPerDate> initWOProductsQuantityPerDate = db.getInitProductsWOQuantityPerDate(fatherCatalogNumber).getOrDefault(fatherCatalogNumber, new ArrayList<>());
 					
-					for (String fatherCatalogNumber : descendantsFatherCatalogNumbers) 
+					List<MonthDate> initFCProductsDates = initFCProductsQuantityPerDate.stream().map(pc -> pc.getDate()).collect(Collectors.toList());
+					List<MonthDate> initWOProductsDates = initWOProductsQuantityPerDate.stream().map(pc -> pc.getDate()).collect(Collectors.toList());
+					
+					int indexOfFC = initFCProductsDates.indexOf(monthDate);
+					int indexOfWO = initWOProductsDates.indexOf(monthDate);
+					
+					double initFC = (indexOfFC < 0) ? 0 : initFCProductsQuantityPerDate.get(indexOfFC).getQuantity();
+					double initWO = (indexOfWO < 0) ? 0 : initWOProductsQuantityPerDate.get(indexOfWO).getQuantity();
+					
+					ProductColumn fatherProductColumn = map.get(monthDate).get(fatherCatalogNumber);
+					double fatherMaterialAvailability = fatherProductColumn.getMaterialAvailability();
+					double previousFatherMaterialAvailability = 0;
+					if(index != 0)
 					{
-						if(descendantsFathersOfDescendantsCatalogNumbers.contains(fatherCatalogNumber))
-							continue;
-				
-						ProductColumn fatherProductColumn = map.get(monthDate).get(fatherCatalogNumber);
-						double fatherMaterialAvailability = fatherProductColumn.getMaterialAvailability();
-						double previousFatherMaterialAvailability = 0;
-						if(index != 0)
-						{
-							ProductColumn previousFatherProductColumn = map.get(monthToCalculate.get(index - 1)).get(fatherCatalogNumber);
-							previousFatherMaterialAvailability = previousFatherProductColumn.getMaterialAvailability();
-						}
-						
-						int quantityToAssociate = fatherCatalogNumberAndQuantityToAssociate.getRight();
-						quantity -= (fatherMaterialAvailability - previousFatherMaterialAvailability) * quantityToAssociate;
+						ProductColumn previousFatherProductColumn = map.get(monthToCalculate.get(index - 1)).get(fatherCatalogNumber);
+						previousFatherMaterialAvailability = previousFatherProductColumn.getMaterialAvailability();
 					}
+					
+					int quantityToAssociate = fatherCatalogNumberAndQuantityToAssociate.getRight();
+					double difference = fatherMaterialAvailability - previousFatherMaterialAvailability;
+					difference -= initFC;
+					difference += initWO;
+					quantity -= difference * quantityToAssociate;
 				}
 				
 				if(indexOfCurrentMonth >= index)
