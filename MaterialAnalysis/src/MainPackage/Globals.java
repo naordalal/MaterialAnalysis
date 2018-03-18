@@ -61,6 +61,12 @@ public class Globals {
 		DESC
 	};
 	
+	public enum UpdateType
+	{
+		MAP,
+		ProductQuantity
+	};
+	
 	public enum FormType 
 	{
 	    SHIPMENT,WO,PO,FC
