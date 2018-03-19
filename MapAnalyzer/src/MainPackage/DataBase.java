@@ -5,6 +5,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -19,6 +20,7 @@ import Forms.CustomerOrder;
 import Forms.Shipment;
 import Forms.WorkOrder;
 import MainPackage.Globals.FormType;
+import MainPackage.Globals.UpdateType;
 
 
 public class DataBase 
@@ -1476,6 +1478,37 @@ public class DataBase
 			e.printStackTrace();
 			closeConnection();
 			return new ArrayList<>();
+		}
+	}
+
+	public boolean updateLastUpdateDate(UpdateType type)
+	{
+		try
+		{
+			connect();		
+			
+			stmt = c.prepareStatement("INSERT INTO UpdateDates (updateType , date) VALUES(?,?)");
+			stmt.setString(1, type.toString());
+			stmt.setString(2, LocalDateTime.now().toString());
+			stmt.executeUpdate();
+			
+			c.commit();
+			
+			closeConnection();
+			
+			return true;
+			
+		}
+		catch(SQLException e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			closeConnection();
+			
+			return false;
 		}
 	}
 }

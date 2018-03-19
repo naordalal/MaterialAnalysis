@@ -20,6 +20,7 @@ import org.apache.commons.lang3.math.NumberUtils;
 
 import Forms.Form;
 import MainPackage.Globals.FormType;
+import MainPackage.Globals.UpdateType;
 
 public class Analyzer 
 {
@@ -67,6 +68,8 @@ public class Analyzer
 		updateProductQuantities(db.getAllPO(), db.getAllProductsPOQuantityPerDate(), db.getInitProductsPODates(),  FormType.PO);
 		updateProductQuantities(db.getAllWO(), db.getAllProductsWOQuantityPerDate(),db.getInitProductsWODates() , FormType.WO);
 		updateProductQuantities(db.getAllShipments(), db.getAllProductsShipmentQuantityPerDate(),db.getInitProductsShipmentsDates() , FormType.SHIPMENT);
+		
+		db.updateLastUpdateDate(UpdateType.ProductQuantity);
 		
 		updateMap();
 	}

@@ -50,6 +50,12 @@ public class Globals
 	    SHIPMENT,WO,PO,FC
 	}
 	
+	public enum UpdateType
+	{
+		MAP,
+		ProductQuantity
+	};
+	
 	
 	public static String dateWithoutHourToString(Date date) 
 	{
