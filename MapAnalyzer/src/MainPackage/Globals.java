@@ -13,16 +13,16 @@ import java.util.Vector;
 
 public class Globals 
 {
-	public static final String con = "C:\\Users\\naordalal\\Desktop\\DB3.db";
-	//public static final String con = "O:\\Purchasing\\PO_FollowUp\\Material Analysis\\DB.db";
+	//public static final String con = "C:\\Users\\naordalal\\Desktop\\DB3.db";
+	public static final String con = "O:\\Purchasing\\PO_FollowUp\\Material Analysis\\DB.db";
 	
-	public final String shipmentsFilePath = "C:\\Users\\naordalal\\Desktop\\SHIPMENTS.txt";
+	/*public final String shipmentsFilePath = "C:\\Users\\naordalal\\Desktop\\SHIPMENTS.txt";
 	public final String customerOrdersFilePath = "C:\\Users\\naordalal\\Desktop\\PO.txt";
-	public final String WOFilePath = "C:\\Users\\naordalal\\Desktop\\WO.txt";
+	public final String WOFilePath = "C:\\Users\\naordalal\\Desktop\\WO.txt";*/
 	
-	/*public final String shipmentsFilePath = "O:\\All\\YR_Data\\shipment\\shipment_MAP";
+	public final String shipmentsFilePath = "O:\\All\\YR_Data\\shipment\\shipment_MAP";
 	public final String customerOrdersFilePath = "O:\\All\\YR_Data\\SO\\SO_MAP";
-	public final String WOFilePath = "O:\\All\\YR_Data\\WO\\WO_MAP";*/
+	public final String WOFilePath = "O:\\All\\YR_Data\\WO\\WO_MAP";
 	
 	public final String woNumberColumn = "מספר פקודה";
 	public final String catalogNumberColumn = "מקט";
