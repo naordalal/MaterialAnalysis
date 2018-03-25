@@ -209,8 +209,6 @@ public class MainMapFrame implements ActionListener
 					return;
 				}
 				
-				calculateMap = true;
-				
 				List<String> customers = db.getCustomersOfUser(userName);
 				DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>(customers.toArray(new String[customers.size()]));
 				MultiSelectionComboBox<String> customerChoosen = new MultiSelectionComboBox<>(model);
@@ -226,6 +224,8 @@ public class MainMapFrame implements ActionListener
 					JOptionPane.showConfirmDialog(null, "You have to select customer","",JOptionPane.PLAIN_MESSAGE);
 					return;
 				}
+				
+				calculateMap = true;
 				
 				Map<MonthDate, Map<String, ProductColumn>> map = analyzer.calculateMap(userName , true , customerChoosen.getSelectedItems());
 				String [] columns = analyzer.getColumns(map);
@@ -296,8 +296,6 @@ public class MainMapFrame implements ActionListener
 					return;
 				}
 				
-				calculateMap = true;
-				
 				List<String> customers = db.getCustomersOfUser(userName);
 				DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>(customers.toArray(new String[customers.size()]));
 				MultiSelectionComboBox<String> customerChoosen = new MultiSelectionComboBox<>(model);
@@ -313,6 +311,8 @@ public class MainMapFrame implements ActionListener
 					JOptionPane.showConfirmDialog(null, "You have to select customer","",JOptionPane.PLAIN_MESSAGE);
 					return;
 				}
+				
+				calculateMap = true;
 				
 				List<MrpHeader> mrpHeaders = analyzer.getMrpHeaders(userName , customerChoosen.getSelectedItems());
 				ReportViewFrame mrpHeaderFrame = createReportViewFrame(email , auth , userName , mrpHeaders , "Mrp Header");

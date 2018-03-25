@@ -254,13 +254,12 @@ public class Analyzer
 	
 	public Map<MonthDate,Map<String,ProductColumn>> calculateMap(String userName , boolean forView , List<String> customers)
 	{
-		db.clearLastMap();
 		Date lastCalculateMapDate = db.getLastUpdateDate(UpdateType.MAP);
 		Date lastCalculateProductQuantitiesDate = db.getLastUpdateDate(UpdateType.ProductQuantity);
 		
 		if(lastCalculateMapDate != null && lastCalculateProductQuantitiesDate != null && 
 				(lastCalculateMapDate.equals(lastCalculateProductQuantitiesDate) || lastCalculateMapDate.after(lastCalculateProductQuantitiesDate)))
-			return viewMap(userName, customers);
+			return viewMap(userName, forView , customers);
 			
 		//MonthDate lastCalculateMapDate = db.getLastCalculateMapDate();
 		MonthDate maximumDate = new MonthDate(Globals.addMonths(Globals.getTodayDate(), -Globals.monthsToCalculate - 1));
@@ -477,7 +476,7 @@ public class Analyzer
 		
 	}
 	
-	private Map<MonthDate,Map<String,ProductColumn>> viewMap(String userName , List<String> customers)
+	private Map<MonthDate,Map<String,ProductColumn>> viewMap(String userName , boolean forView, List<String> customers)
 	{		
 		Map<MonthDate,Map<String,ProductColumn>> map = new HashMap<>();
 		
@@ -494,7 +493,8 @@ public class Analyzer
 				startIndex = indexOfToday - Globals.monthsBackToView;
 		}
 		
-		monthToCalculate = monthToCalculate.subList(startIndex, monthToCalculate.size());
+		if(forView)
+			monthToCalculate = monthToCalculate.subList(startIndex, monthToCalculate.size());
 		if(maximumDate == null || maximumDate.before(minimumDate))
 			return map;
 		
@@ -632,7 +632,7 @@ public class Analyzer
 		if(minimumDate == null || maximumDate.before(minimumDate))
 		{
 			if(cn == null)
-				db.clearLastMap();
+				db.clearLastMap(maximumDate);
 			return;
 		}
 		

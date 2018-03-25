@@ -65,9 +65,15 @@ public class DataBase {
 	{
 		try {
 			if(stmt != null && !c.isClosed())
+			{
 				stmt.close();
+				stmt = null;
+			}
 			if(c != null && !c.isClosed())
+			{
 				c.close();
+				c = null;
+			}
 			
 		} catch (SQLException e) {
 			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
@@ -3516,27 +3522,31 @@ public class DataBase {
 		}
 		
 	}
-	public void clearLastMap() 
+	public void clearLastMap(java.util.Date date) 
 	{
 		try
 		{
 			connect();
-			stmt = c.prepareStatement("DELETE FROM MaterialAvailability");
+			stmt = c.prepareStatement("DELETE FROM MaterialAvailability where date = ?");
+			stmt.setString(1, Globals.dateToSqlFormatString(date));
 			stmt.executeUpdate();
 			
 			c.commit();
 			
-			stmt = c.prepareStatement("DELETE FROM WorkOrderAfterSupplied");
+			stmt = c.prepareStatement("DELETE FROM WorkOrderAfterSupplied where date = ?");
+			stmt.setString(1, Globals.dateToSqlFormatString(date));
 			stmt.executeUpdate();
 			
 			c.commit();
 			
-			stmt = c.prepareStatement("DELETE FROM OpenCustomerOrder");
+			stmt = c.prepareStatement("DELETE FROM OpenCustomerOrder where date = ?");
+			stmt.setString(1, Globals.dateToSqlFormatString(date));
 			stmt.executeUpdate();
 			
 			c.commit();
 			
-			stmt = c.prepareStatement("DELETE FROM WorkOrderAfterCustomerOrderAndParentWorkOrder");
+			stmt = c.prepareStatement("DELETE FROM WorkOrderAfterCustomerOrderAndParentWorkOrder where date = ?");
+			stmt.setString(1, Globals.dateToSqlFormatString(date));
 			stmt.executeUpdate();
 			
 			c.commit();
