@@ -257,7 +257,7 @@ public class DataBase
 		try
 		{
 			connect();
-			stmt = c.prepareStatement("DELETE FROM CustomerOrders Where date(orderDate) > date(?)");
+			stmt = c.prepareStatement("DELETE FROM CustomerOrders Where date(orderDate) >= date(?)");
 			stmt.setString(1, Globals.dateToSqlFormatString(Globals.setFirstDayOfMonth(Globals.addMonths(Globals.getTodayDate() , -months))));
 			stmt.executeUpdate();
 			
