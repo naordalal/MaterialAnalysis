@@ -21,6 +21,8 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 
+import org.apache.commons.lang3.math.NumberUtils;
+
 import AnalyzerTools.Analyzer;
 import Forms.Forecast;
 import MainPackage.DataBase;

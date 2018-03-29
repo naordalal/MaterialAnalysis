@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 import javax.swing.JOptionPane;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.sqlite.SQLiteConfig;
 
 import AnalyzerTools.MonthDate;
@@ -2447,6 +2448,8 @@ public class DataBase {
 				String quantity = rs.getString("quantity");
 				MonthDate requireDate = new MonthDate(Globals.parseDateFromSqlFormat(rs.getString("requireDate")));
 				
+				if(!NumberUtils.isCreatable(quantity))
+					continue;
 				QuantityPerDate quantityPerDate = new QuantityPerDate(requireDate, Double.parseDouble(quantity));
 				
 				if(productFormQuantityPerDate.containsKey(catalogNumber))
