@@ -12,7 +12,10 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -428,10 +431,12 @@ public class ReportViewFrame implements ActionListener
 		if(filterComboBoxs.length > 0)
 		{
 			actionPerformed(new ActionEvent(filterComboBoxs[0], 0, null));
-			return;
 		}
 		
-
+		if(!filterText.getText().equals(""))
+		{
+			actionPerformed(new ActionEvent(searchButton, 0, null));
+		}
 		
 	}
 
@@ -622,6 +627,41 @@ public class ReportViewFrame implements ActionListener
 	public void setFrameName(String frameName)
 	{
 		this.frameName = frameName;
+	}
+
+	public void updateRows(String[][] rows) 
+	{
+		
+		DefaultTableModel model = (DefaultTableModel)table.getModel();
+		List<String[]> rowsList = new ArrayList<>(Arrays.asList(rows));
+		
+		rowLoop:
+		for(int rowIndex = 0 ; rowIndex < model.getRowCount() ; rowIndex ++)
+		{
+			String [] row = content[rowIndex];
+			List<String[]> temp = new ArrayList<>(rowsList);
+			for(String[] newRow : temp)
+			{
+				if(row[0].equals(newRow[0]))
+				{
+					content[rowIndex] = newRow;
+					updateRow(rowIndex);
+					rowsList.remove(newRow);
+					continue rowLoop;
+				}
+					
+			}
+		}
+		
+		if(filterComboBoxs.length > 0)
+		{
+			actionPerformed(new ActionEvent(filterComboBoxs[0], 0, null));
+		}
+		
+		if(!filterText.getText().equals(""))
+		{
+			actionPerformed(new ActionEvent(searchButton, 0, null));
+		}
 	}
     
 

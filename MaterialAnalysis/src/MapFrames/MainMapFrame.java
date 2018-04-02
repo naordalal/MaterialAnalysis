@@ -227,7 +227,7 @@ public class MainMapFrame implements ActionListener
 				
 				calculateMap = true;
 				
-				Map<MonthDate, Map<String, ProductColumn>> map = analyzer.calculateMap(userName , true , customerChoosen.getSelectedItems());
+				Map<MonthDate, Map<String, ProductColumn>> map = analyzer.calculateMap(userName , true , customerChoosen.getSelectedItems() , null);
 				String [] columns = analyzer.getColumns(map);
 				String [][] rows = analyzer.getRows(map);
 				List<Integer> invalidEditableCoulmns = analyzer.getInvalidEditableCoulmns(columns);

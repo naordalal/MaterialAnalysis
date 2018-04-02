@@ -52,7 +52,7 @@ public class Analyzer
 	public void addNewFC(String customer , String catalogNumber , String quantity , String initDate , String requireDate , String description , String userName , String notes)
 	{
 		db.addFC(customer, catalogNumber, quantity, initDate, requireDate, description , userName , notes);
-		updateProductQuantities(catalogNumber , FormType.FC , true);
+		updateProductQuantities(userName , catalogNumber , FormType.FC , true);
 	}
 	
 	public void updateFC(int id , String customer , String catalogNumber , String quantity , String initDate , String requireDate 
@@ -61,7 +61,12 @@ public class Analyzer
 		double remainder = Double.parseDouble(getForecast(id).getQuantity()) - Double.parseDouble(quantity);
 		boolean successUpdate = db.updateFC(id,customer, catalogNumber, quantity, initDate, requireDate, description , userName , notes);
 		if(remainder != 0 && successUpdate)
-			updateProductQuantities(catalogNumber , FormType.FC , false);
+		{
+			MonthDate maximumDate = new MonthDate(Globals.addMonths(Globals.getTodayDate(), -Globals.monthsToCalculate));
+			MonthDate fcInitDate = new MonthDate(Globals.parseDate(initDate));
+			boolean ignorePast = !fcInitDate.before(maximumDate);
+			updateProductQuantities(userName , catalogNumber , FormType.FC , ignorePast);	
+		}
 	}
 	
 	public void removeFC(int id)
@@ -111,54 +116,82 @@ public class Analyzer
 		db.updateAlias(catalogNumber, alias);
 	}
 	
-	public void cleanProductQuantityPerDate(String catalogNumber)
+	public void cleanProductQuantityPerDate(String userName , String catalogNumber)
 	{
 		db.cleanProductQuantityPerDate(catalogNumber , FormType.WO);
 		db.cleanProductQuantityPerDate(catalogNumber , FormType.PO);
 		db.cleanProductQuantityPerDate(catalogNumber , FormType.SHIPMENT);
 		db.cleanProductQuantityPerDate(catalogNumber , FormType.FC);
 		
-		updateProductQuantities(catalogNumber , true);
+		updateProductQuantities(userName , catalogNumber , true);
 	}
 	
-	public void addNewInitProduct(String catalogNumber, String initDate, String quantity, String requireDate, FormType type)
+	public void addNewInitProduct(String userName , String catalogNumber, String initDate, String quantity, String requireDate, FormType type)
 	{
 		db.addNewInitProduct(catalogNumber, initDate, quantity, requireDate, type);
-		updateProductQuantities(catalogNumber , type , true);
+		updateProductQuantities(userName , catalogNumber , type , true);
 	}
 	
-	public void updateProductQuantities(String catalogNumber , FormType type , boolean ignorePast)
+	public void updateProductQuantities(String userName , String catalogNumber , FormType type , boolean ignorePast)
 	{
+		Map<String, List<QuantityPerDate>> productQuanitiesPerDate;
 		switch (type) 
 		{
 			case PO:
-				updateProductQuantities(db.getAllPO(catalogNumber , ignorePast), db.getAllProductsPOQuantityPerDate(catalogNumber , ignorePast),db.getInitProductsPODates(catalogNumber) , FormType.PO);
+				//updateProductQuantities(db.getAllPO(catalogNumber , ignorePast), db.getAllProductsPOQuantityPerDate(catalogNumber , ignorePast),db.getInitProductsPODates(catalogNumber) , FormType.PO);
+				productQuanitiesPerDate = db.getAllProductsPOQuantityPerDate(catalogNumber , ignorePast);
 				break;
 			case WO:
-				updateProductQuantities(db.getAllWO(catalogNumber , ignorePast), db.getAllProductsWOQuantityPerDate(catalogNumber , ignorePast),db.getInitProductsWODates(catalogNumber) , FormType.WO);
+				//updateProductQuantities(db.getAllWO(catalogNumber , ignorePast), db.getAllProductsWOQuantityPerDate(catalogNumber , ignorePast),db.getInitProductsWODates(catalogNumber) , FormType.WO);
+				productQuanitiesPerDate = db.getAllProductsWOQuantityPerDate(catalogNumber , ignorePast);
 				break;
 			case SHIPMENT:
-				updateProductQuantities(db.getAllShipments(catalogNumber , ignorePast), db.getAllProductsShipmentQuantityPerDate(catalogNumber , ignorePast),db.getInitProductsShipmentsDates(catalogNumber) , FormType.SHIPMENT);
+				//updateProductQuantities(db.getAllShipments(catalogNumber , ignorePast), db.getAllProductsShipmentQuantityPerDate(catalogNumber , ignorePast),db.getInitProductsShipmentsDates(catalogNumber) , FormType.SHIPMENT);
+				productQuanitiesPerDate = db.getAllProductsShipmentQuantityPerDate(catalogNumber , ignorePast);
 				break;
 			case FC:
-				updateProductQuantities(db.getAllFC(catalogNumber, ignorePast), db.getAllProductsFCQuantityPerDate(catalogNumber , ignorePast),db.getInitProductsFCDates(catalogNumber) , FormType.FC);
+				//updateProductQuantities(db.getAllFC(catalogNumber, ignorePast), db.getAllProductsFCQuantityPerDate(catalogNumber , ignorePast),db.getInitProductsFCDates(catalogNumber) , FormType.FC);
+				productQuanitiesPerDate = db.getAllProductsFCQuantityPerDate(catalogNumber , ignorePast);
 				break;
 			default:
+				productQuanitiesPerDate = new HashMap<>();
 				break;
+		}
+		
+		for (String cn : productQuanitiesPerDate.keySet())
+		{
+			List<QuantityPerDate> quantities = db.calculateProductFormQuantityOnDate(cn , type);
+			List<MonthDate> newMonths = quantities.stream().map(q -> q.getDate()).collect(Collectors.toList());
+			List<MonthDate> currentMonths = productQuanitiesPerDate.get(cn).stream().map(q -> q.getDate()).collect(Collectors.toList());
+			List<MonthDate> monthsToAdd = newMonths.stream().filter(m -> !currentMonths.contains(m)).collect(Collectors.toList());
+			List<MonthDate> monthsToRemove = currentMonths.stream().filter(m -> !newMonths.contains(m)).collect(Collectors.toList());
+			List<MonthDate> monthsToUpdate = currentMonths.stream().filter(m -> newMonths.contains(m)).collect(Collectors.toList());
+			
+			for (QuantityPerDate quantityPerDate : quantities) 
+			{
+				if(monthsToAdd.contains(quantityPerDate.getDate()))
+					db.addNewProductFormQuantityPerDate(cn, quantityPerDate, type);
+				else if(monthsToUpdate.contains(quantityPerDate.getDate()))
+					db.updateNewProductFormQuantityPerDate(cn, quantityPerDate, type);
+			}
+			
+			for(MonthDate dateToRemove : monthsToRemove)
+				db.removeProductQuantity(cn, dateToRemove , type);
 		}
 		
 		if(!ignorePast)
 			updateLastMap(null , null);
 		
 		db.updateLastUpdateDate(UpdateType.ProductQuantity);
+		calculateMap(userName, false, null, catalogNumber);
 	}
 	
-	public void updateProductQuantities(String catalogNumber , boolean ignorePast)
+	public void updateProductQuantities(String userName , String catalogNumber , boolean ignorePast)
 	{
-		updateProductQuantities(catalogNumber , FormType.FC , ignorePast);
-		updateProductQuantities(catalogNumber , FormType.WO , ignorePast);
-		updateProductQuantities(catalogNumber , FormType.PO , ignorePast);
-		updateProductQuantities(catalogNumber , FormType.SHIPMENT , ignorePast);
+		updateProductQuantities(userName , catalogNumber , FormType.FC , ignorePast);
+		updateProductQuantities(userName , catalogNumber , FormType.WO , ignorePast);
+		updateProductQuantities(userName , catalogNumber , FormType.PO , ignorePast);
+		updateProductQuantities(userName , catalogNumber , FormType.SHIPMENT , ignorePast);
 	}
 	
 
@@ -252,14 +285,30 @@ public class Analyzer
 	    
 	}
 	
-	public Map<MonthDate,Map<String,ProductColumn>> calculateMap(String userName , boolean forView , List<String> customers)
+	public Map<MonthDate,Map<String,ProductColumn>> calculateMap(String userName , boolean forView , List<String> customers , String cn)
 	{
 		Date lastCalculateMapDate = db.getLastUpdateDate(UpdateType.MAP);
 		Date lastCalculateProductQuantitiesDate = db.getLastUpdateDate(UpdateType.ProductQuantity);
 		
+		Map<String,String> catalogNumbers = db.getAllCatalogNumbersPerDescription(userName);
+		if(customers != null)
+		{
+			List<String> products = customers.stream().map(customer ->  db.getAllCatalogNumberOfCustomer(customer)).reduce(new ArrayList<String>(), (x,y) -> {x.addAll(y);return x;});
+			List<String> removeProdcuts = catalogNumbers.keySet().stream().filter(c -> !products.contains(c)).collect(Collectors.toList());
+			removeProdcuts.forEach(c -> catalogNumbers.remove(c));	
+		}
+		else if(cn != null)
+		{
+			Set<String> sons = getAllSons(cn);
+			sons.add(cn);
+			
+			List<String> removeProdcuts = catalogNumbers.keySet().stream().filter(c -> !sons.contains(c)).collect(Collectors.toList());
+			removeProdcuts.forEach(c -> catalogNumbers.remove(c));
+		}
+		
 		if(lastCalculateMapDate != null && lastCalculateProductQuantitiesDate != null && 
 				(lastCalculateMapDate.equals(lastCalculateProductQuantitiesDate) || lastCalculateMapDate.after(lastCalculateProductQuantitiesDate)))
-			return viewMap(userName, forView , customers);
+			return viewMap(userName, forView , catalogNumbers);
 			
 		//MonthDate lastCalculateMapDate = db.getLastCalculateMapDate();
 		MonthDate maximumDate = new MonthDate(Globals.addMonths(Globals.getTodayDate(), -Globals.monthsToCalculate - 1));
@@ -267,8 +316,9 @@ public class Analyzer
 			updateLastMap(userName , null);
 		
 		boolean containsDate = db.mapContainsDate(maximumDate);
-		Map<String,ProductColumn> lastMap = (containsDate) ? db.getLastMap(userName, customers , maximumDate) : new HashMap<String,ProductColumn>();
-		Map<MonthDate,Map<String,ProductColumn>> map = calculateMap(userName , lastMap , customers);
+		Map<String,ProductColumn> lastMap = (containsDate) ? db.getLastMap(userName, catalogNumbers , maximumDate) : new HashMap<String,ProductColumn>();
+		
+		Map<MonthDate,Map<String,ProductColumn>> map = calculateMap(lastMap , catalogNumbers);
 		
 		List<MonthDate> monthToCalculate = new ArrayList<>(map.keySet());
 		Collections.sort(monthToCalculate);
@@ -299,15 +349,23 @@ public class Analyzer
 		return map;
 	}
 	
-	private Map<MonthDate,Map<String,ProductColumn>> calculateMap(String userName , Map<String,ProductColumn> lastMap , List<String> customers)
+	private Set<String> getAllSons(String cn) 
+	{
+		Set<String> sons = new HashSet<>();
+		for (String son : db.getSons(cn)) 
+		{
+			sons.add(son);
+			sons.addAll(getAllSons(son));
+		}
+		
+		return sons;
+	}
+
+	private Map<MonthDate,Map<String,ProductColumn>> calculateMap(Map<String,ProductColumn> lastMap , Map<String,String> catalogNumbers)
 	{
 		Map<MonthDate,Map<String,ProductColumn>> map = new HashMap<MonthDate,Map<String,ProductColumn>>();
 		Map<MonthDate,Map<String,ProductColumn>> helpedMap = new HashMap<MonthDate,Map<String,ProductColumn>>();
 		
-		List<String> products = customers.stream().map(customer ->  db.getAllCatalogNumberOfCustomer(customer)).reduce(new ArrayList<String>(), (x,y) -> {x.addAll(y);return x;});
-		Map<String,String> catalogNumbers = db.getAllCatalogNumbersPerDescription(userName);
-		List<String> removeProdcuts = catalogNumbers.keySet().stream().filter(c -> !products.contains(c)).collect(Collectors.toList());
-		removeProdcuts.forEach(c -> catalogNumbers.remove(c));
 		
 		MonthDate maximumDate = db.getMaximumMapDate();
 		MonthDate minimumDate = db.getMinimumMapDate();
@@ -476,7 +534,7 @@ public class Analyzer
 		
 	}
 	
-	private Map<MonthDate,Map<String,ProductColumn>> viewMap(String userName , boolean forView, List<String> customers)
+	private Map<MonthDate,Map<String,ProductColumn>> viewMap(String userName , boolean forView, Map<String,String> catalogNumbers)
 	{		
 		Map<MonthDate,Map<String,ProductColumn>> map = new HashMap<>();
 		
@@ -498,9 +556,8 @@ public class Analyzer
 		if(maximumDate == null || maximumDate.before(minimumDate))
 			return map;
 		
-		
 		for (MonthDate monthDate : monthToCalculate) 
-			map.put(monthDate, db.getLastMap(userName, customers , monthDate));
+			map.put(monthDate, db.getLastMap(userName, catalogNumbers , monthDate));
 				
 		
 		for (String catalogNumber : map.get(monthToCalculate.get(0)).keySet()) 
@@ -970,7 +1027,7 @@ public class Analyzer
 						try 
 						{
 							updateForm.updateValue(column , newValue , userName);
-							//mapFrame.refresh(getRows(calculateMap(userName , true , customers)));
+							mapFrame.updateRows(getRows(calculateMap(userName , true , null, updateForm.getCatalogNumber())));
 							reportViewFrame.setColumnWidth();
 							return null;
 						} catch (Exception e) 
@@ -1025,7 +1082,7 @@ public class Analyzer
 	
 	public List<MrpHeader> getMrpHeaders(String userName , List<String> customers)
 	{
-		Map<MonthDate , Map<String,ProductColumn>> map = calculateMap(userName , false , customers);
+		Map<MonthDate , Map<String,ProductColumn>> map = calculateMap(userName , false , customers , null);
 		List<MrpHeader> mrpHeaders = new ArrayList<>();
 		
 		Map<String,String> catalogNumbers = db.getAllCatalogNumbersPerDescription(userName);
@@ -1119,5 +1176,10 @@ public class Analyzer
 	private boolean isSon(String catalogNumber) 
 	{
 		return db.getFathers(catalogNumber).size() > 0;
+	}
+	
+	private boolean isFather(String catalogNumber) 
+	{
+		return db.getSons(catalogNumber).size() > 0;
 	}
 }

@@ -202,13 +202,13 @@ public class InitProductFrame implements ActionListener
 			
 			String catalogNumber = (String) catalogNumberComboBox.getModel().getSelectedItem();
 			if(formsThatAlreadyInit.size() == 0)
-				analyzer.cleanProductQuantityPerDate(catalogNumber);
+				analyzer.cleanProductQuantityPerDate(userName , catalogNumber);
 			
 			String initDate = Globals.dateWithoutHourToString(Globals.getTodayDate());
 			String quantity = quantityText.getText().trim();
 			String requireDateString = (Form.isNeedRequireDate(globals.getClassName(formsTypeThatNeedInit.get(initTypeComboBox.getSelectedIndex()))))
 					? requireDateText.getText() : Globals.dateWithoutHourToString(Globals.getTodayDate());
-			analyzer.addNewInitProduct(catalogNumber, initDate, quantity, requireDateString , formsTypeThatNeedInit.get(initTypeComboBox.getSelectedIndex()));
+			analyzer.addNewInitProduct(userName , catalogNumber, initDate, quantity, requireDateString , formsTypeThatNeedInit.get(initTypeComboBox.getSelectedIndex()));
 			
 			
 			quantityText.setText("");
@@ -223,7 +223,7 @@ public class InitProductFrame implements ActionListener
 			{
 				for (FormType formType : formsTypeThatNotNeedInit) 
 				{
-					analyzer.addNewInitProduct(catalogNumber, initDate, "0", initDate , formType);
+					analyzer.addNewInitProduct(userName , catalogNumber, initDate, "0", initDate , formType);
 				}
 				
 				JOptionPane.showConfirmDialog(null, "Init successfully","",JOptionPane.PLAIN_MESSAGE);

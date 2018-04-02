@@ -1515,21 +1515,181 @@ public class DataBase {
 		}
 	}
 	
-	public QuantityPerDate getProductShipmentQuantityOnDate(String catalogNumber, MonthDate monthDate) 
+	public List<QuantityPerDate> calculateProductFormQuantityOnDate(String catalogNumber , FormType type) 
 	{
+		switch (type) 
+		{
+			case SHIPMENT:
+				return calculateProductShipmentQuantityOnDate(catalogNumber);
+			case PO:
+				return calculateProductPOQuantityOnDate(catalogNumber);
+			case WO:
+				return calculateProductWOQuantityOnDate(catalogNumber);
+			case FC:
+				return calculateProductFCQuantityOnDate(catalogNumber);
+			default:
+				return null;
+		}
+	}
+	
+	public QuantityPerDate getProductShipmentQuantityOnDate(String catalogNumber, MonthDate monthDate) 
+	{	
 		return getProductFormQuantityOnDate(catalogNumber , monthDate , FormType.SHIPMENT);
 	}
+	
+	public List<QuantityPerDate> calculateProductShipmentQuantityOnDate(String catalogNumber) 
+	{
+		try{
+			
+			List<QuantityPerDate> productQuantityPerDate = new ArrayList<>();
+			connect();
+			stmt = c.prepareStatement("select month , sum(quantity) as quantity from "
+					+ "(select strftime('%Y-%m-01',shipmentDate) as month ,cast(quantity as decimal) as quantity "
+					+ "from Shipments where cn = ? AND date(shipmentDate) > (SELECT COALESCE(MAX(date(initDate)), date('0001-01-01')) "
+					+ "FROM InitProductShipments where CN = ?)) group by month order by month");
+			
+			stmt.setString(1, catalogNumber);
+			stmt.setString(2, catalogNumber);
+			ResultSet rs = stmt.executeQuery();
+			
+			while(rs.next())
+			{
+				MonthDate monthDate = new MonthDate(Globals.parseDateFromSqlFormat(rs.getString("month")));
+				double quantity = rs.getDouble("quantity");
+				QuantityPerDate quantityPerDate = new QuantityPerDate(monthDate, quantity);
+				productQuantityPerDate.add(quantityPerDate);
+			}
+			
+			closeConnection();
+			return productQuantityPerDate;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return new ArrayList<>();
+		}
+		
+	}
+	
 	public QuantityPerDate getProductPOQuantityOnDate(String catalogNumber, MonthDate monthDate) 
 	{
 		return getProductFormQuantityOnDate(catalogNumber , monthDate , FormType.PO);
 	}
+	
+	public List<QuantityPerDate> calculateProductPOQuantityOnDate(String catalogNumber) 
+	{
+		try{
+			
+			List<QuantityPerDate> productQuantityPerDate = new ArrayList<>();
+			connect();
+			stmt = c.prepareStatement("select month , sum(quantity) as quantity from "
+					+ "(select strftime('%Y-%m-01',guaranteedDate) as month ,cast(quantity as decimal) as quantity "
+					+ "from CustomerOrders where cn = ? AND date(orderDate) > (SELECT COALESCE(MAX(date(initDate)), date('0001-01-01')) "
+					+ "FROM InitProductCustomerOrders where CN = ?)) group by month order by month");
+			
+			stmt.setString(1, catalogNumber);
+			stmt.setString(2, catalogNumber);
+			ResultSet rs = stmt.executeQuery();
+			
+			while(rs.next())
+			{
+				MonthDate monthDate = new MonthDate(Globals.parseDateFromSqlFormat(rs.getString("month")));
+				double quantity = rs.getDouble("quantity");
+				QuantityPerDate quantityPerDate = new QuantityPerDate(monthDate, quantity);
+				productQuantityPerDate.add(quantityPerDate);
+			}
+			
+			closeConnection();
+			return productQuantityPerDate;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return new ArrayList<>();
+		}
+	}
+	
 	public QuantityPerDate getProductWOQuantityOnDate(String catalogNumber, MonthDate monthDate) 
 	{
 		return getProductFormQuantityOnDate(catalogNumber , monthDate , FormType.WO);
 	}
+	
+	public List<QuantityPerDate> calculateProductWOQuantityOnDate(String catalogNumber) 
+	{
+		try{
+			
+			List<QuantityPerDate> productQuantityPerDate = new ArrayList<>();
+			connect();
+			stmt = c.prepareStatement("select month , sum(quantity) as quantity from "
+					+ "(select strftime('%Y-%m-01',date) as month ,cast(quantity as decimal) as quantity "
+					+ "from WorkOrder where cn = ? AND date(date) > (SELECT COALESCE(MAX(date(initDate)), date('0001-01-01')) "
+					+ "FROM InitProductWorkOrder where CN = ?)) group by month order by month");
+			
+			stmt.setString(1, catalogNumber);
+			stmt.setString(2, catalogNumber);
+			ResultSet rs = stmt.executeQuery();
+			
+			while(rs.next())
+			{
+				MonthDate monthDate = new MonthDate(Globals.parseDateFromSqlFormat(rs.getString("month")));
+				double quantity = rs.getDouble("quantity");
+				QuantityPerDate quantityPerDate = new QuantityPerDate(monthDate, quantity);
+				productQuantityPerDate.add(quantityPerDate);
+			}
+			
+			closeConnection();
+			return productQuantityPerDate;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return new ArrayList<>();
+		}
+	}
+	
 	public QuantityPerDate getProductFCQuantityOnDate(String catalogNumber, MonthDate monthDate) 
 	{
 		return getProductFormQuantityOnDate(catalogNumber , monthDate , FormType.FC);
+	}
+		
+	public List<QuantityPerDate> calculateProductFCQuantityOnDate(String catalogNumber) 
+	{
+		try{
+			
+			List<QuantityPerDate> productQuantityPerDate = new ArrayList<>();
+			connect();
+			stmt = c.prepareStatement("select month , sum(quantity) as quantity from "
+					+ "(select strftime('%Y-%m-01',requireDate) as month ,cast(quantity as decimal) as quantity "
+					+ "from Forecast where cn = ? AND date(initDate) > (SELECT COALESCE(MAX(date(initDate)), date('0001-01-01')) "
+					+ "FROM InitProductForecast where CN = ?)) group by month order by month");
+			
+			stmt.setString(1, catalogNumber);
+			stmt.setString(2, catalogNumber);
+			ResultSet rs = stmt.executeQuery();
+			
+			while(rs.next())
+			{
+				MonthDate monthDate = new MonthDate(Globals.parseDateFromSqlFormat(rs.getString("month")));
+				double quantity = rs.getDouble("quantity");
+				QuantityPerDate quantityPerDate = new QuantityPerDate(monthDate, quantity);
+				productQuantityPerDate.add(quantityPerDate);
+			}
+			
+			closeConnection();
+			return productQuantityPerDate;
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return new ArrayList<>();
+		}
 	}
 	
 	public List<Pair<String,Integer>> getFathers(String catalogNumber) 
@@ -3209,14 +3369,9 @@ public class DataBase {
 		}
 	}
 	
-	public Map<String, ProductColumn> getLastMap(String userName , List<String> customers , MonthDate lastCalculateMapDate) 
+	public Map<String, ProductColumn> getLastMap(String userName , Map<String, String> catalogNumbers , MonthDate lastCalculateMapDate) 
 	{
 		Map<String,ProductColumn> lastMap = new HashMap<String,ProductColumn>();
-		Map<String, String> catalogNumbers = getAllCatalogNumbersPerDescription(userName);
-		
-		List<String> products = customers.stream().map(customer ->  getAllCatalogNumberOfCustomer(customer)).reduce(new ArrayList<String>(), (x,y) -> {x.addAll(y);return x;});
-		List<String> removeProdcuts = catalogNumbers.keySet().stream().filter(c -> !products.contains(c)).collect(Collectors.toList());
-		removeProdcuts.forEach(c -> catalogNumbers.remove(c));
 		
 		try{
 			

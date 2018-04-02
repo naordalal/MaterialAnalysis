@@ -8,10 +8,16 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import javax.mail.Authenticator;
+import javax.swing.JOptionPane;
+import javax.swing.JTable;
 
+import AnalyzerTools.Analyzer;
 import AnalyzerTools.MonthDate;
+import Components.TableCellListener;
 import MainPackage.CallBack;
+import MainPackage.DataBase;
 import MainPackage.Message;
+import MainPackage.Pair;
 import MapFrames.ReportViewFrame;
 
 public class MrpHeader extends Report
@@ -111,8 +117,45 @@ public class MrpHeader extends Report
 	@Override
 	public CallBack<Object> getDoubleLeftClickAction(String email, Authenticator auth, String userName,
 			ReportViewFrame frame, Object... args) {
-		return null;
+		CallBack<Object> doubleLeftClickAction = new CallBack<Object>()
+		{
+			private DataBase db = new DataBase();
+
+			@Override
+			public Object execute(Object... objects) 
+			{
+				TableCellListener tcl = (TableCellListener)objects[0];
+				int row = tcl.getRow();
+				int column = tcl.getColumn();
+				
+				if(column == 0)
+				{
+					String product = getProductOnRow(tcl.getTable() , row);
+					StringBuilder description = new StringBuilder();
+					description.append("Material availability difference ");
+					List<Pair<String, Integer>> fathers = db.getFathers(product);
+					for (Pair<String, Integer> father : fathers) 
+					{
+						description.append("- Material availability difference of ");
+						description.append(father.getLeft() + "(father catalog number) * ");
+						description.append(father.getRight());
+						description.append("\n");
+					}
+					JOptionPane.showConfirmDialog(null, description.toString() , "Formula explanation",JOptionPane.PLAIN_MESSAGE); 
+				}
+				
+				return null;
+			}
+		};
+		
+		return doubleLeftClickAction;
 	}
+
+	protected String getProductOnRow(JTable table, int row) 
+	{
+		return (String) table.getValueAt(row, 0);
+	}
+	
 
 	@Override
 	public CallBack<Object> getRightClickAction(String email, Authenticator auth, String userName,

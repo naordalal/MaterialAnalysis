@@ -154,7 +154,7 @@ public class ProductInit extends Report
 		MonthDate initMonth = new MonthDate(Globals.parseDate(initDate));
 		MonthDate calculateMonth = new MonthDate(Globals.addMonths(Globals.getTodayDate(), -Globals.monthsToCalculate - 1));
 		boolean ignorePast = initMonth.after(calculateMonth);
-		analyzer.updateProductQuantities(catalogNumber , type , ignorePast);
+		analyzer.updateProductQuantities(userName , catalogNumber , type , ignorePast);
 		return null;
 	}
 	
