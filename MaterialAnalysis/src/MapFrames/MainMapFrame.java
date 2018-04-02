@@ -83,7 +83,7 @@ public class MainMapFrame implements ActionListener
 	{
 		globals = new Globals();
 		
-		frame = new JFrame("MAP");
+		frame = new JFrame("MAP-Version " + Globals.mapVersion);
 		frame.setLayout(null);
 		frame.getRootPane().setFocusable(true);
 		frame.setBounds(400, 100, 505, 500);

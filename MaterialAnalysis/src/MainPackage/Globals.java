@@ -140,6 +140,7 @@ public class Globals {
 	
 	public static final int monthsToCalculate = 6;
 	public static final int monthsBackToView = 3;
+	public static final String mapVersion = "I";
 	
 	public String acceptNotes = "Please approve receipt of PO and delivery date";
 	public String promisedDateInHebrewColumn = "תאריך מובטח";
