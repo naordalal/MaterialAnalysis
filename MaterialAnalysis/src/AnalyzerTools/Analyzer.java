@@ -341,7 +341,16 @@ public class Analyzer
 		if(forView)
 		{
 			for (MonthDate month : notMonthsToView)
-					map.remove(month);	
+			{
+				for(String catalogNumber : map.get(month).keySet())
+				{
+					ProductColumn pc = map.get(month).get(catalogNumber);
+					if(pc.getWorkOrderAfterCustomerOrderAndParentWorkOrder() < 0)
+						pc.setWorkOrderAfterCustomerOrderAndParentWorkOrder(0);
+				}
+				
+				map.remove(month);	
+			}	
 		}
 		
 		db.updateLastUpdateDate(UpdateType.MAP);
@@ -490,7 +499,7 @@ public class Analyzer
 				workOrderAfterCustomerOrderAndParentWorkOrder = previousWorkOrderAfterCustomerOrderAndParentWorkOrder + workOrder.getQuantity()
 																					- customerOrders.getQuantity() - parentWorkOrder - initFatherWO;
 				
-				workOrderAfterCustomerOrderAndParentWorkOrder = (workOrderAfterCustomerOrderAndParentWorkOrder < 0) ? 0 : workOrderAfterCustomerOrderAndParentWorkOrder;
+				//workOrderAfterCustomerOrderAndParentWorkOrder = (workOrderAfterCustomerOrderAndParentWorkOrder < 0) ? 0 : workOrderAfterCustomerOrderAndParentWorkOrder;
 				
 				ProductColumn productColumn = new ProductColumn(descendantCatalogNumber, catalogNumbers.get(descendantCatalogNumber), forecast.getQuantity(), materialAvailability, workOrder.getQuantity()
 						, workOrderAfterSupplied, workOrderAfterCustomerOrderAndParentWorkOrder , customerOrders.getQuantity(), 
@@ -602,6 +611,9 @@ public class Analyzer
 				currentProductColumn.setWorkOrder(workOrder.getQuantity());
 				currentProductColumn.setCustomerOrders(customerOrders.getQuantity());
 				currentProductColumn.setSupplied(supplied.getQuantity());
+				
+				if(forView && currentProductColumn.getWorkOrderAfterCustomerOrderAndParentWorkOrder() < 0)
+					currentProductColumn.setWorkOrderAfterCustomerOrderAndParentWorkOrder(0);
 				
 				List<Pair<String, Integer>> fathersCatalogNumberAndQuantityToAssociate = db.getFathers(catalogNumber);
 				List<String> descendantsCatalogNumbers = db.getAllDescendantCatalogNumber(catalogNumber);
@@ -805,7 +817,7 @@ public class Analyzer
 				workOrderAfterCustomerOrderAndParentWorkOrder = previousWorkOrderAfterCustomerOrderAndParentWorkOrder + workOrder.getQuantity()
 																				- customerOrders.getQuantity() - parentWorkOrder - initFatherWO;
 				
-				workOrderAfterCustomerOrderAndParentWorkOrder = (workOrderAfterCustomerOrderAndParentWorkOrder < 0) ? 0 : workOrderAfterCustomerOrderAndParentWorkOrder;
+				//workOrderAfterCustomerOrderAndParentWorkOrder = (workOrderAfterCustomerOrderAndParentWorkOrder < 0) ? 0 : workOrderAfterCustomerOrderAndParentWorkOrder;
 				
 				ProductColumn productColumn = new ProductColumn(catalogNumber, catalogNumbers.get(catalogNumber), forecast.getQuantity(), materialAvailability, workOrder.getQuantity()
 						, workOrderAfterSupplied, workOrderAfterCustomerOrderAndParentWorkOrder , customerOrders.getQuantity(), 
