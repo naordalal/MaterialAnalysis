@@ -63,6 +63,7 @@ public class Analyzer
 		MonthDate newRequireDate = new MonthDate(Globals.parseDate(requireDate));
 		double remainder = Double.parseDouble(previousForecast.getQuantity()) - Double.parseDouble(quantity);
 		boolean successUpdate = db.updateFC(id,customer, catalogNumber, quantity, initDate, requireDate, description , userName , notes);
+		
 		if((remainder != 0 || !previousRequireDate.equals(newRequireDate)) && successUpdate)
 		{
 			MonthDate maximumDate = new MonthDate(Globals.addMonths(Globals.getTodayDate(), -Globals.monthsToCalculate));
