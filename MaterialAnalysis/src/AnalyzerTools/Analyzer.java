@@ -58,16 +58,19 @@ public class Analyzer
 	public void updateFC(int id , String customer , String catalogNumber , String quantity , String initDate , String requireDate 
 			, String description , String userName , String notes)
 	{
-		double remainder = Double.parseDouble(getForecast(id).getQuantity()) - Double.parseDouble(quantity);
+		Forecast previousForecast = getForecast(id);
+		MonthDate previousRequireDate = new MonthDate(previousForecast.getRequestDate());
+		MonthDate newRequireDate = new MonthDate(Globals.parseDate(requireDate));
+		double remainder = Double.parseDouble(previousForecast.getQuantity()) - Double.parseDouble(quantity);
 		boolean successUpdate = db.updateFC(id,customer, catalogNumber, quantity, initDate, requireDate, description , userName , notes);
-		if(remainder != 0 && successUpdate)
+		if((remainder != 0 || !previousRequireDate.equals(newRequireDate)) && successUpdate)
 		{
 			MonthDate maximumDate = new MonthDate(Globals.addMonths(Globals.getTodayDate(), -Globals.monthsToCalculate));
 			MonthDate fcInitDate = new MonthDate(Globals.parseDate(initDate));
 			boolean ignorePast = !fcInitDate.before(maximumDate);
 			updateProductQuantities(userName , catalogNumber , FormType.FC , ignorePast);	
 		}
-	}
+ 	}
 	
 	public void removeFC(int id)
 	{
@@ -157,6 +160,9 @@ public class Analyzer
 				productQuanitiesPerDate = new HashMap<>();
 				break;
 		}
+		
+		if(productQuanitiesPerDate.isEmpty())
+			productQuanitiesPerDate.put(catalogNumber, new ArrayList<>());
 		
 		for (String cn : productQuanitiesPerDate.keySet())
 		{
