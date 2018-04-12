@@ -233,7 +233,7 @@ public class Analyzer
 	        for (Form form : entry.getValue()) 
 	        {
 	        	QuantityPerDate quantityPerDate = new QuantityPerDate(entry.getKey(), new Double(form.getQuantity()));
-	        	if(initProductsQuantityPerDate .containsKey(form.getCatalogNumber()))
+	        	if(initProductsQuantityPerDate.containsKey(form.getCatalogNumber()))
 	        	{
 	        		List<QuantityPerDate> quantityPerDateList = initProductsQuantityPerDate.get(form.getCatalogNumber());
 	        		List<MonthDate> datesList = quantityPerDateList.stream().map(el -> el.getDate()).collect(Collectors.toList());
@@ -308,6 +308,9 @@ public class Analyzer
 		{
 			Set<String> sons = getAllSons(cn);
 			sons.add(cn);
+			
+			new ArrayList<>(sons).stream().forEach(son -> sons.addAll(db.getAllDescendantCatalogNumber(son)));
+			new ArrayList<>(sons).stream().forEach(son -> sons.addAll(db.getAllPatriarchsCatalogNumber(son)));
 			
 			List<String> removeProdcuts = catalogNumbers.keySet().stream().filter(c -> !sons.contains(c)).collect(Collectors.toList());
 			removeProdcuts.forEach(c -> catalogNumbers.remove(c));
@@ -576,7 +579,7 @@ public class Analyzer
 			map.put(monthDate, db.getLastMap(userName, catalogNumbers , monthDate));
 				
 		
-		for (String catalogNumber : map.get(monthToCalculate.get(0)).keySet()) 
+		for (String catalogNumber : catalogNumbers.keySet()) 
 		{
 			String descendantCatalogNumber = db.getDescendantCatalogNumber(catalogNumber);
 			
@@ -614,10 +617,10 @@ public class Analyzer
 				supplied.addQuantity(initShipment);
 				
 				ProductColumn currentProductColumn = map.get(monthDate).get(descendantCatalogNumber);
-				currentProductColumn.setForecast(forecast.getQuantity());
-				currentProductColumn.setWorkOrder(workOrder.getQuantity());
-				currentProductColumn.setCustomerOrders(customerOrders.getQuantity());
-				currentProductColumn.setSupplied(supplied.getQuantity());
+				currentProductColumn.setForecast(currentProductColumn.getForecast() + forecast.getQuantity());
+				currentProductColumn.setWorkOrder(currentProductColumn.getWorkOrder() + workOrder.getQuantity());
+				currentProductColumn.setCustomerOrders(currentProductColumn.getCustomerOrders() + customerOrders.getQuantity());
+				currentProductColumn.setSupplied(currentProductColumn.getSupplied() + supplied.getQuantity());
 				
 				if(forView && currentProductColumn.getWorkOrderAfterCustomerOrderAndParentWorkOrder() < 0)
 					currentProductColumn.setWorkOrderAfterCustomerOrderAndParentWorkOrder(0);
@@ -650,8 +653,8 @@ public class Analyzer
 					}
 				}
 				
-				currentProductColumn.setParentWorkOrder(parentWorkOrder);
-				currentProductColumn.setParentWorkOrderSupplied(parentWorkOrderSupplied);
+				currentProductColumn.setParentWorkOrder(currentProductColumn.getParentWorkOrder() + parentWorkOrder);
+				currentProductColumn.setParentWorkOrderSupplied(currentProductColumn.getParentWorkOrderSupplied() + parentWorkOrderSupplied);
 			}
 		}
 		

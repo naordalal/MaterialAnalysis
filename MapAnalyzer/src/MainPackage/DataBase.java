@@ -11,9 +11,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
 import javax.swing.JOptionPane;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.sqlite.SQLiteConfig;
 
 import Forms.CustomerOrder;
@@ -586,19 +589,30 @@ public class DataBase
 			connect();
 			stmt = (catalogNumber == null) ? c.prepareStatement("SELECT * FROM " + tableName) : c.prepareStatement("SELECT * FROM " + tableName +" where CN = ?");
 			if(catalogNumber != null)
-				stmt.setString(1, catalogNumber);		
+				stmt.setString(1, catalogNumber);
 			ResultSet rs = stmt.executeQuery();
-			
+
 			while(rs.next())
 			{
 				catalogNumber = rs.getString("CN");
 				String quantity = rs.getString("quantity");
 				MonthDate requireDate = new MonthDate(Globals.parseDateFromSqlFormat(rs.getString("requireDate")));
 				
+				if(!NumberUtils.isCreatable(quantity))
+					continue;
 				QuantityPerDate quantityPerDate = new QuantityPerDate(requireDate, Double.parseDouble(quantity));
 				
 				if(productFormQuantityPerDate.containsKey(catalogNumber))
-					productFormQuantityPerDate.get(catalogNumber).add(quantityPerDate);
+				{
+					List<MonthDate> months = productFormQuantityPerDate.get(catalogNumber).stream().map(productQuantity -> productQuantity.getDate()).collect(Collectors.toList());
+					if(months.contains(requireDate))
+					{
+						int index = months.indexOf(requireDate);
+						productFormQuantityPerDate.get(catalogNumber).get(index).addQuantity(quantityPerDate.getQuantity());
+					}
+					else
+						productFormQuantityPerDate.get(catalogNumber).add(quantityPerDate);	
+				}
 				else
 				{
 					List<QuantityPerDate> quantityPerDates = new ArrayList<>();
