@@ -1187,6 +1187,102 @@ public class Analyzer
 		return mrpHeaders;
 		
 	}
+	
+	public Map<MonthDate,Map<String,MapPrice>> calculateMapPrice(String userName , List<String> customers)
+	{
+		Map<MonthDate,Map<String,MapPrice>> priceOfProductPerMonth = new HashMap<>();
+		Map<MonthDate , Map<String,ProductColumn>> map = calculateMap(userName , false , customers , null);
+		
+		for (MonthDate month : map.keySet())
+		{
+			Map<String,MapPrice> productsPrices = new HashMap<>();
+			priceOfProductPerMonth.put(month, productsPrices);
+			
+			for (String cn : map.get(month).keySet()) 
+			{
+				String customer = db.getCustomerOfCatalogNumber(cn);
+				double deposit = db.getCustomerDesposite(customer);
+				double obligation = db.getCustomerObligation(customer);
+				
+				ProductColumn productColumn = map.get(month).get(cn);
+				double priceOfProduct = db.getPriceOfProduct(cn);
+				double materialAvailabilityPrice = productColumn.getMaterialAvailability() * priceOfProduct;
+				double WorkOrderAfterSuppliedPrice = productColumn.getWorkOrderAfterSupplied() * priceOfProduct;
+				double OpenCustomerOrderPrice = productColumn.getOpenCustomerOrder() * priceOfProduct;
+				double budgetExceeded = materialAvailabilityPrice + WorkOrderAfterSuppliedPrice - OpenCustomerOrderPrice;
+				budgetExceeded = (budgetExceeded > (obligation + deposit)) ? budgetExceeded - (obligation + deposit) : 0;
+				
+				MapPrice mapPrice = new MapPrice(cn, materialAvailabilityPrice, WorkOrderAfterSuppliedPrice, OpenCustomerOrderPrice , budgetExceeded);
+				productsPrices.put(cn, mapPrice);
+			}
+		}
+		
+		return priceOfProductPerMonth;
+	}
+	
+	public String[][] getRowsOfMapPrice(Map<MonthDate,Map<String,MapPrice>> mapPrice)
+	{
+		List<List<String>> rows = new ArrayList<>();
+		
+		List<MonthDate> months = mapPrice.keySet().stream().collect(Collectors.toList());
+		Collections.sort(months);
+		
+		for (MonthDate monthDate : months) 
+		{
+			Map<String , MapPrice> productsPrices = mapPrice.get(monthDate);
+			List<String> products = productsPrices.keySet().stream().collect(Collectors.toList());
+			Collections.sort(products);
+			
+			for (int index = 0 ; index < products.size() ; index ++) 
+			{
+				String product = products.get(index);
+				MapPrice productPrices = productsPrices.get(product);
+				if(months.indexOf(monthDate) == 0)
+				{
+					for(int i = 0 ; i < MapPrice.CategoriesCount ; i++)
+					{
+						List<String> row = new ArrayList<>();
+						row.add(product);
+						row.add(db.getCustomerOfCatalogNumber(product));
+						row.add(productPrices.getColumn(i));
+						rows.add(row);
+					}	
+				}
+				
+				for(int i = 0 ; i < MapPrice.CategoriesCount ; i++)
+				{
+					List<String> row = rows.get(index * MapPrice.CategoriesCount + i);
+					row.add(Integer.toString(productPrices.getColumnValue(i)));
+				}
+			}
+			
+		}
+		
+		return rows.stream().map(row -> row.toArray(new String[0])).toArray(String[][]::new);
+	}
+	
+	public String[] getColumnsOfMapPrice(Map<MonthDate, Map<String, MapPrice>> mapPrice) 
+	{
+		List<String> columns = new ArrayList<>();
+		columns.add("Catalog Number");
+		columns.add("Customer");
+		columns.add("Category");
+		List<MonthDate> months = mapPrice.keySet().stream().collect(Collectors.toList());
+		Collections.sort(months);
+		columns.addAll(months.stream().map(date -> date.shortString()).collect(Collectors.toList()));
+		
+		return columns.toArray(new String[0]);
+	}
+	
+	public List<Integer> getFilterColumnsOfMapPrice() 
+	{
+		List<Integer> filterColumns = new ArrayList<>();
+		filterColumns.add(0);
+		filterColumns.add(1);
+		filterColumns.add(2);
+		
+		return filterColumns;
+	}
 
 	private Set<String> getCatalogNumbersFromMap(Map<MonthDate, Map<String, ProductColumn>> map) 
 	{

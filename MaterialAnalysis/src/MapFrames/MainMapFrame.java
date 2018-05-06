@@ -7,9 +7,13 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 import javax.mail.Authenticator;
 import javax.swing.AbstractAction;
 import javax.swing.DefaultComboBoxModel;
@@ -26,6 +30,7 @@ import javax.swing.KeyStroke;
 import com.toedter.calendar.JDateChooser;
 
 import AnalyzerTools.Analyzer;
+import AnalyzerTools.MapPrice;
 import AnalyzerTools.MonthDate;
 import AnalyzerTools.ProductColumn;
 import Components.FilterCombo;
@@ -66,6 +71,7 @@ public class MainMapFrame implements ActionListener
 	private JButton forecastHistoryButton;
 	private JButton deleteProductButton;
 	private boolean calculateMap;
+	private JButton mapPriceButton;
 
 	public MainMapFrame(String userName, String email , Authenticator auth , CallBack<Integer> callBack) 
 	{
@@ -186,6 +192,12 @@ public class MainMapFrame implements ActionListener
 		deleteProductButton.setSize(100, 60);
 		deleteProductButton.addActionListener(this);
 		panel.add(deleteProductButton);
+		
+		mapPriceButton = new JButton("<html><b>Map Price</b></html>");
+		mapPriceButton.setLocation(380 , 170);
+		mapPriceButton.setSize(100, 60);
+		mapPriceButton.addActionListener(this);
+		panel.add(mapPriceButton);
 				
 		copyRight = new JLabel("<html><b>\u00a9 Naor Dalal</b></html>");
 		copyRight.setLocation(30 , 430);
@@ -249,6 +261,39 @@ public class MainMapFrame implements ActionListener
 				
 				calculateMap = false;
 
+			}
+			else if(event.getSource() == mapPriceButton)
+			{
+				List<String> customers = db.getCustomersOfUser(userName);
+				DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>(customers.toArray(new String[customers.size()]));
+				MultiSelectionComboBox<String> customerChoosen = new MultiSelectionComboBox<>(model);
+				customerChoosen.setSelectedItem(null);
+				int confirm = JOptionPane.showConfirmDialog(
+				  null, customerChoosen, "Select customers", JOptionPane.PLAIN_MESSAGE);
+				
+				if(confirm != JOptionPane.OK_OPTION)
+					return;
+				
+				if(customerChoosen.getSelectedItems().isEmpty())
+				{
+					JOptionPane.showConfirmDialog(null, "You have to select customer","",JOptionPane.PLAIN_MESSAGE);
+					return;
+				}
+				
+				Map<MonthDate, Map<String, MapPrice>> mapPrice = analyzer.calculateMapPrice(userName, customerChoosen.getSelectedItems());
+				String [] columns = analyzer.getColumnsOfMapPrice(mapPrice);
+				String [][] rows = analyzer.getRowsOfMapPrice(mapPrice);
+				List<Integer> invalidEditableCoulmns = IntStream.range(0, columns.length).boxed().collect(Collectors.toList());
+				
+				boolean canEdit = invalidEditableCoulmns.size() < columns.length;
+				ReportViewFrame mapPriceFrame = new ReportViewFrame(email , auth , "Map Price View" , columns, rows, canEdit ,invalidEditableCoulmns);
+				
+				List<Integer> filterColumns = analyzer.getFilterColumnsOfMapPrice();
+				List<String> filterNames = new ArrayList<>();
+				filterColumns.stream().forEach(col -> filterNames.add(columns[col] + ": "));
+				mapPriceFrame.setFilters(filterColumns, filterNames);
+				
+				mapPriceFrame.show();
 			}
 			else if(event.getSource() == addForecastButton)
 			{

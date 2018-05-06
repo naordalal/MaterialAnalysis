@@ -4152,6 +4152,94 @@ public class DataBase {
 		
 	}
 	
+	public double getPriceOfProduct(String cn)
+	{
+		try{
+			
+			connect();	
+			stmt =  c.prepareStatement("select CN , price , MAX(orderDate) as orderDate from CustomerOrders where CN = ? Group by CN");
+			stmt.setString(1, cn);
+			ResultSet rs = stmt.executeQuery();
+			
+			double price = 0;
+			
+			while(rs.next())
+			{
+				String priceString = rs.getString("price");
+				if(NumberUtils.isCreatable(priceString))
+				{
+					price = Double.parseDouble(priceString);
+					break;
+				}
+			}
+			
+			closeConnection();
+			
+			return price;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return -1;
+		}
+		
+	}
 	
-
+	public double getCustomerDesposite(String customer) 
+	{
+		try
+		{
+		
+			connect();
+			stmt = c.prepareStatement("SELECT deposite FROM Projects where projectName = ?");
+			stmt.setString(1, customer);
+			ResultSet rs = stmt.executeQuery();
+			
+			double deposite = 0;
+			
+			if(rs.next())
+				deposite =  rs.getDouble("deposite");
+			
+			closeConnection();
+			return deposite;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return 0;
+		}
+	}
+	
+	public double getCustomerObligation(String customer) 
+	{
+		try
+		{
+		
+			connect();
+			stmt = c.prepareStatement("SELECT obligation FROM Projects where projectName = ?");
+			stmt.setString(1, customer);
+			ResultSet rs = stmt.executeQuery();
+			
+			double obligation = 0;
+			
+			if(rs.next())
+				obligation =  rs.getDouble("obligation");
+			
+			closeConnection();
+			return obligation;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return 0;
+		}
+	}
+	
+	
 }

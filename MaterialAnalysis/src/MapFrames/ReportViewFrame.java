@@ -50,6 +50,8 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
+import org.apache.commons.lang3.math.NumberUtils;
+
 import Components.FilterCombo;
 import Components.MultiSelectionComboBox;
 import Components.MyJTable;
@@ -410,6 +412,11 @@ public class ReportViewFrame implements ActionListener
 			model.addRow(content[index]);
 			for(int cell = 0; cell < content[index].length ; cell++)
 			{
+				String value = content[index][cell].trim();
+				
+				if(NumberUtils.isCreatable(value))
+    				updateCellValue(index , cell , String.format("%,d", (int)Double.parseDouble(value)));
+				
 				if(content[index][cell].trim().equals("0") || content[index][cell].trim().equals("0.0"))
 					updateCellValue(index, cell, "");
 			}
@@ -449,8 +456,17 @@ public class ReportViewFrame implements ActionListener
 		}
 		else
 		{
-			table.getModel().setValueAt(newValue, row, column);
-			content[row][column] = newValue;
+			if(NumberUtils.isCreatable(newValue))
+			{
+				newValue = String.format("%,d", (int)Double.parseDouble(newValue));
+				table.getModel().setValueAt(newValue, row, column);
+				content[row][column] = newValue;
+			}
+			else
+			{
+				table.getModel().setValueAt(newValue, row, column);
+				content[row][column] = newValue;
+			}
 		}
 		
 	}
