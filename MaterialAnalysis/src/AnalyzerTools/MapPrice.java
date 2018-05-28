@@ -7,7 +7,7 @@ public class MapPrice
 	private static final String MaterialAvailabilityPriceString = "Material Availability";
 	private static final String WorkOrderAfterSuppliedPriceString = "Work Order After Supplied";
 	private static final String OpenCustomerOrderPriceString = "Open Customer Order";
-	private static final String BudgetExceededString = "Deviation From Obligo";
+	public static final String BudgetExceededString = "Budgetary exposure";
 	
 	private static final int MaterialAvailabilityPriceColumn = 0;
 	private static final int WorkOrderAfterSuppliedPriceColumn = 1;
@@ -102,5 +102,22 @@ public class MapPrice
 
 	public void setBudgetExceeded(double budgetExceeded) {
 		this.budgetExceeded = budgetExceeded;
+	}
+
+	public static String getDescriptionOfCategory(String category) 
+	{
+		switch (category) 
+		{
+			case MaterialAvailabilityPriceString:
+				return MaterialAvailabilityPriceString;
+			case WorkOrderAfterSuppliedPriceString:
+				return WorkOrderAfterSuppliedPriceString;
+			case OpenCustomerOrderPriceString:
+				return OpenCustomerOrderPriceString;
+			case BudgetExceededString:
+				return MaterialAvailabilityPriceString + " + " + WorkOrderAfterSuppliedPriceString + " - " + OpenCustomerOrderPriceString;
+			default:
+				return "";
+		}
 	}
 }

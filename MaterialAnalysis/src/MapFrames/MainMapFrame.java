@@ -72,6 +72,7 @@ public class MainMapFrame implements ActionListener
 	private JButton deleteProductButton;
 	private boolean calculateMap;
 	private JButton mapPriceButton;
+	private JButton customerDeviationFromObligoButton;
 
 	public MainMapFrame(String userName, String email , Authenticator auth , CallBack<Integer> callBack) 
 	{
@@ -198,6 +199,12 @@ public class MainMapFrame implements ActionListener
 		mapPriceButton.setSize(100, 60);
 		mapPriceButton.addActionListener(this);
 		panel.add(mapPriceButton);
+		
+		customerDeviationFromObligoButton = new JButton("<html><b>Deviation From Obligo</b></html>");
+		customerDeviationFromObligoButton.setLocation(20 , 240);
+		customerDeviationFromObligoButton.setSize(100, 60);
+		customerDeviationFromObligoButton.addActionListener(this);
+		panel.add(customerDeviationFromObligoButton);
 				
 		copyRight = new JLabel("<html><b>\u00a9 Naor Dalal</b></html>");
 		copyRight.setLocation(30 , 430);
@@ -292,6 +299,7 @@ public class MainMapFrame implements ActionListener
 				List<String> filterNames = new ArrayList<>();
 				filterColumns.stream().forEach(col -> filterNames.add(columns[col] + ": "));
 				mapPriceFrame.setFilters(filterColumns, filterNames);
+				mapPriceFrame.setCallBacks(null, analyzer.getDoubleLeftClickActionOfMapPrice(), null);
 				
 				mapPriceFrame.show();
 			}
@@ -437,6 +445,41 @@ public class MainMapFrame implements ActionListener
 				frame.setFrameName("Forecast History View");
 				
 				frame.show();
+			}
+			else if(event.getSource() == customerDeviationFromObligoButton)
+			{
+				List<String> customers = db.getCustomersOfUser(userName);
+				DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>(customers.toArray(new String[customers.size()]));
+				MultiSelectionComboBox<String> customerChoosen = new MultiSelectionComboBox<>(model);
+				customerChoosen.setSelectedItem(null);
+				int confirm = JOptionPane.showConfirmDialog(
+				  null, customerChoosen, "Select customers", JOptionPane.PLAIN_MESSAGE);
+				
+				if(confirm != JOptionPane.OK_OPTION)
+					return;
+			
+				if(customerChoosen.getSelectedItems().isEmpty())
+				{
+					JOptionPane.showConfirmDialog(null, "You have to select customer","",JOptionPane.PLAIN_MESSAGE);
+					return;
+				}
+				
+				Map<MonthDate, Map<String, Double>> deviationFromObligo = analyzer.calculateCustomersDeviation(userName, customerChoosen.getSelectedItems());
+				
+				String [] columns = analyzer.getColumnsOfDeviationFromObligo(deviationFromObligo);
+				String [][] rows = analyzer.getRowsOfDeviationFromObligo(deviationFromObligo);
+				List<Integer> invalidEditableCoulmns = IntStream.range(0, columns.length).boxed().collect(Collectors.toList());
+				
+				boolean canEdit = invalidEditableCoulmns.size() < columns.length;
+				ReportViewFrame customersDeviationFrame = new ReportViewFrame(email , auth , "Deviation From Obligo View" , columns, rows, canEdit ,invalidEditableCoulmns);
+				
+				List<Integer> filterColumns = IntStream.range(0, 1).boxed().collect(Collectors.toList());
+				List<String> filterNames = new ArrayList<>();
+				filterColumns.stream().forEach(col -> filterNames.add(columns[col] + ": "));
+				customersDeviationFrame.setFilters(filterColumns, filterNames);
+				customersDeviationFrame.setCallBacks(null, analyzer.getDoubleLeftClickActionOfDeviationReport(), null);
+				
+				customersDeviationFrame.show();
 			}
 			
 		}).start();

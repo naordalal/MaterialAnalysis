@@ -39,7 +39,8 @@ import Reports.MrpHeader;
 public class Analyzer 
 {
 	public static final int ConstantColumnsCount = 4;
-	public static final int CategoryColumn = 3;
+	public static final int MapCategoryColumn = 3;
+	public static final int MapPriceCategoryColumn = 2;
 	private static final ExecutorService executor = Executors.newSingleThreadExecutor();
 	private DataBase db;
 	
@@ -1015,9 +1016,9 @@ public class Analyzer
 				int column = tcl.getColumn();
 				String product = getProductOnRow(tcl.getTable() , row);
 				String category = getCategoryOnRow(tcl.getTable() , row);
-				if(column < Analyzer.CategoryColumn)
+				if(column < Analyzer.MapCategoryColumn)
 					return null;
-				else if(column == Analyzer.CategoryColumn)
+				else if(column == Analyzer.MapCategoryColumn)
 				{
 					String descriptionOfCategory = getDescriptionOfCategory(product , category);
 					if(!descriptionOfCategory.trim().equals(""))
@@ -1201,8 +1202,8 @@ public class Analyzer
 			for (String cn : map.get(month).keySet()) 
 			{
 				String customer = db.getCustomerOfCatalogNumber(cn);
-				double deposit = db.getCustomerDeposit(customer);
-				double obligation = db.getCustomerObligation(customer);
+				//double deposit = db.getCustomerDeposit(customer);
+				//double obligation = db.getCustomerObligation(customer);
 				
 				ProductColumn productColumn = map.get(month).get(cn);
 				double priceOfProduct = db.getPriceOfProduct(cn);
@@ -1210,7 +1211,7 @@ public class Analyzer
 				double WorkOrderAfterSuppliedPrice = productColumn.getWorkOrderAfterSupplied() * priceOfProduct;
 				double OpenCustomerOrderPrice = productColumn.getOpenCustomerOrder() * priceOfProduct;
 				double budgetExceeded = materialAvailabilityPrice + WorkOrderAfterSuppliedPrice - OpenCustomerOrderPrice;
-				budgetExceeded = (budgetExceeded > (obligation + deposit)) ? budgetExceeded - (obligation + deposit) : 0;
+				//budgetExceeded = (budgetExceeded > (obligation + deposit)) ? budgetExceeded - (obligation + deposit) : 0;
 				
 				MapPrice mapPrice = new MapPrice(cn, materialAvailabilityPrice, WorkOrderAfterSuppliedPrice, OpenCustomerOrderPrice , budgetExceeded);
 				productsPrices.put(cn, mapPrice);
@@ -1261,6 +1262,32 @@ public class Analyzer
 		return rows.stream().map(row -> row.toArray(new String[0])).toArray(String[][]::new);
 	}
 	
+	public CallBack<Object> getDoubleLeftClickActionOfMapPrice()
+	{
+		return new CallBack<Object>()
+		{
+			@Override
+			public Object execute(Object... objects) 
+			{
+				TableCellListener tcl = (TableCellListener)objects[0];
+				int row = tcl.getRow();
+				int column = tcl.getColumn();
+				String category = (String) tcl.getTable().getValueAt(row, Analyzer.MapPriceCategoryColumn);
+				
+				if(column == Analyzer.MapPriceCategoryColumn)
+				{
+					String descriptionOfCategory = MapPrice.getDescriptionOfCategory(category);
+					if(!descriptionOfCategory.trim().equals(""))
+						JOptionPane.showConfirmDialog(null, descriptionOfCategory ,category + " Explanation",JOptionPane.PLAIN_MESSAGE);
+					return null; 
+				}
+				
+				return null;
+		
+			}
+		};
+	}
+
 	public String[] getColumnsOfMapPrice(Map<MonthDate, Map<String, MapPrice>> mapPrice) 
 	{
 		List<String> columns = new ArrayList<>();
@@ -1284,6 +1311,107 @@ public class Analyzer
 		return filterColumns;
 	}
 
+	public Map<MonthDate,Map<String,Double>> calculateCustomersDeviation(String userName , List<String> customers)
+	{
+		Map<MonthDate,Map<String,Double>> customersDeviations = new HashMap<>();
+		Map<MonthDate, Map<String, MapPrice>> mapPrice = calculateMapPrice(userName, customers);
+		
+		for (MonthDate month : mapPrice.keySet())
+		{
+			Map<String,Double> customersDeviation = new HashMap<>();
+			customersDeviations.put(month, customersDeviation);
+			
+			for (String customer : customers) 
+			{
+				List<MapPrice> mapPriceForCustomer = mapPrice.get(month).keySet().stream().filter(cn -> db.getCustomerOfCatalogNumber(cn).equals(customer))
+						.map(cn -> mapPrice.get(month).get(cn)).collect(Collectors.toList());
+			
+				double budgetExceeded = mapPriceForCustomer.stream().mapToDouble(MapPrice::getBudgetExceeded).sum(); 
+				double deposit = db.getCustomerDeposit(customer);
+				double obligation = db.getCustomerObligation(customer);
+				
+				double deviationFromObligo = obligation + deposit - budgetExceeded;
+				
+				customersDeviation.put(customer, deviationFromObligo);
+			}
+		}
+		
+		return customersDeviations;
+	}
+	
+	public String[][] getRowsOfDeviationFromObligo(Map<MonthDate, Map<String, Double>> deviationFromObligo)
+	{
+		List<List<String>> rows = new ArrayList<>();
+		
+		List<MonthDate> months = deviationFromObligo.keySet().stream().collect(Collectors.toList());
+		Collections.sort(months);
+		
+		for (MonthDate monthDate : months) 
+		{
+			Map<String , Double> customersDeviation = deviationFromObligo.get(monthDate);
+			List<String> customers = customersDeviation.keySet().stream().collect(Collectors.toList());
+			Collections.sort(customers);
+			
+			for (int index = 0 ; index < customers.size() ; index ++) 
+			{
+				String customer = customers.get(index);
+				Double deviation = customersDeviation.get(customer);
+				
+				if(months.indexOf(monthDate) == 0)
+				{
+					List<String> row = new ArrayList<>();
+					row.add(customer);
+					row.add(deviation.toString());
+					rows.add(row);	
+				}
+				
+				else
+				{
+					List<String> row = rows.get(index);
+					row.add(deviation.toString());	
+				}
+			}
+			
+		}
+		
+		return rows.stream().map(row -> row.toArray(new String[0])).toArray(String[][]::new);
+	}
+	
+	public CallBack<Object> getDoubleLeftClickActionOfDeviationReport()
+	{
+		return new CallBack<Object>()
+		{
+			@Override
+			public Object execute(Object... objects) 
+			{
+				TableCellListener tcl = (TableCellListener)objects[0];
+				int row = tcl.getRow();
+				int column = tcl.getColumn();
+				String customer = (String) tcl.getTable().getValueAt(row, 0);
+				
+				double obligo = db.getCustomerObligation(customer);
+				double deposit = db.getCustomerDeposit(customer);
+				
+				String description = "Obligo (" + obligo + ") + Deposit (" + deposit + ") - " + MapPrice.BudgetExceededString;
+				JOptionPane.showConfirmDialog(null, description ,"Explanation",JOptionPane.PLAIN_MESSAGE);
+				return null; 
+				
+		
+			}
+		};
+	}
+
+	public String[] getColumnsOfDeviationFromObligo(Map<MonthDate, Map<String, Double>> deviationFromObligo) 
+	{
+		List<String> columns = new ArrayList<>();
+		columns.add("Customer");
+		List<MonthDate> months = deviationFromObligo.keySet().stream().collect(Collectors.toList());
+		Collections.sort(months);
+		columns.addAll(months.stream().map(date -> date.shortString()).collect(Collectors.toList()));
+		
+		return columns.toArray(new String[0]);
+	}
+		
 	private Set<String> getCatalogNumbersFromMap(Map<MonthDate, Map<String, ProductColumn>> map) 
 	{
 		Set<String> catalogNumbers = new HashSet<>();
