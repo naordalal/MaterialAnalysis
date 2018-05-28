@@ -1201,7 +1201,7 @@ public class Analyzer
 			for (String cn : map.get(month).keySet()) 
 			{
 				String customer = db.getCustomerOfCatalogNumber(cn);
-				double deposit = db.getCustomerDesposite(customer);
+				double deposit = db.getCustomerDeposit(customer);
 				double obligation = db.getCustomerObligation(customer);
 				
 				ProductColumn productColumn = map.get(month).get(cn);

@@ -1,5 +1,6 @@
 ﻿package Frames;
 
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -14,16 +15,20 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+
+import org.apache.commons.lang3.math.NumberUtils;
 
 import MainPackage.DataBase;
 import MainPackage.Globals;
@@ -44,8 +49,22 @@ public class AdminFrame implements ActionListener
 	private DataBase db;
 	private JLabel permissionsLabel;
 	private JButton permissionsButton;
+	private JLabel projectsLabel;
+	private JComboBox<String> projectsComboBox;
+	private JButton addProjectButton;
+	private JButton deleteProjectButton;
+	private JLabel projectNameLabel;
+	private JTextField projectNameText;
+	private JButton confirmProjectNameButton;
+	private JFileChooser expediteDirectoryChooser;
+	private JButton expediteDirectoryButton;
 	private String userName;
 	private JLabel copyRight;
+	private JLabel expediteDirectoryPath;
+	private JTextField obligoText;
+	private JLabel obligoLabel;
+	private JLabel depositLabel;
+	private JTextField depositText;
 
 	public AdminFrame(String userName) 
 	{
@@ -62,7 +81,7 @@ public class AdminFrame implements ActionListener
 		frame = new JFrame("Admin");
 		frame.setLayout(null);
 		frame.getRootPane().setFocusable(true);
-		frame.setBounds(400, 100, 550, 500);
+		frame.setBounds(400, 100, 700, 500);
 		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		frame.addWindowListener(new WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) 
@@ -85,7 +104,7 @@ public class AdminFrame implements ActionListener
 		
 		panel = new JPanel();
 		panel.setLocation(0 , 0);
-		panel.setSize(550, 500);
+		panel.setSize(700, 500);
 		panel.setLayout(null);
 		frame.add(panel);
 		
@@ -190,6 +209,111 @@ public class AdminFrame implements ActionListener
 		connectingComputersComboBox.setVisible(false);
 		panel.add(connectingComputersComboBox);
 		
+		projectsLabel = new JLabel("<html><u>Projects:</u></html>");
+		projectsLabel.setLocation(30, 360);
+		projectsLabel.setSize(50, 20);
+		panel.add(projectsLabel);
+		
+		DefaultComboBoxModel<String> model4 = new DefaultComboBoxModel<String>();
+		List<String> projects = db.getAllProjects();
+		for (String project : projects) 
+		{
+			model4.addElement(project);
+		}
+		projectsComboBox = new JComboBox<String>(model4);
+		projectsComboBox.setLocation(90, 360);
+		projectsComboBox.setSize(130,20);
+		projectsComboBox.addActionListener(this);
+		panel.add(projectsComboBox);
+		
+		expediteDirectoryButton = new JButton();
+		expediteDirectoryButton.setLocation(230 , 350);
+		expediteDirectoryButton.setSize(55, 40);
+		expediteDirectoryButton.setIcon(globals.directoryIcon);
+		expediteDirectoryButton.setFocusable(false);
+		expediteDirectoryButton.setContentAreaFilled(false);
+		expediteDirectoryButton.setPressedIcon(globals.clickDirectoryIcon);
+		expediteDirectoryButton.addActionListener(this);
+		expediteDirectoryButton.setToolTipText("Choose Directory");
+		panel.add(expediteDirectoryButton);
+		
+		expediteDirectoryPath = new JLabel("");
+		expediteDirectoryPath.setLocation(50, 400);
+		expediteDirectoryPath.setSize(400, 20);
+		expediteDirectoryPath.setText(db.getDirectory((String) projectsComboBox.getModel().getSelectedItem()));
+		panel.add(expediteDirectoryPath);
+		
+		addProjectButton = new JButton();
+		addProjectButton.setLocation(300 , 350);
+		addProjectButton.setSize(40 , 40);
+		addProjectButton.addActionListener(this);
+		addProjectButton.setIcon(globals.addIcon);
+		addProjectButton.setFocusable(false);
+		addProjectButton.setContentAreaFilled(false);
+		addProjectButton.setPressedIcon(globals.clickAddIcon);
+		addProjectButton.setToolTipText("add project");
+		panel.add(addProjectButton);
+		
+		deleteProjectButton = new JButton();
+		deleteProjectButton.setLocation(360 , 350);
+		deleteProjectButton.setSize(40 , 40);
+		deleteProjectButton.addActionListener(this);
+		deleteProjectButton.setIcon(globals.deleteIcon);
+		deleteProjectButton.setFocusable(false);
+		deleteProjectButton.setContentAreaFilled(false);
+		deleteProjectButton.setPressedIcon(globals.clickDeleteIcon);
+		deleteProjectButton.setToolTipText("delete project");
+		panel.add(deleteProjectButton);
+		
+		projectNameLabel = new JLabel("Project name:");
+		projectNameLabel.setLocation(430, 320);
+		projectNameLabel.setSize(70, 20);
+		projectNameLabel.setVisible(false);
+		panel.add(projectNameLabel);
+		
+		projectNameText = new JTextField();
+		projectNameText.setLocation(510, 320);
+		projectNameText.setSize(100 , 20);
+		projectNameText.setVisible(false);
+		panel.add(projectNameText);
+		
+		obligoLabel = new JLabel("Obligo:");
+		obligoLabel.setLocation(430, 360);
+		obligoLabel.setSize(35, 20);
+		obligoLabel.setVisible(true);
+		panel.add(obligoLabel);
+		
+		obligoText = new JTextField();
+		obligoText.setLocation(465, 360);
+		obligoText.setSize(60 , 20);
+		obligoText.setVisible(true);
+		obligoText.setText(db.getCustomerObligation((String) projectsComboBox.getModel().getSelectedItem()) + "");
+		panel.add(obligoText);
+		
+		depositLabel = new JLabel("Deposit:");
+		depositLabel.setLocation(530, 360);
+		depositLabel.setSize(50, 20);
+		depositLabel.setVisible(true);
+		panel.add(depositLabel);
+		
+		depositText = new JTextField();
+		depositText.setLocation(580, 360);
+		depositText.setSize(60 , 20);
+		depositText.setText(db.getCustomerDeposit((String) projectsComboBox.getModel().getSelectedItem()) + "");
+		depositText.setVisible(true);
+		panel.add(depositText);
+		
+		confirmProjectNameButton = new JButton();
+		confirmProjectNameButton.setLocation(645 , 345);
+		confirmProjectNameButton.setSize(40 , 40);
+		confirmProjectNameButton.addActionListener(this);
+		confirmProjectNameButton.setIcon(globals.okIcon);
+		confirmProjectNameButton.setFocusable(false);
+		confirmProjectNameButton.setContentAreaFilled(false);
+		confirmProjectNameButton.setPressedIcon(globals.clickOkIcon);
+		confirmProjectNameButton.setToolTipText("confirm");
+		panel.add(confirmProjectNameButton); 
+		
 		copyRight = new JLabel("<html><b>\u00a9 Naor Dalal</b></html>");
 		copyRight.setLocation(30 , 430);
 		copyRight.setSize(100,30);
@@ -268,6 +392,134 @@ public class AdminFrame implements ActionListener
 				e.printStackTrace();
 			}
 			new PermissionFrame(db , userName , callbackMethodOfPermissionFrame);
+		}
+		else if(event.getSource() == projectsComboBox)
+		{
+			DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) projectsComboBox.getModel();		
+			expediteDirectoryPath.setText(db.getDirectory((String) model.getSelectedItem()));
+			obligoText.setText(db.getCustomerObligation((String) projectsComboBox.getModel().getSelectedItem()) + "");
+			depositText.setText(db.getCustomerDeposit((String) projectsComboBox.getModel().getSelectedItem()) + "");
+		}
+		else if(event.getSource() == expediteDirectoryButton)
+		{			
+			expediteDirectoryChooser = new JFileChooser();
+			expediteDirectoryChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		    //
+		    // disable the "All files" option.
+		    //
+			expediteDirectoryChooser.setAcceptAllFileFilterUsed(false);
+		    //    
+		    if (expediteDirectoryChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) { 
+		    	String directry = expediteDirectoryChooser.getSelectedFile().getAbsolutePath();
+		    	expediteDirectoryPath.setText(directry);
+		    	DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) projectsComboBox.getModel();
+				db.setDirectory(((String)model.getSelectedItem()) , directry);
+		      }
+		    else {
+		    	System.out.println("No Selection ");
+		      }
+		}
+		else if(event.getSource() == addProjectButton)
+		{
+			projectNameLabel.setVisible(true);
+			projectNameText.setVisible(true);
+			obligoText.setText("");
+			depositText.setText("");
+			projectNameText.requestFocusInWindow();
+		}
+		else if(event.getSource() == deleteProjectButton)
+		{
+			int confirmed = JOptionPane.showConfirmDialog(null, "Are you sure?","",JOptionPane.YES_NO_OPTION);
+			if(confirmed == JOptionPane.YES_OPTION)
+			{
+				DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) projectsComboBox.getModel();
+				if(db.removeProject((String)model.getSelectedItem()))
+				{
+					model.removeElement(model.getSelectedItem());
+					JOptionPane.showConfirmDialog(null, "Success","",JOptionPane.PLAIN_MESSAGE);
+				}
+				else
+					JOptionPane.showConfirmDialog(null, "Fail","",JOptionPane.PLAIN_MESSAGE);
+			}
+			projectNameText.setText("");
+			
+			projectNameLabel.setVisible(false);
+			projectNameText.setVisible(false);
+		}
+		else if(event.getSource() == confirmProjectNameButton)
+		{
+			DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) projectsComboBox.getModel();
+			if(model.getIndexOf(projectNameText.getText()) != -1)
+				JOptionPane.showConfirmDialog(null, "project already exists","",JOptionPane.PLAIN_MESSAGE);
+			else if(projectNameText.isVisible())
+			{
+				if(projectNameText.getText().trim().equals(""))
+				{
+					projectNameLabel.setVisible(false);
+					projectNameText.setVisible(false);
+					obligoText.setText(db.getCustomerObligation((String) projectsComboBox.getModel().getSelectedItem()) + "");
+					depositText.setText(db.getCustomerDeposit((String) projectsComboBox.getModel().getSelectedItem()) + "");
+					return;
+				}
+				
+				if(!obligoText.getText().equals("") && !NumberUtils.isCreatable(obligoText.getText()))
+				{
+					JOptionPane.showConfirmDialog(null, "obligo have to be numeric","",JOptionPane.PLAIN_MESSAGE);
+					return;
+				}
+				
+				if(!depositText.getText().equals("") && !NumberUtils.isCreatable(depositText.getText()))
+				{
+					JOptionPane.showConfirmDialog(null, "deposit have to be numeric","",JOptionPane.PLAIN_MESSAGE);
+					return;
+				}
+				
+				double obligo = !obligoText.getText().equals("") ? Double.parseDouble(obligoText.getText()) : 0;
+				double deposit = !depositText.getText().equals("") ? Double.parseDouble(depositText.getText()) : 0;
+				
+				if(db.addProject(projectNameText.getText()))
+				{
+					String customer = projectNameText.getText();
+					db.setCustomerObligation(customer, obligo);
+					db.setCustomerDeposit(customer, deposit);
+					
+					model.addElement(projectNameText.getText());
+					JOptionPane.showConfirmDialog(null, "Success","",JOptionPane.PLAIN_MESSAGE);
+				}
+				else
+					JOptionPane.showConfirmDialog(null, "Fail","",JOptionPane.PLAIN_MESSAGE);
+			}
+			else
+			{
+				if(!obligoText.getText().equals("") && !NumberUtils.isCreatable(obligoText.getText()))
+				{
+					JOptionPane.showConfirmDialog(null, "obligo have to be numeric","",JOptionPane.PLAIN_MESSAGE);
+					return;
+				}
+				
+				if(!depositText.getText().equals("") && !NumberUtils.isCreatable(depositText.getText()))
+				{
+					JOptionPane.showConfirmDialog(null, "deposit have to be numeric","",JOptionPane.PLAIN_MESSAGE);
+					return;
+				}
+				
+				double obligo = !obligoText.getText().equals("") ? Double.parseDouble(obligoText.getText()) : 0;
+				double deposit = !depositText.getText().equals("") ? Double.parseDouble(depositText.getText()) : 0;
+				
+				String customer = (String) projectsComboBox.getModel().getSelectedItem();
+				if(db.setCustomerObligation(customer, obligo) && db.setCustomerDeposit(customer, deposit))
+					JOptionPane.showConfirmDialog(null, "Success","",JOptionPane.PLAIN_MESSAGE);
+				else
+					JOptionPane.showConfirmDialog(null, "Fail","",JOptionPane.PLAIN_MESSAGE);
+			}
+				
+			projectNameLabel.setVisible(false);
+			projectNameText.setVisible(false);
+			
+			projectNameText.setText("");
+			
+			obligoText.setText(db.getCustomerObligation((String) projectsComboBox.getModel().getSelectedItem()) + "");
+			depositText.setText(db.getCustomerDeposit((String) projectsComboBox.getModel().getSelectedItem()) + "");
 		}
 		
 	}

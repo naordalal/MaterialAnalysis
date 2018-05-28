@@ -57,8 +57,8 @@ public class FollowUpAndExpediteMenu implements ActionListener{
 	private JButton suplierFileButton;
 	private JFileChooser followUpDirectoryChooser;
 	private JButton followUpDirectoryButton;
-	private JFileChooser expediteDirectoryChooser;
-	private JButton expediteDirectoryButton;
+	//private JFileChooser expediteDirectoryChooser;
+	//private JButton expediteDirectoryButton;
 	private JButton next;
 	private JFrame frame;
 	private JPanel panel;
@@ -104,18 +104,18 @@ public class FollowUpAndExpediteMenu implements ActionListener{
 	private JLabel untilLabel;
 	private JTextField untilText;
 	private JButton sendButton;
-	private JLabel projectsLabel;
+	/*private JLabel projectsLabel;
 	private JComboBox<String> projectsComboBox;
 	private JButton addProjectButton;
 	private JButton deleteProjectButton;
 	private JLabel projectNameLabel;
 	private JTextField projectNameText;
-	private JButton confirmProjectNameButton;
+	private JButton confirmProjectNameButton;*/
 	private JRadioButton mrpRadioButton;
 	private JRadioButton mrpSimRadioButton;
 	private JLabel bomsQuantityLabel;
 	private JTextField bomsQuantityText;
-	private JLabel expediteDirectoryPath;
+	//private JLabel expediteDirectoryPath;
 	private JLabel followUpDirectoryPath;
 	private JLabel daysLabel;
 	private JTextField daysText;
@@ -601,7 +601,7 @@ public class FollowUpAndExpediteMenu implements ActionListener{
 		panel.add(sendButton);
 		
 		
-		projectsLabel = new JLabel("<html><u>Projects:</u></html>");
+		/*projectsLabel = new JLabel("<html><u>Projects:</u></html>");
 		projectsLabel.setLocation(30, 590);
 		projectsLabel.setSize(50, 20);
 		projectsLabel.setVisible(adminPermission);
@@ -636,7 +636,7 @@ public class FollowUpAndExpediteMenu implements ActionListener{
 		
 		expediteDirectoryPath = new JLabel("");
 		expediteDirectoryPath.setLocation(200, 630);
-		expediteDirectoryPath.setSize(250, 20);
+		expediteDirectoryPath.setSize(400, 20);
 		expediteDirectoryPath.setText(db.getDirectory((String) projectsComboBox.getModel().getSelectedItem()));
 		expediteDirectoryPath.setVisible(adminPermission);
 		panel.add(expediteDirectoryPath);
@@ -688,7 +688,7 @@ public class FollowUpAndExpediteMenu implements ActionListener{
 		confirmProjectNameButton.setPressedIcon(globals.clickOkIcon);
 		confirmProjectNameButton.setToolTipText("confirm");
 		confirmProjectNameButton.setVisible(false);
-		panel.add(confirmProjectNameButton); 
+		panel.add(confirmProjectNameButton);*/ 
 		
 		frame.setVisible(true);
 	}
@@ -742,7 +742,7 @@ public class FollowUpAndExpediteMenu implements ActionListener{
 		      System.out.println("No Selection ");
 		      }
 		}
-		else if(evt.getSource() == expediteDirectoryButton)
+		/*else if(evt.getSource() == expediteDirectoryButton)
 		{
 			if(!db.checkAddOrDeletePermission(userName, password))
 			{
@@ -766,7 +766,7 @@ public class FollowUpAndExpediteMenu implements ActionListener{
 		    else {
 		      System.out.println("No Selection ");
 		      }
-		}
+		}*/
 		else if(evt.getSource() == next)
 		{
 			//open next frame
@@ -1408,7 +1408,7 @@ public class FollowUpAndExpediteMenu implements ActionListener{
 			fromText.requestFocusInWindow();
 			JOptionPane.showConfirmDialog(null, "Done","",JOptionPane.PLAIN_MESSAGE);
 		}
-		else if(evt.getSource() == addProjectButton)
+		/*else if(evt.getSource() == addProjectButton)
 		{
 			projectNameLabel.setVisible(true);
 			projectNameText.setVisible(true);
@@ -1465,7 +1465,7 @@ public class FollowUpAndExpediteMenu implements ActionListener{
 			
 			projectNameText.setText("");
 			
-		}
+		}*/
 		else if(evt.getSource() == mrpRadioButton)
 		{
 			if(mrpSimRadioButton.isSelected())
@@ -1525,11 +1525,11 @@ public class FollowUpAndExpediteMenu implements ActionListener{
 			}
 				
 		}
-		else if(evt.getSource() == projectsComboBox)
+		/*else if(evt.getSource() == projectsComboBox)
 		{
 			DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) projectsComboBox.getModel();		
 			expediteDirectoryPath.setText(db.getDirectory((String) model.getSelectedItem()));
-		}
+		}*/
 		
 		
 	}

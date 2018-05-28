@@ -151,8 +151,8 @@ public class Globals {
 	public String supplierInEnglishColumn = "supplier";
 	public String notesColumn = "הערות לספק";
 	
-	public String noDate = "11/11/19";
-	public String frozenDate = "12/12/19";
+	public String noDate = "11/11/29";
+	public String frozenDate = "12/12/29";
 
 	public void initTextComponent(JTextComponent text) 
 	{

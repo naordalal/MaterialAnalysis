@@ -4187,23 +4187,23 @@ public class DataBase {
 		
 	}
 	
-	public double getCustomerDesposite(String customer) 
+	public double getCustomerDeposit(String customer) 
 	{
 		try
 		{
 		
 			connect();
-			stmt = c.prepareStatement("SELECT deposite FROM Projects where projectName = ?");
+			stmt = c.prepareStatement("SELECT deposit FROM Projects where projectName = ?");
 			stmt.setString(1, customer);
 			ResultSet rs = stmt.executeQuery();
 			
-			double deposite = 0;
+			double deposit = 0;
 			
 			if(rs.next())
-				deposite =  rs.getDouble("deposite");
+				deposit =  rs.getDouble("deposit");
 			
 			closeConnection();
-			return deposite;
+			return deposit;
 		
 		}
 		catch(Exception e)
@@ -4240,6 +4240,69 @@ public class DataBase {
 			return 0;
 		}
 	}
+
+	public boolean setCustomerDeposit(String customer , double deposit) 
+	{
+		try
+		{
+			connect();
+			stmt = c.prepareStatement("UPDATE Projects SET deposit = ? WHERE projectName = ?");
+			
+			stmt.setDouble(1, deposit);
+			stmt.setString(2, customer);
+			stmt.executeUpdate();
+			
+			c.commit();
+			
+			closeConnection();
+			
+			return true;
+		
+		}
+		catch(Exception e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			
+			e.printStackTrace();
+			closeConnection();
+			return false;
+		}
+	}
 	
+	public boolean setCustomerObligation(String customer , double obligation) 
+	{
+		try
+		{
+			connect();
+			stmt = c.prepareStatement("UPDATE Projects SET obligation = ? WHERE projectName = ?");
+			
+			stmt.setDouble(1, obligation);
+			stmt.setString(2, customer);
+			stmt.executeUpdate();
+			
+			c.commit();
+			
+			closeConnection();
+			
+			return true;
+		
+		}
+		catch(Exception e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			
+			e.printStackTrace();
+			closeConnection();
+			return false;
+		}
+	}
 	
 }
