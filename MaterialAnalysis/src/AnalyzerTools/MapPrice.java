@@ -1,5 +1,7 @@
 package AnalyzerTools;
 
+import MainPackage.DataBase;
+
 public class MapPrice 
 {
 	public static final int CategoriesCount = 4;
@@ -104,16 +106,18 @@ public class MapPrice
 		this.budgetExceeded = budgetExceeded;
 	}
 
-	public static String getDescriptionOfCategory(String category) 
+	public static String getDescriptionOfCategory(String category , String cn) 
 	{
+		DataBase db = new DataBase();
+		double productPrice = db.getPriceOfProduct(cn);
 		switch (category) 
 		{
 			case MaterialAvailabilityPriceString:
-				return MaterialAvailabilityPriceString;
+				return MaterialAvailabilityPriceString + " * price (" + productPrice + ")";
 			case WorkOrderAfterSuppliedPriceString:
-				return WorkOrderAfterSuppliedPriceString;
+				return WorkOrderAfterSuppliedPriceString + " * price (" + productPrice + ")";
 			case OpenCustomerOrderPriceString:
-				return OpenCustomerOrderPriceString;
+				return OpenCustomerOrderPriceString + " * price (" + productPrice + ")";
 			case BudgetExceededString:
 				return MaterialAvailabilityPriceString + " + " + WorkOrderAfterSuppliedPriceString + " - " + OpenCustomerOrderPriceString;
 			default:

@@ -1246,6 +1246,7 @@ public class Analyzer
 						row.add(product);
 						row.add(db.getCustomerOfCatalogNumber(product));
 						row.add(productPrices.getColumn(i));
+						row.add(db.getPriceOfProduct(product) + "");
 						rows.add(row);
 					}	
 				}
@@ -1273,10 +1274,11 @@ public class Analyzer
 				int row = tcl.getRow();
 				int column = tcl.getColumn();
 				String category = (String) tcl.getTable().getValueAt(row, Analyzer.MapPriceCategoryColumn);
+				String catalogNumber = (String) tcl.getTable().getValueAt(row, 0);
 				
 				if(column == Analyzer.MapPriceCategoryColumn)
 				{
-					String descriptionOfCategory = MapPrice.getDescriptionOfCategory(category);
+					String descriptionOfCategory = MapPrice.getDescriptionOfCategory(category , catalogNumber);
 					if(!descriptionOfCategory.trim().equals(""))
 						JOptionPane.showConfirmDialog(null, descriptionOfCategory ,category + " Explanation",JOptionPane.PLAIN_MESSAGE);
 					return null; 
@@ -1294,6 +1296,7 @@ public class Analyzer
 		columns.add("Catalog Number");
 		columns.add("Customer");
 		columns.add("Category");
+		columns.add("price");
 		List<MonthDate> months = mapPrice.keySet().stream().collect(Collectors.toList());
 		Collections.sort(months);
 		columns.addAll(months.stream().map(date -> date.shortString()).collect(Collectors.toList()));
