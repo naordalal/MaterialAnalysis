@@ -6,8 +6,11 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -4119,23 +4122,28 @@ public class DataBase {
 		}
 	}
 	
-	public java.util.Date getLastUpdateDate(UpdateType type) 
+	public LocalDateTime getLastUpdateDate(UpdateType type) 
 	{
-		DateTimeFormatter df = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+		DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
 		
 		try{
 			
 			connect();	
-			stmt =  c.prepareStatement("SELECT MAX(strftime('%Y-%m-%dT%H:%M:%S',date)) AS date FROM UpdateDates where updateType = ?");
+			stmt =  c.prepareStatement("SELECT MAX(strftime('%Y-%m-%dT%H:%M:%f',date)) AS date FROM UpdateDates where updateType = ?");
 			stmt.setString(1, type.toString());
 			ResultSet rs = stmt.executeQuery();
-
-			java.util.Date out = null;
+			
+			LocalDateTime out = null;
 			
 			if(rs.next() && rs.getString("date") != null)
 			{
-				LocalDateTime ldt = LocalDateTime.from(df.parse(rs.getString("date")));
-				out = java.util.Date.from(ldt.atZone(ZoneId.systemDefault()).toInstant());
+				String date = rs.getString("date");
+				out = LocalDateTime.from(df.parse(date));
+				
+				
+				/*LocalDateTime ldt = LocalDateTime.from(df.parse(rs.getString("date")));
+				out = java.util.Date.from(ldt.atZone(ZoneId.systemDefault()).toInstant());*/
+								
 			}
 			
 			closeConnection();

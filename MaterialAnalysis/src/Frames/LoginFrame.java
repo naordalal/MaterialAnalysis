@@ -195,10 +195,13 @@ public class LoginFrame implements ActionListener
 					    }
 					});
 					new LoginFrame();
-					//Analyzer analyzer = new Analyzer();
-					//analyzer.updateProductQuantities(null, false);
-					//new AddProductFrame("1");
-					/*List<FormType> formsType = new ArrayList<>();
+					/*DataBase db = new DataBase();
+					Analyzer analyzer = new Analyzer();
+					for(String catalogNumber : db.getAllCatalogNumberOfCustomer("Telematics"))
+						analyzer.updateProductQuantities("shmulik",catalogNumber,FormType.FC,true);
+					analyzer.updateProductQuantities(null, false);
+					new AddProductFrame("1");
+					List<FormType> formsType = new ArrayList<>();
 					formsType.add(FormType.FC);
 					formsType.add(FormType.WO);
 					formsType.add(FormType.PO);

@@ -1,5 +1,6 @@
 ﻿package AnalyzerTools;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -191,6 +192,7 @@ public class Analyzer
 			updateLastMap(null , null);
 		
 		db.updateLastUpdateDate(UpdateType.ProductQuantity);
+		
 		calculateMap(userName, false, null, catalogNumber);
 	}
 	
@@ -295,8 +297,8 @@ public class Analyzer
 	
 	public Map<MonthDate,Map<String,ProductColumn>> calculateMap(String userName , boolean forView , List<String> customers , String cn)
 	{
-		Date lastCalculateMapDate = db.getLastUpdateDate(UpdateType.MAP);
-		Date lastCalculateProductQuantitiesDate = db.getLastUpdateDate(UpdateType.ProductQuantity);
+		LocalDateTime lastCalculateMapDate = db.getLastUpdateDate(UpdateType.MAP);
+		LocalDateTime lastCalculateProductQuantitiesDate = db.getLastUpdateDate(UpdateType.ProductQuantity);
 		
 		Map<String,String> catalogNumbers = db.getAllCatalogNumbersPerDescription(userName);
 		if(customers != null)
@@ -318,7 +320,7 @@ public class Analyzer
 		}
 		
 		if(lastCalculateMapDate != null && lastCalculateProductQuantitiesDate != null && 
-				(lastCalculateMapDate.equals(lastCalculateProductQuantitiesDate) || lastCalculateMapDate.after(lastCalculateProductQuantitiesDate)))
+				(lastCalculateMapDate.isEqual(lastCalculateProductQuantitiesDate) || lastCalculateMapDate.isAfter(lastCalculateProductQuantitiesDate)))
 			return viewMap(userName, forView , catalogNumbers);
 			
 		//MonthDate lastCalculateMapDate = db.getLastCalculateMapDate();
