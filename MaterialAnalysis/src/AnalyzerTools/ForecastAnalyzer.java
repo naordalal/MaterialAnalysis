@@ -137,7 +137,7 @@ public class ForecastAnalyzer
 	    
 	}
 	
-	public void addForecast(String fileName , String customer , String userName) throws Exception
+	public boolean addForecast(String fileName , String customer , String userName) throws Exception
 	{
 		Analyzer analyzer = new Analyzer();
 		XSSFWorkbook w = null;
@@ -150,7 +150,7 @@ public class ForecastAnalyzer
 	    }catch(Exception e)
 	    {
 	    	 e.printStackTrace();
-	    	 return;
+	    	 return false;
 	    }
 	    
 	    
@@ -219,6 +219,7 @@ public class ForecastAnalyzer
 	    	
 		}
 	    
+	    return true;
 	    
 	}
 

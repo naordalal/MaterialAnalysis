@@ -303,6 +303,12 @@ public class AddForecastFrame extends KeyAdapter implements ActionListener
 			return;
 		}
 		
+		if(forecasts == null)
+		{
+			JOptionPane.showConfirmDialog(null, "File is open or not exist","",JOptionPane.PLAIN_MESSAGE);
+			return;
+		}
+		
 		String [] columns = forecasts[0];
 		String [][] rows = ArrayUtils.subarray(forecasts, 1, forecasts.length);
 		List<Integer> invalidEditableCoulmns = IntStream.range(0, columns.length).boxed().collect(Collectors.toList());
@@ -343,13 +349,20 @@ public class AddForecastFrame extends KeyAdapter implements ActionListener
 		}
 		
 		ForecastAnalyzer forecastAnalyzer = new ForecastAnalyzer();
+		boolean success;
 		try 
 		{
-			forecastAnalyzer.addForecast(filePath.getText(), customerChoosen.getSelectedItem().toString(), userName);
+			success = forecastAnalyzer.addForecast(filePath.getText(), customerChoosen.getSelectedItem().toString(), userName);
 		} 
 		catch (Exception e) 
 		{
 			JOptionPane.showConfirmDialog(null, "Wrong file format","",JOptionPane.PLAIN_MESSAGE);
+			return;
+		}
+		
+		if(!success)
+		{
+			JOptionPane.showConfirmDialog(null, "File is open or not exist","",JOptionPane.PLAIN_MESSAGE);
 			return;
 		}
 		
