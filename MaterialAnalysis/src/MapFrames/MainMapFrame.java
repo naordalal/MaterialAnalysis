@@ -305,7 +305,7 @@ public class MainMapFrame implements ActionListener
 			}
 			else if(event.getSource() == addForecastButton)
 			{
-				new AddForecastFrame(userName);
+				new AddForecastFrame(userName , email , auth);
 			}
 			else if(event.getSource() == addProductButton)
 			{

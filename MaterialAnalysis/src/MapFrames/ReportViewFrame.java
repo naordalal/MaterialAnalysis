@@ -3,6 +3,7 @@
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Insets;
@@ -271,6 +272,7 @@ public class ReportViewFrame implements ActionListener
 			
 			updateFilterComboBoxValues(index);
 			filterComboBoxs[index].addActionListener(this);
+			filterComboBoxs[index].setPreferredSize(new Dimension(650 / maximumFilters , 20));
 			filterPanel.add(filterComboBoxs[index]);
 		}
 

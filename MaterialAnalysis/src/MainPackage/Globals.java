@@ -153,6 +153,8 @@ public class Globals {
 	
 	public String noDate = "11/11/29";
 	public String frozenDate = "12/12/29";
+	
+	public String itemNumberColumn = "מקט מוצר";
 
 	public void initTextComponent(JTextComponent text) 
 	{

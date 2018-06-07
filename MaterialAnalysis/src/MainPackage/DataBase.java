@@ -4312,5 +4312,30 @@ public class DataBase {
 			return false;
 		}
 	}
+	public String getFullCatalogNumber(String shortCatalogNumber , String customer) 
+	{
+		String catalogNumber = "";
+		try{
+			
+			connect();
+			stmt = c.prepareStatement("SELECT CN FROM Tree where CN LIKE ? AND customer = ? COLLATE NOCASE");
+			stmt.setString(1, "%" + shortCatalogNumber);
+			stmt.setString(2, customer);
+			ResultSet rs = stmt.executeQuery();
+			
+			if(rs.next())
+				catalogNumber = rs.getString("CN");
+			
+			closeConnection();
+			return catalogNumber;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return catalogNumber;
+		}
+	}
 	
 }
