@@ -205,6 +205,9 @@ public class ForecastAnalyzer
 				else
 					newForecastQuantity = quantityCell.getNumericCellValue();
 				
+				if(newForecastQuantity == 0)
+					continue;
+				
 				Date initDate = Globals.getTodayDate();
 				String description = db.getDescription(catalogNumber).get(catalogNumber);
 				String quantity = newForecastQuantity + "";
