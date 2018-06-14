@@ -276,6 +276,7 @@ public class FollowUpAndExpediteMenu implements ActionListener{
 		followUpDirectoryLabel = new JLabel("<html><u>FollowUp Directory:</u></html>");
 		followUpDirectoryLabel.setLocation(30 , 120);
 		followUpDirectoryLabel.setSize(150, 20);
+		followUpDirectoryLabel.setVisible(adminPermission);
 		panel.add(followUpDirectoryLabel);
 		
 		followUpDirectoryButton = new JButton();
