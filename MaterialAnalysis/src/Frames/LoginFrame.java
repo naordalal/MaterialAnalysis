@@ -157,6 +157,7 @@ public class LoginFrame implements ActionListener
 				return;
 			}
 			
+			
 			frame.dispose();
 			new SelectionWindowFrame(nickNametext.getText() , new String(passwordField.getPassword()));
 		}

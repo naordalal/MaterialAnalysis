@@ -575,8 +575,10 @@ public class ReportViewFrame implements ActionListener
 			
 			try 
 			{
-				sender.send(frameName, "", attachFile, Globals.getReportFileName(frameName));
-				JOptionPane.showConfirmDialog(null, "Sent successfully","",JOptionPane.PLAIN_MESSAGE);
+				if(sender.send(frameName, "", attachFile, Globals.getReportFileName(frameName)))
+					JOptionPane.showConfirmDialog(null, "Sent successfully","",JOptionPane.PLAIN_MESSAGE);
+				else
+					JOptionPane.showConfirmDialog(null, "Wrong User/Password OR there is no internet connection","",JOptionPane.PLAIN_MESSAGE);	
 			}
 			catch (noValidEmailException e) 
 			{

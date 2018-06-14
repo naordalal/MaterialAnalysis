@@ -55,7 +55,7 @@ public class SendEmail {
 
 	      // Setup mail server
 	      properties.setProperty("mail.smtp.host", SMTP_HOST);
-	      properties.setProperty("mail.smtp.auth", "true");
+	      //properties.setProperty("mail.smtp.auth", "true");
 	      properties.setProperty("mail.smtp.port", "25");
 	      properties.setProperty("mail.smtp.starttls.enable", "true");
 	      properties.setProperty("mail.debug", "false");
@@ -64,7 +64,8 @@ public class SendEmail {
 	      
 	      
 	      // Get the default Session object.
-	      Session session = Session.getDefaultInstance(properties , auth);
+	      //While connect to computer with user name and password there is no need for authenticator
+	      Session session = Session.getDefaultInstance(properties , null); 
 	      
 
 	      try{
