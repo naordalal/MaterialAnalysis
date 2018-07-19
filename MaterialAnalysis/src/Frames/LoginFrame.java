@@ -19,6 +19,7 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 
 import org.apache.commons.lang3.math.NumberUtils;
@@ -115,6 +116,8 @@ public class LoginFrame implements ActionListener
 		panel.add(passwordField);
 		
 		loginButton = new JButton();
+		//loginButton.setVerticalTextPosition(SwingConstants.BOTTOM);
+		//loginButton.setHorizontalTextPosition(SwingConstants.CENTER);
 		loginButton.setLocation(115 , 200);
 		loginButton.setSize(60,40);
 		loginButton.addActionListener(this);

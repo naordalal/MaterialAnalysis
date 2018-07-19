@@ -14,6 +14,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 
 import FollowUpAndExpediteFrames.FollowUpAndExpediteMenu;
@@ -57,7 +58,7 @@ public class SelectionWindowFrame implements ActionListener
 		frame = new JFrame("ND System");
 		frame.getContentPane().setLayout(null);
 		frame.getContentPane().setFocusable(true);
-		frame.setBounds(500, 200, adminButtomPosition + adminButtomWidth + 300, 150);
+		frame.setBounds(500, 200, adminButtomPosition + adminButtomWidth + 300, 200);
 		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		frame.addWindowListener(new WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) 
@@ -82,31 +83,52 @@ public class SelectionWindowFrame implements ActionListener
 		
 		panel = new JPanel();
 		panel.setLocation(0 , 0);
-		panel.setSize(adminButtomPosition + adminButtomWidth + 300 , 150);
+		panel.setSize(adminButtomPosition + adminButtomWidth + 300 , 180);
 		panel.setLayout(null);
 		frame.add(panel);
 		
 		followUpAndMrpButton = new JButton("<html><b>Mrp<br>Expedite<br>Follow Up</b></html>");
+		followUpAndMrpButton.setVerticalTextPosition(SwingConstants.BOTTOM);
+		followUpAndMrpButton.setHorizontalTextPosition(SwingConstants.CENTER);
 		followUpAndMrpButton.setLocation(adminButtomPosition + adminButtomWidth + 30 , 30);
-		followUpAndMrpButton.setSize(100, 60);
+		followUpAndMrpButton.setSize(100, 120);
 		followUpAndMrpButton.addActionListener(this);
+		followUpAndMrpButton.setFocusable(false);
+		followUpAndMrpButton.setContentAreaFilled(false);
+		followUpAndMrpButton.setIcon(globals.expediteOrdersAndFollowUpIcon);
+		followUpAndMrpButton.setToolTipText("Mrp Expedite And Follow Up");
+		followUpAndMrpButton.setPressedIcon(globals.clickExpediteOrdersAndFollowUpIcon);
 		panel.add(followUpAndMrpButton);
 		
 		mapButton = new JButton("<html><b>MAP</b></html>");
+		mapButton.setVerticalTextPosition(SwingConstants.BOTTOM);
+		mapButton.setHorizontalTextPosition(SwingConstants.CENTER);
 		mapButton.setLocation(adminButtomWidth + adminButtomPosition + 160 , 30);
-		mapButton.setSize(100, 60);
+		mapButton.setSize(100, 100);
 		mapButton.addActionListener(this);
+		mapButton.setFocusable(false);
+		mapButton.setContentAreaFilled(false);
+		mapButton.setIcon(globals.reprotIcon);
+		mapButton.setToolTipText("MAP");
+		mapButton.setPressedIcon(globals.clickReprotIcon);
 		panel.add(mapButton);
 		
-		adminButton = new JButton("<html><b>Admin Window</b></html>");
+		adminButton = new JButton("<html><b>Settings</b></html>");
+		adminButton.setVerticalTextPosition(SwingConstants.BOTTOM);
+		adminButton.setHorizontalTextPosition(SwingConstants.CENTER);
 		adminButton.setLocation(adminButtomPosition , 30);
-		adminButton.setSize(adminButtomWidth, 60);
+		adminButton.setSize(adminButtomWidth, 100);
 		adminButton.setVisible(adminPermission);
 		adminButton.addActionListener(this);
+		adminButton.setFocusable(false);
+		adminButton.setContentAreaFilled(false);
+		adminButton.setIcon(globals.settingsIcon);
+		adminButton.setToolTipText("Settings");
+		adminButton.setPressedIcon(globals.clickSettingsIcon);
 		panel.add(adminButton);
 		
 		copyRight = new JLabel("<html><b>\u00a9 Naor Dalal</b></html>");
-		copyRight.setLocation(30 , 90);
+		copyRight.setLocation(30 , 140);
 		copyRight.setSize(100,30);
 		panel.add(copyRight);
 		
