@@ -116,8 +116,10 @@ public class Globals {
 	private URL clickNewIconPath= FollowUpAndExpediteMenu.class.getResource("/clickNew.png");
 	private URL viewTableIconPath= FollowUpAndExpediteMenu.class.getResource("/view table.png");
 	private URL clickViewTableIconPath= FollowUpAndExpediteMenu.class.getResource("/click view table.png");
-	private URL reprotIconPath= FollowUpAndExpediteMenu.class.getResource("/report.png");
-	private URL clickReprotIconPath= FollowUpAndExpediteMenu.class.getResource("/clickReport.png");
+	private URL mapReportIconPath= FollowUpAndExpediteMenu.class.getResource("/map report.png");
+	private URL clickMapReportIconPath= FollowUpAndExpediteMenu.class.getResource("/clickMapReport.png");
+	private URL mrpHeaderReportIconPath= FollowUpAndExpediteMenu.class.getResource("/mrp header report.png");
+	private URL clickMrpHeaderReportIconPath= FollowUpAndExpediteMenu.class.getResource("/click mrp header report.png");
 	private URL settingsIconPath= FollowUpAndExpediteMenu.class.getResource("/settings.png");
 	private URL clickSettingsIconPath= FollowUpAndExpediteMenu.class.getResource("/click settings.png");
 	private URL deleteProductIconPath= FollowUpAndExpediteMenu.class.getResource("/delete product.png");
@@ -160,8 +162,10 @@ public class Globals {
 	public ImageIcon clickNewIcon= new ImageIcon(clickNewIconPath);
 	public ImageIcon viewTableIcon= new ImageIcon(viewTableIconPath);
 	public ImageIcon clickViewTableIcon= new ImageIcon(clickViewTableIconPath);
-	public ImageIcon reprotIcon= new ImageIcon(reprotIconPath);
-	public ImageIcon clickReprotIcon= new ImageIcon(clickReprotIconPath);
+	public ImageIcon mapReportIcon= new ImageIcon(mapReportIconPath);
+	public ImageIcon clickMapReportIcon= new ImageIcon(clickMapReportIconPath);
+	public ImageIcon mrpHeaderReportIcon= new ImageIcon(mrpHeaderReportIconPath);
+	public ImageIcon clickMrpHeaderReportIcon= new ImageIcon(clickMrpHeaderReportIconPath);
 	public ImageIcon settingsIcon= new ImageIcon(settingsIconPath);
 	public ImageIcon clickSettingsIcon= new ImageIcon(clickSettingsIconPath);
 	public ImageIcon deleteProductIcon= new ImageIcon(deleteProductIconPath);

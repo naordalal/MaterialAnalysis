@@ -139,9 +139,9 @@ public class MainMapFrame implements ActionListener
 		mapButton.addActionListener(this);
 		mapButton.setFocusable(false);
 		mapButton.setContentAreaFilled(false);
-		mapButton.setIcon(globals.reprotIcon);
+		mapButton.setIcon(globals.mapReportIcon);
 		mapButton.setToolTipText("Map View");
-		mapButton.setPressedIcon(globals.clickReprotIcon);
+		mapButton.setPressedIcon(globals.clickMapReportIcon);
 		panel.add(mapButton);
 		
 		mrpHeaderViewButton = new JButton("<html><b>Mrp Header</b></html>");
@@ -152,9 +152,9 @@ public class MainMapFrame implements ActionListener
 		mrpHeaderViewButton.addActionListener(this);
 		mrpHeaderViewButton.setFocusable(false);
 		mrpHeaderViewButton.setContentAreaFilled(false);
-		mrpHeaderViewButton.setIcon(globals.reprotIcon);
+		mrpHeaderViewButton.setIcon(globals.mrpHeaderReportIcon);
 		mrpHeaderViewButton.setToolTipText("Mrp Header");
-		mrpHeaderViewButton.setPressedIcon(globals.clickReprotIcon);
+		mrpHeaderViewButton.setPressedIcon(globals.clickMrpHeaderReportIcon);
 		panel.add(mrpHeaderViewButton);
 		
 		JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);

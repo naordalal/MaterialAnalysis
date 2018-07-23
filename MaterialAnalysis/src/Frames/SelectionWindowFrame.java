@@ -108,9 +108,9 @@ public class SelectionWindowFrame implements ActionListener
 		mapButton.addActionListener(this);
 		mapButton.setFocusable(false);
 		mapButton.setContentAreaFilled(false);
-		mapButton.setIcon(globals.reprotIcon);
+		mapButton.setIcon(globals.mapReportIcon);
 		mapButton.setToolTipText("MAP");
-		mapButton.setPressedIcon(globals.clickReprotIcon);
+		mapButton.setPressedIcon(globals.clickMapReportIcon);
 		panel.add(mapButton);
 		
 		adminButton = new JButton("<html><b>Settings</b></html>");
