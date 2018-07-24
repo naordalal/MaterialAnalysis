@@ -34,6 +34,7 @@ import Forms.WorkOrder;
 import MainPackage.Globals;
 import MainPackage.Globals.FormType;
 import MainPackage.Globals.UpdateType;
+import Reports.ForecastAttachment;
 import Reports.ProductInit;
 import Reports.ProductInitHistory;
 import Reports.Tree;
@@ -2943,13 +2944,6 @@ public class DataBase {
 		try{
 			
 			connect();
-			stmt = c.prepareStatement("UPDATE Tree SET fatherCN = ? WHERE CN = ? AND fatherCN = ?");
-			stmt.setString(1, newFatherCN);
-			stmt.setString(2, catalogNumber);
-			stmt.setString(3, fatherCN);
-			stmt.executeUpdate();
-			
-			c.commit();
 			
 			if(newFatherCN == null || newFatherCN.equals(""))
 			{
@@ -2963,11 +2957,19 @@ public class DataBase {
 					if(count > 1)
 					{
 						closeConnection();
-						removeCatalogNumber(catalogNumber , newFatherCN);
-						connect();
+						removeCatalogNumber(catalogNumber , fatherCN);
+						return;
 					}
 				}
 			}
+			
+			stmt = c.prepareStatement("UPDATE Tree SET fatherCN = ? WHERE CN = ? AND fatherCN = ?");
+			stmt.setString(1, newFatherCN);
+			stmt.setString(2, catalogNumber);
+			stmt.setString(3, fatherCN);
+			stmt.executeUpdate();
+			
+			c.commit();
 			
 			closeConnection();
 		
@@ -4336,6 +4338,161 @@ public class DataBase {
 			closeConnection();
 			return catalogNumber;
 		}
+	}
+	public List<ForecastAttachment> getAllForecastAttachments(int id) 
+	{
+		List<ForecastAttachment> attachments = new ArrayList<>();
+		
+		try
+		{
+		
+			connect();
+			stmt = c.prepareStatement("SELECT filePath,fileName FROM ForecastAttachments where forecastId = ?");
+			stmt.setInt(1, id);
+			ResultSet rs = stmt.executeQuery();
+			
+			while(rs.next())
+			{
+				String filePath =  rs.getString("filePath");
+				String fileName =  rs.getString("fileName");
+				ForecastAttachment attachment = new ForecastAttachment(id, fileName, filePath);
+				attachments.add(attachment);
+			}
+			
+			closeConnection();
+			return attachments;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return attachments;
+		}
+	}
+	public boolean addForecastAttachment(int id, String fileName, String filePath) 
+	{
+		try
+		{
+			connect();		
+			
+			stmt = c.prepareStatement("INSERT INTO forecastAttachments (forecastId , filePath , fileName) VALUES(?,?,?)");
+			stmt.setInt(1, id);
+			stmt.setString(2, filePath);
+			stmt.setString(3, fileName);
+			stmt.executeUpdate();
+			
+			c.commit();
+			
+			closeConnection();
+			
+			return true;
+			
+		}
+		catch(SQLException e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			closeConnection();
+			
+			return false;
+		}
+	
+		
+	}
+	
+	public boolean deleteForecastAttachment(int forecastId, String filePath) 
+	{
+		try
+		{
+			connect();
+			stmt = c.prepareStatement("DELETE FROM ForecastAttachments where forecastId = ? AND filePath = ?");
+			stmt.setInt(1, forecastId);
+			stmt.setString(2, filePath);
+			int rowsNumber = stmt.executeUpdate();
+			
+			c.commit();
+			closeConnection();
+			
+			return rowsNumber > 0;
+			
+		}
+		catch(SQLException e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			closeConnection();
+			e.printStackTrace();
+			return false;
+		}
+	}
+	public boolean updateForecastAttachment(int forecastId, String oldFilePath, String filePath, String fileName) 
+	{
+		try
+		{
+			connect();
+			stmt = c.prepareStatement("UPDATE ForecastAttachments SET filePath = ? , fileName = ? WHERE forecastId = ? AND filePath = ?");
+			
+			stmt.setString(1, filePath);
+			stmt.setString(2, fileName);
+			stmt.setInt(3, forecastId);
+			stmt.setString(4, oldFilePath);
+			stmt.executeUpdate();
+			
+			c.commit();
+			
+			closeConnection();
+			
+			return true;
+		
+		}
+		catch(Exception e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			
+			e.printStackTrace();
+			closeConnection();
+			return false;
+		}
+		
+	}
+	public void addForecastAttachment(String fileName, String filePath) 
+	{
+		try
+		{
+			connect();		
+			
+			stmt = c.prepareStatement("INSERT INTO forecastAttachments (forecastId , filePath , fileName) VALUES((select MAX(Forecast.id) from Forecast),?,?)");
+			stmt.setString(1, filePath);
+			stmt.setString(2, fileName);
+			stmt.executeUpdate();
+			
+			c.commit();
+			
+			closeConnection();
+			
+		}
+		catch(SQLException e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			closeConnection();
+		}
+	
+		
 	}
 	
 }

@@ -552,7 +552,7 @@ public class MainMapFrame implements ActionListener
 					return;
 				}
 				
-				ReportViewFrame frame = Analyzer.getFormsReportView(forecasts, email, auth);
+				ReportViewFrame frame = Analyzer.getFormsReportView(forecasts, email, auth, userName);
 				frame.setEditable(false);
 				frame.setFrameName("Forecast History View");
 				

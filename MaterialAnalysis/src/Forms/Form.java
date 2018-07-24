@@ -3,7 +3,11 @@
 import java.util.Date;
 import java.util.List;
 
+import javax.mail.Authenticator;
+
+import MainPackage.CallBack;
 import MainPackage.Globals.FormType;
+import MapFrames.ReportViewFrame;
 
 public abstract class Form 
 {
@@ -111,4 +115,8 @@ public abstract class Form
 	public abstract boolean isNeedInit();
 	
 	public abstract List<Integer> getFilterColumns(); 
+	
+	public abstract CallBack<Object> getValueCellChangeAction(String email , Authenticator auth , String userName , ReportViewFrame frame , Object ... args);
+	public abstract CallBack<Object> getDoubleLeftClickAction(String email , Authenticator auth , String userName , ReportViewFrame frame , Object ... args);
+	public abstract CallBack<Object> getRightClickAction(String email , Authenticator auth , String userName , ReportViewFrame frame , Object ... args);
 }

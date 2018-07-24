@@ -66,6 +66,7 @@ public class AddForecastFrame extends KeyAdapter implements ActionListener
 	private File attachFile = null;
 	private String email;
 	private Authenticator auth;
+	private static int noteY = 350;
 	
 	public AddForecastFrame(String userName , String email , Authenticator auth) 
 	{
@@ -85,7 +86,7 @@ public class AddForecastFrame extends KeyAdapter implements ActionListener
 		frame = new JFrame("New Forecast");
 		frame.setLayout(null);
 		frame.getRootPane().setFocusable(true);
-		frame.setBounds(300, 100, 500, 500);
+		frame.setBounds(300, 100, 500, 570);
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frame.setResizable(false);
 		frame.setIconImage(globals.frameImage);
@@ -102,7 +103,7 @@ public class AddForecastFrame extends KeyAdapter implements ActionListener
 		
 		panel = new JPanel();
 		panel.setLocation(0 , 0);
-		panel.setSize(500, 500);
+		panel.setSize(500, 570);
 		panel.setLayout(null);
 		frame.add(panel);
 		
@@ -168,7 +169,7 @@ public class AddForecastFrame extends KeyAdapter implements ActionListener
 		panel.add(notesText);
 		
 		addForecastButton = new JButton();
-		addForecastButton.setLocation(200, 400);
+		addForecastButton.setLocation(200, 470);
 		addForecastButton.setSize(80 , 40);
 		addForecastButton.addActionListener(this);
 		addForecastButton.setIcon(globals.okIcon);
@@ -180,13 +181,12 @@ public class AddForecastFrame extends KeyAdapter implements ActionListener
 		
 		
 		attachFileLabel = new JLabel("<html><u>Attach Forecast File:</u></html>");
-		attachFileLabel.setLocation(30,20);
+		attachFileLabel.setLocation(30,noteY + 20);
 		attachFileLabel.setSize(150,100);
-		attachFileLabel.setVisible(false);
 		panel.add(attachFileLabel);
 		
 		attachFileButton = new JButton();
-		attachFileButton.setLocation(160 ,  45);
+		attachFileButton.setLocation(160 , noteY + 45);
 		attachFileButton.setSize(100, 40);
 		attachFileButton.setIcon(globals.attachIcon);
 		attachFileButton.setFocusable(false);
@@ -194,18 +194,16 @@ public class AddForecastFrame extends KeyAdapter implements ActionListener
 		attachFileButton.setPressedIcon(globals.clickAttachIcon);
 		attachFileButton.addActionListener(this);
 		attachFileButton.setToolTipText("attachment");
-		attachFileButton.setVisible(false);
 		panel.add(attachFileButton);
 		
 		filePath = new JLabel("");
-		filePath.setLocation(250 , 60);
+		filePath.setLocation(250 , noteY + 60);
 		filePath.setSize(300, 20);
-		filePath.setVisible(false);
 		panel.add(filePath);
 		
 		
 		copyRight = new JLabel("<html><b>\u00a9 Naor Dalal</b></html>");
-		copyRight.setLocation(30 , 430);
+		copyRight.setLocation(30 , 500);
 		copyRight.setSize(100,30);
 		panel.add(copyRight);
 		
@@ -404,6 +402,19 @@ public class AddForecastFrame extends KeyAdapter implements ActionListener
 		String notes = notesText.getText();
 		
 		analyzer.addNewFC(customer, (String) catalogNumberComboBox.getSelectedItem(), quantity, Globals.dateWithoutHourToString(initDate), Globals.dateWithoutHourToString(requireDate), description, userName , notes);
+		
+		String fileName = "";
+		while(true)
+		{
+			fileName = JOptionPane.showInputDialog(null , "Enter attach file name", JOptionPane.OK_OPTION);
+			if(fileName == null || fileName.equals(""))
+				continue;
+			
+			break;
+		}
+		
+		db.addForecastAttachment(fileName , filePath.getText());
+		
 		JOptionPane.showConfirmDialog(null, "Added successfully","",JOptionPane.PLAIN_MESSAGE);
 		frame.dispose();
 		
@@ -420,10 +431,12 @@ public class AddForecastFrame extends KeyAdapter implements ActionListener
 		notesLabel.setVisible(!attachFile);
 		notesText.setVisible(!attachFile);
 		
-		attachFileLabel.setVisible(attachFile);
-		attachFileButton.setVisible(attachFile);
-		filePath.setVisible(attachFile);
 		filePath.setText("");
+		
+		int fromY = attachFile ? 0 : noteY;
+		filePath.setLocation(250 , fromY + 60);
+		attachFileLabel.setLocation(30, fromY + 20);
+		attachFileButton.setLocation(160 , fromY + 45);
 		this.attachFile = null;
 	}
 	

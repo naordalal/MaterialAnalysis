@@ -1035,7 +1035,7 @@ public class Analyzer
 				if(forms == null || forms.size() == 0)
 					return null;
 				
-				ReportViewFrame reportViewFrame = getFormsReportView(forms , email , auth);
+				ReportViewFrame reportViewFrame = getFormsReportView(forms , email , auth , userName);
 
 				CallBack<Object> valueCellChangeAction = new CallBack<Object>()
 				{
@@ -1072,7 +1072,7 @@ public class Analyzer
 		return doubleLeftClickAction;
 	}
 
-	public static ReportViewFrame getFormsReportView(List<? extends Form> forms , String email ,Authenticator auth) 
+	public static ReportViewFrame getFormsReportView(List<? extends Form> forms , String email ,Authenticator auth , String userName) 
 	{
 		String [] columns = forms.get(0).getColumns();
 		String [][] rows = new String[forms.size()][columns.length];
@@ -1090,6 +1090,12 @@ public class Analyzer
 		List<String> filterNames = new ArrayList<>();
 		filterColumns.stream().forEach(col -> filterNames.add(columns[col] + ": "));
 		reportViewFrame.setFilters(filterColumns, filterNames);
+		
+		CallBack<Object> valueCellChangeAction = forms.get(0).getValueCellChangeAction(email, auth, userName, reportViewFrame , forms);
+		CallBack<Object> doubleLeftClickAction = forms.get(0).getDoubleLeftClickAction(email, auth, userName, reportViewFrame , forms);
+		CallBack<Object> rightClickAction = forms.get(0).getRightClickAction(email, auth, userName, reportViewFrame , forms);
+		
+		reportViewFrame.setCallBacks(valueCellChangeAction, doubleLeftClickAction, rightClickAction);
 		
 		return reportViewFrame;
 
