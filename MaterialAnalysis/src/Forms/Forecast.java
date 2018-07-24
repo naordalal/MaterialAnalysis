@@ -259,10 +259,12 @@ public class Forecast extends Form
 				
 				if(tcl.getTable().getValueAt(row, col).equals("Click for add attachment"))
 				{
-					addForecastAttachment(forecast);
-					forecastFrame.updateCellValue(row, col, "Click for see attachments");
-					forecastFrame.setColumnWidth();
-					return null;
+					if(addForecastAttachment(forecast))
+					{
+						forecastFrame.updateCellValue(row, col, "Click for see attachments");
+						forecastFrame.setColumnWidth();
+						return null;	
+					}
 				}
 				
 				List<ForecastAttachment> forecastAttachments = db.getAllForecastAttachments(forecast.getId());
@@ -308,7 +310,7 @@ public class Forecast extends Form
 				return null;
 			}
 			
-			private void addForecastAttachment(Forecast forecast) 
+			private boolean addForecastAttachment(Forecast forecast) 
 			{
 				DataBase db = new DataBase();
 				JFileChooser attachmentFileChooser = new JFileChooser();
@@ -322,7 +324,7 @@ public class Forecast extends Form
 					directoryPath = attachFile.getPath();
 				} else {
 				    System.out.println("File access cancelled by user.");
-				    return;
+				    return false;
 				}
 				
 				String fileName = "";
@@ -338,9 +340,10 @@ public class Forecast extends Form
 				if(!db.addForecastAttachment(forecast.getId() , fileName , filePath))
 				{
 					JOptionPane.showConfirmDialog(null, "You already added this attachment","",JOptionPane.PLAIN_MESSAGE);
-					return;
+					return false;
 				}
 				
+				return true;
 			}
 		};
 		

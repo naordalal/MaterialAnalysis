@@ -195,19 +195,15 @@ List<ForecastAttachment> forecastAttachments = (List<ForecastAttachment>) args[0
 			{
 				TableCellListener tcl = (TableCellListener)objects[0];
 				int row = tcl.getRow();
-				int col = tcl.getColumn();
 				ForecastAttachment forecastAttachment = forecastAttachments.get(row);
 				
-				if(col == 0) //Click on fileName - open file
-				{
-					String path = forecastAttachment.getFilePath();
-					try {
-						Desktop.getDesktop().open(new File(path));
-					} catch (IOException e) {
-						e.printStackTrace();
-						JOptionPane.showConfirmDialog(null, "Cannot open file","",JOptionPane.PLAIN_MESSAGE);
-						return null;
-					}
+				String path = forecastAttachment.getFilePath();
+				try {
+					Desktop.getDesktop().open(new File(path));
+				} catch (IOException e) {
+					e.printStackTrace();
+					JOptionPane.showConfirmDialog(null, "Cannot open file","",JOptionPane.PLAIN_MESSAGE);
+					return null;
 				}
 				
 				return null;
