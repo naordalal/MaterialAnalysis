@@ -186,7 +186,7 @@ public class ForecastAttachment extends Report
 	public CallBack<Object> getRightClickAction(String email, Authenticator auth, String userName,
 			ReportViewFrame frame, Object... args) {
 		
-List<ForecastAttachment> forecastAttachments = (List<ForecastAttachment>) args[0];
+		List<ForecastAttachment> forecastAttachments = (List<ForecastAttachment>) args[0];
 		
 		CallBack<Object> rightClickAction = new CallBack<Object>()
 		{

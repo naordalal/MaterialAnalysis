@@ -31,7 +31,8 @@ import Reports.ProductInitHistory;
 
 public class Forecast extends Form
 {
-	
+	private static String addAttachment = "Add";
+	private static String viewAttachments = "View";
 	private String customer;
 	private String description;
 	private String notes;
@@ -114,7 +115,7 @@ public class Forecast extends Form
 		
 		DataBase db = new DataBase();
 		List<ForecastAttachment> attachments = db.getAllForecastAttachments(getId());
-		String cellValue = (attachments.size() > 0) ? "Click for see attachments" : "Click for add attachment";
+		String cellValue = (attachments.size() > 0) ? viewAttachments : addAttachment;
 		row[8] = cellValue;
 		
 		return row;
@@ -257,14 +258,15 @@ public class Forecast extends Form
 				if(col != 8)
 					return null;
 				
-				if(tcl.getTable().getValueAt(row, col).equals("Click for add attachment"))
+				if(tcl.getTable().getValueAt(row, col).equals(addAttachment))
 				{
 					if(addForecastAttachment(forecast))
 					{
-						forecastFrame.updateCellValue(row, col, "Click for see attachments");
+						forecastFrame.updateCellValue(row, col, viewAttachments);
 						forecastFrame.setColumnWidth();
-						return null;	
 					}
+					
+					return null;
 				}
 				
 				List<ForecastAttachment> forecastAttachments = db.getAllForecastAttachments(forecast.getId());
@@ -291,9 +293,9 @@ public class Forecast extends Form
 					forecastAttachmentsFrame.setColumnWidth();
 					
 					if(forecastAttachments.size() == 0)
-						forecastFrame.updateCellValue(row, 8, "Click for add attachment");
+						forecastFrame.updateCellValue(row, 8, addAttachment);
 					else
-						forecastFrame.updateCellValue(row, 8, "Click for see attachments");
+						forecastFrame.updateCellValue(row, 8, viewAttachments);
 					
 					forecastFrame.setColumnWidth();
 				});
@@ -330,8 +332,8 @@ public class Forecast extends Form
 				String fileName = "";
 				while(true)
 				{
-					fileName = JOptionPane.showInputDialog(null , "Enter file name", JOptionPane.OK_OPTION);
-					if(fileName == null || fileName.equals(""))
+					fileName = JOptionPane.showInputDialog(null , "Enter file name", "");
+					if(fileName == null || fileName.trim().equals(""))
 						continue;
 					
 					break;
@@ -393,7 +395,7 @@ public class Forecast extends Form
 				
 				if(forecastAttachments.size() == 0)
 				{
-					forecastFrame.updateCellValue(selectedRow, 8, "Click for add attachment");
+					forecastFrame.updateCellValue(selectedRow, 8, addAttachment);
 					forecastFrame.setColumnWidth();
 				}
 				

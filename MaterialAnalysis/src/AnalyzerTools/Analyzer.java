@@ -1063,7 +1063,10 @@ public class Analyzer
 						}
 					}
 				};
-				reportViewFrame.setCallBacks(valueCellChangeAction, null, null);
+				
+				CallBack<Object> doubleLeftClickAction = forms.get(0).getDoubleLeftClickAction(email, auth, userName, reportViewFrame , forms);
+				CallBack<Object> rightClickAction = forms.get(0).getRightClickAction(email, auth, userName, reportViewFrame , forms);
+				reportViewFrame.setCallBacks(valueCellChangeAction, doubleLeftClickAction, rightClickAction);
 				reportViewFrame.show();
 		        return null;
 			}
@@ -1209,7 +1212,6 @@ public class Analyzer
 			
 			for (String cn : map.get(month).keySet()) 
 			{
-				String customer = db.getCustomerOfCatalogNumber(cn);
 				//double deposit = db.getCustomerDeposit(customer);
 				//double obligation = db.getCustomerObligation(customer);
 				
