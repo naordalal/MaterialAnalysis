@@ -85,6 +85,7 @@ public class Globals {
 	public String supplierOrdersPath = "Orders.xlsx";
 	public String expediteOrdersPath = "expedite Orders.xlsx";
 	public String ShortagesItemsPath = "Shortages Items.xlsx";
+	public static String unknownCatalogNumbersPath = "unknown catalog numbers.xlsx";
 	public static String usesPath = "Activity.xlsx";
 	
 	private URL nextPath = FollowUpAndExpediteMenu.class.getResource("/next.png");

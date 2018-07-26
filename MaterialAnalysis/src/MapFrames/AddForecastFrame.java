@@ -1,6 +1,7 @@
 ﻿package MapFrames;
 
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -36,7 +37,10 @@ import AnalyzerTools.Analyzer;
 import AnalyzerTools.ForecastAnalyzer;
 import Components.FilterCombo;
 import MainPackage.DataBase;
+import MainPackage.Excel;
 import MainPackage.Globals;
+import MainPackage.noValidEmailException;
+import Senders.SendEmail;
 
 public class AddForecastFrame extends KeyAdapter implements ActionListener
 {
@@ -291,9 +295,10 @@ public class AddForecastFrame extends KeyAdapter implements ActionListener
 		ForecastAnalyzer forecastAnalyzer = new ForecastAnalyzer();
 		
 		String[][] forecasts;
+		List<String> unknownCatalogNumbers = new ArrayList<>();
 		try 
 		{
-			forecasts = forecastAnalyzer.getForecastQuantity(filePath.getText(), customerChoosen.getSelectedItem().toString());
+			forecasts = forecastAnalyzer.getForecastQuantity(filePath.getText(), customerChoosen.getSelectedItem().toString() , unknownCatalogNumbers);
 		}
 		catch (Exception e) 
 		{
@@ -305,6 +310,11 @@ public class AddForecastFrame extends KeyAdapter implements ActionListener
 		{
 			JOptionPane.showConfirmDialog(null, "File is open or not exist","",JOptionPane.PLAIN_MESSAGE);
 			return;
+		}
+		
+		if(unknownCatalogNumbers.size() > 0)
+		{
+			sendUnknownCatalogNumbers(unknownCatalogNumbers);
 		}
 		
 		String [] columns = forecasts[0];
@@ -348,9 +358,10 @@ public class AddForecastFrame extends KeyAdapter implements ActionListener
 		
 		ForecastAnalyzer forecastAnalyzer = new ForecastAnalyzer();
 		boolean success;
+		List<String> unknownCatalogNumbers = new ArrayList<>();
 		try 
 		{
-			success = forecastAnalyzer.addForecast(filePath.getText(), customerChoosen.getSelectedItem().toString(), userName);
+			success = forecastAnalyzer.addForecast(filePath.getText(), customerChoosen.getSelectedItem().toString(), userName , unknownCatalogNumbers);
 		} 
 		catch (Exception e) 
 		{
@@ -364,11 +375,62 @@ public class AddForecastFrame extends KeyAdapter implements ActionListener
 			return;
 		}
 		
+		if(unknownCatalogNumbers.size() > 0)
+		{
+			sendUnknownCatalogNumbers(unknownCatalogNumbers);
+		}
+		
 		JOptionPane.showConfirmDialog(null, "Added successfully","",JOptionPane.PLAIN_MESSAGE);
 		frame.dispose();
 		
 	}
 
+
+	private void sendUnknownCatalogNumbers(List<String> unknownCatalogNumbers) 
+	{
+		String [] columns = new String[1];
+		columns[0] = "Catalog Number";
+		
+		String [][] content = unknownCatalogNumbers.stream().map(cn -> new String[]{cn}).toArray(String[][]::new);
+		
+		Excel excel = new Excel();
+		File attachFile = excel.createExcelFile(Globals.unknownCatalogNumbersPath , columns, content);
+		
+		List<String> dest = new ArrayList<>();
+		dest.add(email);
+		SendEmail sender = new SendEmail(email, dest, auth);
+		
+		try 
+		{
+			sender.send("Unknown catalog numbers", "", attachFile, Globals.unknownCatalogNumbersPath);	
+		}
+		catch (noValidEmailException e) 
+		{
+			e.printStackTrace();
+		}
+		
+		attachFile.delete();
+		
+		for (String catalogNumber : unknownCatalogNumbers) 
+		{
+			int index = unknownCatalogNumbers.indexOf(catalogNumber);
+			
+			if(index != unknownCatalogNumbers.size() - 1)
+				catalogNumber += " , ";
+			
+			if(index > 1 && index % 3 == 1)
+				catalogNumber += "\n";
+			
+			unknownCatalogNumbers.set(index, catalogNumber);
+				
+		}
+		
+		String suppliersNames = unknownCatalogNumbers.stream().collect(Collectors.joining(""));
+		
+		JOptionPane.showConfirmDialog(null, "The following products do not exist in the system : " + suppliersNames,"",JOptionPane.PLAIN_MESSAGE);
+		
+	}
+	
 	private void addSingleForecast() 
 	{
 		if(catalogNumberComboBox.getSelectedItem() == null)

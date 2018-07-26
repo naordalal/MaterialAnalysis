@@ -26,7 +26,7 @@ public class ForecastAnalyzer
 		db = new DataBase();
 	}
 	
-	public String[][] getForecastQuantity(String fileName , String customer) throws Exception
+	public String[][] getForecastQuantity(String fileName , String customer , List<String> unknownCatalogNumbers) throws Exception
 	{
 		XSSFWorkbook w = null;
 		XSSFSheet forecastSheet = null;
@@ -85,7 +85,10 @@ public class ForecastAnalyzer
 	    	
 	    	String catalogNumber = db.getFullCatalogNumber(itemNumberCell.getStringCellValue() , customer).trim();
 	    	if(catalogNumber.equals(""))
+	    	{
+	    		unknownCatalogNumbers.add(itemNumberCell.getStringCellValue());
 	    		continue;
+	    	}
 	    	
 	    	List<QuantityPerDate> forecastQuantities = db.calculateProductFCQuantityOnDate(catalogNumber);
 	    	List<MonthDate> forecastDates = forecastQuantities.stream().map(forecastQuantity -> forecastQuantity.getDate()).collect(Collectors.toList());
@@ -137,7 +140,7 @@ public class ForecastAnalyzer
 	    
 	}
 	
-	public boolean addForecast(String fileName , String customer , String userName) throws Exception
+	public boolean addForecast(String fileName , String customer , String userName , List<String> unknownCatalogNumbers) throws Exception
 	{
 		Analyzer analyzer = new Analyzer();
 		XSSFWorkbook w = null;
@@ -175,7 +178,10 @@ public class ForecastAnalyzer
 	    	
 	    	String catalogNumber = db.getFullCatalogNumber(itemNumberCell.getStringCellValue() , customer).trim();
 	    	if(catalogNumber.equals(""))
+	    	{
+	    		unknownCatalogNumbers.add(itemNumberCell.getStringCellValue());
 	    		continue;
+	    	} 
 	    		    	
 	    	for(int dateIndex = 1 ; dateIndex <= numOfDates ; dateIndex++)
 	    	{
