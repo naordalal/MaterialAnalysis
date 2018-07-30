@@ -465,17 +465,22 @@ public class AddForecastFrame extends KeyAdapter implements ActionListener
 		
 		analyzer.addNewFC(customer, (String) catalogNumberComboBox.getSelectedItem(), quantity, Globals.dateWithoutHourToString(initDate), Globals.dateWithoutHourToString(requireDate), description, userName , notes);
 		
-		String fileName = "";
-		while(true)
+		if(attachFile != null)
 		{
-			fileName = JOptionPane.showInputDialog(null , "Enter attach file name", JOptionPane.OK_OPTION);
-			if(fileName == null || fileName.equals(""))
-				continue;
+			String fileName = "";
+			while(true)
+			{
+				fileName = JOptionPane.showInputDialog(null , "Enter attach file name", JOptionPane.OK_OPTION);
+				if(fileName == null || fileName.equals(""))
+					continue;
+				
+				break;
+			}
 			
-			break;
+			db.addForecastAttachment(fileName , filePath.getText());
 		}
 		
-		db.addForecastAttachment(fileName , filePath.getText());
+
 		
 		JOptionPane.showConfirmDialog(null, "Added successfully","",JOptionPane.PLAIN_MESSAGE);
 		frame.dispose();

@@ -192,6 +192,9 @@ public class Forecast extends Form
 		}
 		else
 		{
+			columns.add(0);
+			columns.add(1);
+			columns.add(2);
 			columns.add(4);
 			columns.add(6);		
 		}

@@ -102,7 +102,7 @@ public class Analyzer
 				{
 					continue;	
 				}
-				if(Globals.addMonths(Globals.getTodayDate(), -Globals.monthsToIgnore - 1).before(date))
+				if(!Globals.setFirstDayOfMonth(Globals.addMonths(Globals.getTodayDate() , - Globals.monthsToIgnore)).after(date))
 					db.addWO(columns.get(woNumberColumn), columns.get(catalogNumberColumn), columns.get(quantityColumn)
 							, columns.get(customerColumn), columns.get(dateColumn), columns.get(descriptionColumn));
 			}
@@ -143,7 +143,7 @@ public class Analyzer
 				Date guaranteedDate = Globals.parseDate(columns.get(guaranteedDateColumn));
 				if(orderDate == null || guaranteedDate == null || columns.get(catalogNumberColumn).trim().equals("") || !NumberUtils.isCreatable(columns.get(quantityColumn)))
 					continue;
-				if(Globals.addMonths(Globals.getTodayDate(), -Globals.monthsToIgnore - 1).before(orderDate))
+				if(!Globals.setFirstDayOfMonth(Globals.addMonths(Globals.getTodayDate() , - Globals.monthsToIgnore)).after(orderDate))
 					db.addCustomerOrder(columns.get(customerColumn), columns.get(orderNumberColumn), columns.get(customerOrderNumberColumn), columns.get(catalogNumberColumn)
 							, columns.get(descriptionColumn), columns.get(quantityColumn), columns.get(priceColumn) 
 							, columns.get(orderDateColumn) , columns.get(guaranteedDateColumn));
@@ -179,7 +179,7 @@ public class Analyzer
 				Date date = Globals.parseDate(columns.get(shipmentDateColumn));
 				if(date == null || columns.get(catalogNumberColumn).trim().equals("") || !NumberUtils.isCreatable(columns.get(quantityColumn)))
 					continue;
-				if(Globals.addMonths(Globals.getTodayDate(), -Globals.monthsToIgnore - 1).before(date))
+				if(!Globals.setFirstDayOfMonth(Globals.addMonths(Globals.getTodayDate() , - Globals.monthsToIgnore)).after(date))
 					db.addShipment(columns.get(customerColumn), columns.get(orderIdColumn), columns.get(orderCustomerIdColumn) ,columns.get(catalogNumberColumn)
 							, columns.get(quantityColumn), columns.get(shipmentDateColumn), columns.get(descriptionColumn));
 			}
