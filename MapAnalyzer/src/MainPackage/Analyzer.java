@@ -64,7 +64,6 @@ public class Analyzer
 			analyzeShipments(shipmentsFilePath);
 		}
 
-		
 		updateProductQuantities(db.getAllPO(), db.getAllProductsPOQuantityPerDate(), db.getInitProductsPODates(),  FormType.PO);
 		updateProductQuantities(db.getAllWO(), db.getAllProductsWOQuantityPerDate(),db.getInitProductsWODates() , FormType.WO);
 		updateProductQuantities(db.getAllShipments(), db.getAllProductsShipmentQuantityPerDate(),db.getInitProductsShipmentsDates() , FormType.SHIPMENT);
@@ -226,16 +225,19 @@ public class Analyzer
 		for (Form form : forms) 
 		{
 			if(productsInitDates.containsKey(form.getCatalogNumber()))
+			{
 				if(form.getCreateDate().before(productsInitDates.get(form.getCatalogNumber())) || form.getCreateDate().equals(productsInitDates.get(form.getCatalogNumber())))
 					continue;
-			MonthDate monthDate = new MonthDate(form.getRequestDate());
-			if(newFormsPerDate.containsKey(monthDate))
-				newFormsPerDate.get(monthDate).add(form);
-			else
-			{
-				List<Form> formOfMonth = new ArrayList<Form>();
-				formOfMonth.add(form);
-				newFormsPerDate.put(monthDate , formOfMonth);
+				
+				MonthDate monthDate = new MonthDate(form.getRequestDate());
+				if(newFormsPerDate.containsKey(monthDate))
+					newFormsPerDate.get(monthDate).add(form);
+				else
+				{
+					List<Form> formOfMonth = new ArrayList<Form>();
+					formOfMonth.add(form);
+					newFormsPerDate.put(monthDate , formOfMonth);
+				}
 			}
 		}
 
