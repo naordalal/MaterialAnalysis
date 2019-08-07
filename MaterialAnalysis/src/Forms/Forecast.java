@@ -1,19 +1,38 @@
 ﻿package Forms;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+
+import javax.mail.Authenticator;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
 import AnalyzerTools.Analyzer;
 import AnalyzerTools.MonthDate;
+import Components.TableCellListener;
+import MainPackage.CallBack;
+import MainPackage.DataBase;
 import MainPackage.Globals;
+import MapFrames.MainMapFrame;
+import MapFrames.ReportViewFrame;
+import Reports.ForecastAttachment;
+import Reports.ProductInit;
+import Reports.ProductInitHistory;
 
 public class Forecast extends Form
 {
-	
+	private static String addAttachment = "Add";
+	private static String viewAttachments = "View";
 	private String customer;
 	private String description;
 	private String notes;
@@ -67,7 +86,7 @@ public class Forecast extends Form
 	@Override
 	public String[] getColumns() 
 	{
-		String [] columns = new String[8];
+		String [] columns = new String[9];
 		columns[0] = "Customer";
 		columns[1] = "Catalog Number";
 		columns[2] = "Description";
@@ -76,6 +95,7 @@ public class Forecast extends Form
 		columns[5] = "Require Date";
 		columns[6] = "User Update";
 		columns[7] = "Notes";
+		columns[8] = "Attachments";
 		
 		return columns;
 	}
@@ -83,7 +103,7 @@ public class Forecast extends Form
 	@Override
 	public String[] getRow() 
 	{
-		String [] row = new String[8];
+		String [] row = new String[9];
 		row[0] = this.customer;
 		row[1] = super.getCatalogNumber();
 		row[2] = this.description;
@@ -92,6 +112,11 @@ public class Forecast extends Form
 		row[5] = Globals.dateWithoutHourToString(super.getRequestDate());
 		row[6] = this.userName;
 		row[7] = this.notes;
+		
+		DataBase db = new DataBase();
+		List<ForecastAttachment> attachments = db.getAllForecastAttachments(getId());
+		String cellValue = (attachments.size() > 0) ? viewAttachments : addAttachment;
+		row[8] = cellValue;
 		
 		return row;
 	}
@@ -167,9 +192,15 @@ public class Forecast extends Form
 		}
 		else
 		{
+			columns.add(0);
+			columns.add(1);
+			columns.add(2);
 			columns.add(4);
 			columns.add(6);		
 		}
+		
+		columns.add(8);
+		
 		return columns;
 	}
 
@@ -203,6 +234,179 @@ public class Forecast extends Form
 
 	public void setUserName(String userName) {
 		this.userName = userName;
+	}
+
+	@Override
+	public CallBack<Object> getValueCellChangeAction(String email, Authenticator auth, String userName,
+			ReportViewFrame frame, Object... args) {
+		return null;
+	}
+
+	@Override
+	public CallBack<Object> getDoubleLeftClickAction(String email, Authenticator auth, String userName,
+			ReportViewFrame forecastFrame, Object... args) 
+	{
+		List<Forecast> forecasts = (List<Forecast>) args[0];
+		DataBase db = new DataBase();
+		CallBack<Object> doubleLeftClickAction = new CallBack<Object>()
+		{
+			String directoryPath = null;
+			@Override
+			public Object execute(Object... objects) 
+			{
+				TableCellListener tcl = (TableCellListener)objects[0];
+				int row = tcl.getRow();
+				int col = tcl.getColumn();
+				Forecast forecast = forecasts.get(row);
+				if(col != 8)
+					return null;
+				
+				if(tcl.getTable().getValueAt(row, col).equals(addAttachment))
+				{
+					if(addForecastAttachment(forecast))
+					{
+						forecastFrame.updateCellValue(row, col, viewAttachments);
+						forecastFrame.setColumnWidth();
+					}
+					
+					return null;
+				}
+				
+				List<ForecastAttachment> forecastAttachments = db.getAllForecastAttachments(forecast.getId());
+				if(forecastAttachments == null || forecastAttachments.size() == 0)
+					return null;
+				
+				ReportViewFrame forecastAttachmentsFrame = MainMapFrame.createReportViewFrame(email , auth , userName , forecastAttachments , "Forecast Attachments View");
+				CallBack<Object> valueCellChangeAction = getValueCellChangeActionOfForecastAttachment(email, auth, userName, row, forecastFrame, forecastAttachmentsFrame, forecastAttachments);
+				CallBack<Object> doubleLeftClickAction = forecastAttachments.get(0).getDoubleLeftClickAction(email, auth, userName, forecastAttachmentsFrame , forecastAttachments);
+				CallBack<Object> rightClickAction = forecastAttachments.get(0).getRightClickAction(email, auth, userName, forecastAttachmentsFrame , forecastAttachments);
+				
+				Globals globals = new Globals();
+				forecastAttachmentsFrame.setCallBacks(valueCellChangeAction, doubleLeftClickAction, rightClickAction);
+				JButton addForecastAttachmentButton = new JButton();
+				
+				addForecastAttachmentButton.addActionListener((e) ->
+				{
+					addForecastAttachment(forecast);
+					
+					List<ForecastAttachment> newForecastAttachments = db.getAllForecastAttachments(forecast.getId());
+					forecastAttachments.clear();
+					forecastAttachments.addAll(newForecastAttachments);
+					forecastAttachmentsFrame.refresh(newForecastAttachments.stream().map(t -> t.getRow()).toArray(String[][]::new));
+					forecastAttachmentsFrame.setColumnWidth();
+					
+					if(forecastAttachments.size() == 0)
+						forecastFrame.updateCellValue(row, 8, addAttachment);
+					else
+						forecastFrame.updateCellValue(row, 8, viewAttachments);
+					
+					forecastFrame.setColumnWidth();
+				});
+				
+				addForecastAttachmentButton.setIcon(globals.addIcon);
+				addForecastAttachmentButton.setFocusable(false);
+				addForecastAttachmentButton.setContentAreaFilled(false);
+				addForecastAttachmentButton.setPressedIcon(globals.clickAddIcon);
+				addForecastAttachmentButton.setToolTipText("Add forecast attachment");
+				
+				forecastAttachmentsFrame.setCustomComponent(addForecastAttachmentButton);
+				forecastAttachmentsFrame.show();
+				
+				return null;
+			}
+			
+			private boolean addForecastAttachment(Forecast forecast) 
+			{
+				DataBase db = new DataBase();
+				JFileChooser attachmentFileChooser = new JFileChooser();
+				if(directoryPath != null)
+					attachmentFileChooser.setCurrentDirectory(new File(directoryPath));
+				int returnVal = attachmentFileChooser.showOpenDialog(null);
+				String filePath;
+				if (returnVal == JFileChooser.APPROVE_OPTION) {
+					File attachFile = attachmentFileChooser.getSelectedFile();
+					filePath = attachFile.getAbsolutePath();
+					directoryPath = attachFile.getPath();
+				} else {
+				    System.out.println("File access cancelled by user.");
+				    return false;
+				}
+				
+				String fileName = "";
+				while(true)
+				{
+					fileName = JOptionPane.showInputDialog(null , "Enter file name", "");
+					if(fileName == null || fileName.trim().equals(""))
+						continue;
+					
+					break;
+				}
+				
+				if(!db.addForecastAttachment(forecast.getId() , fileName , filePath))
+				{
+					JOptionPane.showConfirmDialog(null, "You already added this attachment","",JOptionPane.PLAIN_MESSAGE);
+					return false;
+				}
+				
+				return true;
+			}
+		};
+		
+		return doubleLeftClickAction;
+	}
+
+	@Override
+	public CallBack<Object> getRightClickAction(String email, Authenticator auth, String userName,
+			ReportViewFrame frame, Object... args) {
+		return null;
+	}
+	
+	public CallBack<Object> getValueCellChangeActionOfForecastAttachment(String email, Authenticator auth, String userName,int selectedRow
+			,ReportViewFrame forecastFrame,ReportViewFrame forecastAttachmentsFrame, Object... args) {
+		
+		List<ForecastAttachment> forecastAttachments = (List<ForecastAttachment>) args[0];
+		DataBase db = new DataBase();
+		
+		CallBack<Object> valueCellChangeAction = new CallBack<Object>()
+		{
+			@Override
+			public Object execute(Object... objects) 
+			{
+				TableCellListener tcl = (TableCellListener)objects[0];
+				int row = tcl.getRow();
+				int column = tcl.getColumn();
+				String newValue = (String) tcl.getNewValue();
+				String oldValue = (String) tcl.getOldValue();
+				ForecastAttachment forecastAttachment = forecastAttachments.get(row);
+				
+				try
+				{
+					forecastAttachment.updateValue(userName , column, newValue);
+				} 
+				catch (Exception e) 
+				{
+					forecastAttachmentsFrame.updateCellValue(row,column,oldValue);
+					JOptionPane.showConfirmDialog(null, e.getMessage() ,"Error",JOptionPane.PLAIN_MESSAGE);
+					return e;
+				}
+							
+				List<ForecastAttachment> newForecastAttachments = db.getAllForecastAttachments(forecastAttachment.getForecastId());
+				forecastAttachments.clear();
+				forecastAttachments.addAll(newForecastAttachments);
+				forecastAttachmentsFrame.refresh(newForecastAttachments.stream().map(t -> t.getRow()).toArray(String[][]::new));
+				forecastAttachmentsFrame.setColumnWidth();
+				
+				if(forecastAttachments.size() == 0)
+				{
+					forecastFrame.updateCellValue(selectedRow, 8, addAttachment);
+					forecastFrame.setColumnWidth();
+				}
+				
+				return null;
+			}
+		};
+		
+		return valueCellChangeAction;
 	}
 
 }

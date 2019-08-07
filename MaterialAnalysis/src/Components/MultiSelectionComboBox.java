@@ -61,7 +61,8 @@ public class MultiSelectionComboBox<T> extends JComboBox<T>
     
     public void addSelectedItem(T item)
     {
-    	manager.addSelectedItem(item);
+    	if(((DefaultComboBoxModel) getModel()).getIndexOf(item) != -1)
+    		manager.addSelectedItem(item);
     }
     
     @Override

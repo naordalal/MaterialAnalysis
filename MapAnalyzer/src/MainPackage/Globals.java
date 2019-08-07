@@ -14,7 +14,9 @@ import java.util.Vector;
 public class Globals 
 {
 	public static final String con = "C:\\Users\\naordalal\\Desktop\\DB3.db";
+	public static final String dbBackupDirectory = "C:\\Users\\naordalal\\Desktop\\";
 	//public static final String con = "O:\\Purchasing\\PO_FollowUp\\Material Analysis\\DB.db";
+	//public static final String dbBackupDirectory = "O:\\Purchasing\\PO_FollowUp\\Material Analysis\\Backup\\DB Backup\\";
 	
 	public final String shipmentsFilePath = "C:\\Users\\naordalal\\Desktop\\SHIPMENTS.txt";
 	public final String customerOrdersFilePath = "C:\\Users\\naordalal\\Desktop\\PO.txt";

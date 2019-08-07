@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
+import org.apache.poi.ss.usermodel.BuiltinFormats;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.IndexedColors;
@@ -361,14 +362,18 @@ public class Excel
 	    		if(rows[rowIndex - 1][columnIndex] instanceof String)
 	    		{
 	    			Object value = rows[rowIndex - 1][columnIndex];
+	    			String num = ((String) value).replaceAll(",", "");
 	    			Date date;
-	    			if(NumberUtils.isCreatable((String) value))
+	    			if(NumberUtils.isCreatable(num))
 	    			{
-	    				value = Double.parseDouble((String) value);
+	    				value = Double.parseDouble(num);
 	    				if((Double)value == 0)
 	    					cell.setCellValue("");
 	    				else
 	    					cell.setCellValue((Double) value);
+	    				
+	    				contentStyle.setDataFormat((short) BuiltinFormats.getBuiltinFormat("#,##0"));
+	    				cell.setCellStyle(contentStyle);
 	    			}
 	    			else if((date = Globals.isValidDate((String) value)) != null)
 	    			{
@@ -411,4 +416,6 @@ public class Excel
 		return file;
 		
 	}
+
+	
 }

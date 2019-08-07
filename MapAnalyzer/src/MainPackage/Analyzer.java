@@ -64,7 +64,6 @@ public class Analyzer
 			analyzeShipments(shipmentsFilePath);
 		}
 
-		
 		updateProductQuantities(db.getAllPO(), db.getAllProductsPOQuantityPerDate(), db.getInitProductsPODates(),  FormType.PO);
 		updateProductQuantities(db.getAllWO(), db.getAllProductsWOQuantityPerDate(),db.getInitProductsWODates() , FormType.WO);
 		updateProductQuantities(db.getAllShipments(), db.getAllProductsShipmentQuantityPerDate(),db.getInitProductsShipmentsDates() , FormType.SHIPMENT);
@@ -102,7 +101,7 @@ public class Analyzer
 				{
 					continue;	
 				}
-				if(Globals.addMonths(Globals.getTodayDate(), -Globals.monthsToIgnore - 1).before(date))
+				if(!Globals.setFirstDayOfMonth(Globals.addMonths(Globals.getTodayDate() , - Globals.monthsToIgnore)).after(date))
 					db.addWO(columns.get(woNumberColumn), columns.get(catalogNumberColumn), columns.get(quantityColumn)
 							, columns.get(customerColumn), columns.get(dateColumn), columns.get(descriptionColumn));
 			}
@@ -143,7 +142,7 @@ public class Analyzer
 				Date guaranteedDate = Globals.parseDate(columns.get(guaranteedDateColumn));
 				if(orderDate == null || guaranteedDate == null || columns.get(catalogNumberColumn).trim().equals("") || !NumberUtils.isCreatable(columns.get(quantityColumn)))
 					continue;
-				if(Globals.addMonths(Globals.getTodayDate(), -Globals.monthsToIgnore - 1).before(orderDate))
+				if(!Globals.setFirstDayOfMonth(Globals.addMonths(Globals.getTodayDate() , - Globals.monthsToIgnore)).after(orderDate))
 					db.addCustomerOrder(columns.get(customerColumn), columns.get(orderNumberColumn), columns.get(customerOrderNumberColumn), columns.get(catalogNumberColumn)
 							, columns.get(descriptionColumn), columns.get(quantityColumn), columns.get(priceColumn) 
 							, columns.get(orderDateColumn) , columns.get(guaranteedDateColumn));
@@ -179,7 +178,7 @@ public class Analyzer
 				Date date = Globals.parseDate(columns.get(shipmentDateColumn));
 				if(date == null || columns.get(catalogNumberColumn).trim().equals("") || !NumberUtils.isCreatable(columns.get(quantityColumn)))
 					continue;
-				if(Globals.addMonths(Globals.getTodayDate(), -Globals.monthsToIgnore - 1).before(date))
+				if(!Globals.setFirstDayOfMonth(Globals.addMonths(Globals.getTodayDate() , - Globals.monthsToIgnore)).after(date))
 					db.addShipment(columns.get(customerColumn), columns.get(orderIdColumn), columns.get(orderCustomerIdColumn) ,columns.get(catalogNumberColumn)
 							, columns.get(quantityColumn), columns.get(shipmentDateColumn), columns.get(descriptionColumn));
 			}
@@ -226,16 +225,19 @@ public class Analyzer
 		for (Form form : forms) 
 		{
 			if(productsInitDates.containsKey(form.getCatalogNumber()))
+			{
 				if(form.getCreateDate().before(productsInitDates.get(form.getCatalogNumber())) || form.getCreateDate().equals(productsInitDates.get(form.getCatalogNumber())))
 					continue;
-			MonthDate monthDate = new MonthDate(form.getRequestDate());
-			if(newFormsPerDate.containsKey(monthDate))
-				newFormsPerDate.get(monthDate).add(form);
-			else
-			{
-				List<Form> formOfMonth = new ArrayList<Form>();
-				formOfMonth.add(form);
-				newFormsPerDate.put(monthDate , formOfMonth);
+				
+				MonthDate monthDate = new MonthDate(form.getRequestDate());
+				if(newFormsPerDate.containsKey(monthDate))
+					newFormsPerDate.get(monthDate).add(form);
+				else
+				{
+					List<Form> formOfMonth = new ArrayList<Form>();
+					formOfMonth.add(form);
+					newFormsPerDate.put(monthDate , formOfMonth);
+				}
 			}
 		}
 

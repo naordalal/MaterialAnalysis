@@ -19,6 +19,7 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 
 import org.apache.commons.lang3.math.NumberUtils;
@@ -115,6 +116,8 @@ public class LoginFrame implements ActionListener
 		panel.add(passwordField);
 		
 		loginButton = new JButton();
+		//loginButton.setVerticalTextPosition(SwingConstants.BOTTOM);
+		//loginButton.setHorizontalTextPosition(SwingConstants.CENTER);
 		loginButton.setLocation(115 , 200);
 		loginButton.setSize(60,40);
 		loginButton.addActionListener(this);
@@ -157,6 +160,7 @@ public class LoginFrame implements ActionListener
 				return;
 			}
 			
+			
 			frame.dispose();
 			new SelectionWindowFrame(nickNametext.getText() , new String(passwordField.getPassword()));
 		}
@@ -195,10 +199,13 @@ public class LoginFrame implements ActionListener
 					    }
 					});
 					new LoginFrame();
-					//Analyzer analyzer = new Analyzer();
-					//analyzer.updateProductQuantities(null, false);
-					//new AddProductFrame("1");
-					/*List<FormType> formsType = new ArrayList<>();
+					/*DataBase db = new DataBase();
+					Analyzer analyzer = new Analyzer();
+					for(String catalogNumber : db.getAllCatalogNumberOfCustomer("Telematics"))
+						analyzer.updateProductQuantities("shmulik",catalogNumber,FormType.FC,true);
+					analyzer.updateProductQuantities(null, false);
+					new AddProductFrame("1");
+					List<FormType> formsType = new ArrayList<>();
 					formsType.add(FormType.FC);
 					formsType.add(FormType.WO);
 					formsType.add(FormType.PO);

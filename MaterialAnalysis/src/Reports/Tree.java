@@ -143,11 +143,11 @@ public class Tree extends Report
 				this.description = newValue;
 				break;
 			case 3:
-				if(!db.getAllCatalogNumberOfCustomer(customer).contains(newValue.trim()))
+				if(!newValue.trim().equals("") && !db.getAllCatalogNumberOfCustomer(customer).contains(newValue.trim()))
 					throw new Exception("Invalid catalog number , catalog number does not exist");
-				if(newValue.trim().equals(catalogNumber.trim()))
+				if(!newValue.trim().equals("") && newValue.trim().equals(catalogNumber.trim()))
 					throw new Exception("Invalid catalog number , cannot be defined as a child and a father");
-				if(db.getFathers(catalogNumber).stream().filter(father -> father.getLeft().equals(newValue.trim())).count() > 0)
+				if(!newValue.trim().equals("") && db.getFathers(catalogNumber).stream().filter(father -> father.getLeft().equals(newValue.trim())).count() > 0)
 					throw new Exception("This catalog number is already defined as father of this product");
 				
 				if(quantity == null || quantity.equals("0") || quantity.equals(""))

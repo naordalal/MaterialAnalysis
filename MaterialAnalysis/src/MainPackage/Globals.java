@@ -85,6 +85,7 @@ public class Globals {
 	public String supplierOrdersPath = "Orders.xlsx";
 	public String expediteOrdersPath = "expedite Orders.xlsx";
 	public String ShortagesItemsPath = "Shortages Items.xlsx";
+	public static String unknownCatalogNumbersPath = "unknown catalog numbers.xlsx";
 	public static String usesPath = "Activity.xlsx";
 	
 	private URL nextPath = FollowUpAndExpediteMenu.class.getResource("/next.png");
@@ -108,6 +109,28 @@ public class Globals {
 	private URL clickUpdatePasswordIconPath= FollowUpAndExpediteMenu.class.getResource("/clickUpdatePass.png");
 	private URL directoryIconPath= FollowUpAndExpediteMenu.class.getResource("/directory.png");
 	private URL clickDirectoryIconPath= FollowUpAndExpediteMenu.class.getResource("/clickDirectory.png");
+	private URL productTreeIconPath= FollowUpAndExpediteMenu.class.getResource("/product tree.png");
+	private URL clickProductTreeIconPath= FollowUpAndExpediteMenu.class.getResource("/click product tree.png");
+	private URL initIconPath= FollowUpAndExpediteMenu.class.getResource("/init.png");
+	private URL clickInitIconPath= FollowUpAndExpediteMenu.class.getResource("/clickInit.png");
+	private URL newIconPath= FollowUpAndExpediteMenu.class.getResource("/new.png");
+	private URL clickNewIconPath= FollowUpAndExpediteMenu.class.getResource("/clickNew.png");
+	private URL viewTableIconPath= FollowUpAndExpediteMenu.class.getResource("/view table.png");
+	private URL clickViewTableIconPath= FollowUpAndExpediteMenu.class.getResource("/click view table.png");
+	private URL mapReportIconPath= FollowUpAndExpediteMenu.class.getResource("/map report.png");
+	private URL clickMapReportIconPath= FollowUpAndExpediteMenu.class.getResource("/clickMapReport.png");
+	private URL mrpHeaderReportIconPath= FollowUpAndExpediteMenu.class.getResource("/mrp header report.png");
+	private URL clickMrpHeaderReportIconPath= FollowUpAndExpediteMenu.class.getResource("/click mrp header report.png");
+	private URL settingsIconPath= FollowUpAndExpediteMenu.class.getResource("/settings.png");
+	private URL clickSettingsIconPath= FollowUpAndExpediteMenu.class.getResource("/click settings.png");
+	private URL deleteProductIconPath= FollowUpAndExpediteMenu.class.getResource("/delete product.png");
+	private URL clickDeleteProductIconPath= FollowUpAndExpediteMenu.class.getResource("/click delete product.png");
+	private URL priceIconPath= FollowUpAndExpediteMenu.class.getResource("/price.png");
+	private URL clickPriceIconPath= FollowUpAndExpediteMenu.class.getResource("/click price.png");
+	private URL loadReportsIconPath= FollowUpAndExpediteMenu.class.getResource("/load reports.png");
+	private URL clickLoadReportsIconPath= FollowUpAndExpediteMenu.class.getResource("/click load reports.png");
+	private URL expediteOrdersAndFollowUpIconPath= FollowUpAndExpediteMenu.class.getResource("/expedite and follow up.png");
+	private URL clickExpediteOrdersAndFollowUpIconPath= FollowUpAndExpediteMenu.class.getResource("/click expedite and follow up.png");
 	
 	
 	
@@ -132,6 +155,30 @@ public class Globals {
 	public ImageIcon clickUpdatePasswordIcon = new ImageIcon(clickUpdatePasswordIconPath);
 	public ImageIcon directoryIcon = new ImageIcon(directoryIconPath);
 	public ImageIcon clickDirectoryIcon = new ImageIcon(clickDirectoryIconPath);
+	public ImageIcon productTreeIcon= new ImageIcon(productTreeIconPath);
+	public ImageIcon clickProductTreeIcon= new ImageIcon(clickProductTreeIconPath);
+	public ImageIcon initIcon= new ImageIcon(initIconPath);
+	public ImageIcon clickInitIcon= new ImageIcon(clickInitIconPath);
+	public ImageIcon newIcon= new ImageIcon(newIconPath);
+	public ImageIcon clickNewIcon= new ImageIcon(clickNewIconPath);
+	public ImageIcon viewTableIcon= new ImageIcon(viewTableIconPath);
+	public ImageIcon clickViewTableIcon= new ImageIcon(clickViewTableIconPath);
+	public ImageIcon mapReportIcon= new ImageIcon(mapReportIconPath);
+	public ImageIcon clickMapReportIcon= new ImageIcon(clickMapReportIconPath);
+	public ImageIcon mrpHeaderReportIcon= new ImageIcon(mrpHeaderReportIconPath);
+	public ImageIcon clickMrpHeaderReportIcon= new ImageIcon(clickMrpHeaderReportIconPath);
+	public ImageIcon settingsIcon= new ImageIcon(settingsIconPath);
+	public ImageIcon clickSettingsIcon= new ImageIcon(clickSettingsIconPath);
+	public ImageIcon deleteProductIcon= new ImageIcon(deleteProductIconPath);
+	public ImageIcon clickDeleteProductIcon= new ImageIcon(clickDeleteProductIconPath);
+	public ImageIcon priceIcon= new ImageIcon(priceIconPath);
+	public ImageIcon clickPriceIcon= new ImageIcon(clickPriceIconPath);
+	public ImageIcon loadReportsIcon = new ImageIcon(loadReportsIconPath);
+	public ImageIcon clickLoadReportsIcon = new ImageIcon(clickLoadReportsIconPath);
+	public ImageIcon expediteOrdersAndFollowUpIcon = new ImageIcon(expediteOrdersAndFollowUpIconPath);
+	public ImageIcon clickExpediteOrdersAndFollowUpIcon = new ImageIcon(clickExpediteOrdersAndFollowUpIconPath);
+	
+	
 	public Image frameImage = new ImageIcon(frameIconPath).getImage(); 
 	
 	public static double highPrice;
@@ -140,7 +187,7 @@ public class Globals {
 	
 	public static final int monthsToCalculate = 6;
 	public static final int monthsBackToView = 3;
-	public static final String mapVersion = "I";
+	public static final String mapVersion = "J";
 	
 	public String acceptNotes = "Please approve receipt of PO and delivery date";
 	public String promisedDateInHebrewColumn = "תאריך מובטח";
@@ -151,8 +198,10 @@ public class Globals {
 	public String supplierInEnglishColumn = "supplier";
 	public String notesColumn = "הערות לספק";
 	
-	public String noDate = "11/11/19";
-	public String frozenDate = "12/12/19";
+	public String noDate = "11/11/29";
+	public String frozenDate = "12/12/29";
+	
+	public String itemNumberColumn = "מקט מוצר";
 
 	public void initTextComponent(JTextComponent text) 
 	{

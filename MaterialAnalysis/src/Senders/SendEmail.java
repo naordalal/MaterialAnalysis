@@ -64,7 +64,8 @@ public class SendEmail {
 	      
 	      
 	      // Get the default Session object.
-	      Session session = Session.getDefaultInstance(properties , auth);
+	      //While connect to computer with user name and password there is no need for authenticator
+	      Session session = Session.getDefaultInstance(properties , auth); 
 	      
 
 	      try{

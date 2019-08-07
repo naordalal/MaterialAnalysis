@@ -4,9 +4,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.mail.Authenticator;
+
 import org.apache.commons.lang3.StringUtils;
 
+import MainPackage.CallBack;
 import MainPackage.Globals;
+import MapFrames.ReportViewFrame;
 
 public class Shipment extends Form
 {
@@ -177,5 +181,23 @@ public class Shipment extends Form
 		
 		return filterColumns;
 
+	}
+
+	@Override
+	public CallBack<Object> getValueCellChangeAction(String email, Authenticator auth, String userName,
+			ReportViewFrame frame, Object... args) {
+		return null;
+	}
+
+	@Override
+	public CallBack<Object> getDoubleLeftClickAction(String email, Authenticator auth, String userName,
+			ReportViewFrame frame, Object... args) {
+		return null;
+	}
+
+	@Override
+	public CallBack<Object> getRightClickAction(String email, Authenticator auth, String userName,
+			ReportViewFrame frame, Object... args) {
+		return null;
 	}
 }

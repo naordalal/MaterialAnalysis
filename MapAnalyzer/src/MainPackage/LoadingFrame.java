@@ -64,6 +64,7 @@ public class LoadingFrame
 			
 			analyzer.analyze();
 			frame.dispose();
+			Main.backupDB();
 			JOptionPane.showConfirmDialog(null, "Done!","",JOptionPane.PLAIN_MESSAGE);
 		}
 		catch (Exception e) 

@@ -3,6 +3,7 @@
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Insets;
@@ -50,6 +51,8 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
+import org.apache.commons.lang3.math.NumberUtils;
+
 import Components.FilterCombo;
 import Components.MultiSelectionComboBox;
 import Components.MyJTable;
@@ -88,6 +91,7 @@ public class ReportViewFrame implements ActionListener
 	private JPanel filterPanel;
 	private JButton exportReportButton;
 	private Authenticator auth;
+	private JComponent customComponent;
 
 	private JTextField filterText;
 
@@ -231,7 +235,7 @@ public class ReportViewFrame implements ActionListener
 
 		scrollPane = new JScrollPane(table);
 		scrollPane.setLocation(30, 50);
-		scrollPane.setSize(900,600);
+		scrollPane.setSize(900,580);
 		scrollPane.setVisible(true);
 		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -269,6 +273,7 @@ public class ReportViewFrame implements ActionListener
 			
 			updateFilterComboBoxValues(index);
 			filterComboBoxs[index].addActionListener(this);
+			filterComboBoxs[index].setPreferredSize(new Dimension(650 / maximumFilters , 20));
 			filterPanel.add(filterComboBoxs[index]);
 		}
 
@@ -299,6 +304,13 @@ public class ReportViewFrame implements ActionListener
 		exportReportButton.setPressedIcon(globals.clickSendIcon);
 		exportReportButton.setToolTipText("send");
 		panel.add(exportReportButton);
+		
+		if(customComponent != null)
+		{
+			customComponent.setLocation(50, 640);
+			customComponent.setSize(100,40);
+			panel.add(customComponent);
+		}
 		
 		copyRight = new JLabel("<html><b>\u00a9 Naor Dalal</b></html>");
 		copyRight.setLocation(30 , 680);
@@ -345,9 +357,9 @@ public class ReportViewFrame implements ActionListener
 		filterComboBoxs[index].removeAllItems();
 		List<String> baseValues = new ArrayList<>();
 		
-		for(int row = 0 ; row < table.getRowCount() ; row++)
+		for(int row = 0 ; row < table.getModel().getRowCount() ; row++)
 		{
-			String value = (String) table.getValueAt(row , filterColumns.get(index));
+			String value = (String) table.getModel().getValueAt(row , filterColumns.get(index));
 			if(filterModel.getIndexOf(value) < 0)
 			{
 				filterModel.addElement(value);
@@ -410,6 +422,11 @@ public class ReportViewFrame implements ActionListener
 			model.addRow(content[index]);
 			for(int cell = 0; cell < content[index].length ; cell++)
 			{
+				String value = content[index][cell].trim();
+				
+				if(NumberUtils.isCreatable(value))
+    				updateCellValue(index , cell , String.format("%,d", (int)Double.parseDouble(value)));
+				
 				if(content[index][cell].trim().equals("0") || content[index][cell].trim().equals("0.0"))
 					updateCellValue(index, cell, "");
 			}
@@ -424,9 +441,20 @@ public class ReportViewFrame implements ActionListener
 		DefaultTableModel model = (DefaultTableModel)table.getModel();
 		
 		for(int rowIndex = model.getRowCount() - 1 ; rowIndex >= 0 ; rowIndex --)
-				updateRow(rowIndex);
+				model.removeRow(rowIndex);
 		
-		//createContent(model);
+		createContent(model);
+		
+		for(int index = 0 ; index < filterComboBoxs.length ;index++)
+		{
+			List<String> selectedItems = new ArrayList<>(filterComboBoxs[index].getSelectedItems());
+			updateFilterComboBoxValues(index);
+			for (String item : selectedItems) 
+			{
+				filterComboBoxs[index].addSelectedItem(item);
+			}
+			filterComboBoxs[index].setModelSelectedItem();
+		}
 		
 		if(filterComboBoxs.length > 0)
 		{
@@ -449,8 +477,17 @@ public class ReportViewFrame implements ActionListener
 		}
 		else
 		{
-			table.getModel().setValueAt(newValue, row, column);
-			content[row][column] = newValue;
+			if(NumberUtils.isCreatable(newValue))
+			{
+				newValue = String.format("%,d", (int)Double.parseDouble(newValue));
+				table.getModel().setValueAt(newValue, row, column);
+				content[row][column] = newValue;
+			}
+			else
+			{
+				table.getModel().setValueAt(newValue, row, column);
+				content[row][column] = newValue;
+			}
 		}
 		
 	}
@@ -557,8 +594,10 @@ public class ReportViewFrame implements ActionListener
 			
 			try 
 			{
-				sender.send(frameName, "", attachFile, Globals.getReportFileName(frameName));
-				JOptionPane.showConfirmDialog(null, "Sent successfully","",JOptionPane.PLAIN_MESSAGE);
+				if(sender.send(frameName, "", attachFile, Globals.getReportFileName(frameName)))
+					JOptionPane.showConfirmDialog(null, "Sent successfully","",JOptionPane.PLAIN_MESSAGE);
+				else
+					JOptionPane.showConfirmDialog(null, "Wrong User/Password OR there is no internet connection","",JOptionPane.PLAIN_MESSAGE);	
 			}
 			catch (noValidEmailException e) 
 			{
@@ -662,6 +701,11 @@ public class ReportViewFrame implements ActionListener
 		{
 			actionPerformed(new ActionEvent(searchButton, 0, null));
 		}
+	}
+	
+	public void setCustomComponent(JComponent component)
+	{
+		this.customComponent = component;
 	}
     
 

@@ -6,8 +6,11 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,6 +34,7 @@ import Forms.WorkOrder;
 import MainPackage.Globals;
 import MainPackage.Globals.FormType;
 import MainPackage.Globals.UpdateType;
+import Reports.ForecastAttachment;
 import Reports.ProductInit;
 import Reports.ProductInitHistory;
 import Reports.Tree;
@@ -2940,13 +2944,6 @@ public class DataBase {
 		try{
 			
 			connect();
-			stmt = c.prepareStatement("UPDATE Tree SET fatherCN = ? WHERE CN = ? AND fatherCN = ?");
-			stmt.setString(1, newFatherCN);
-			stmt.setString(2, catalogNumber);
-			stmt.setString(3, fatherCN);
-			stmt.executeUpdate();
-			
-			c.commit();
 			
 			if(newFatherCN == null || newFatherCN.equals(""))
 			{
@@ -2960,11 +2957,19 @@ public class DataBase {
 					if(count > 1)
 					{
 						closeConnection();
-						removeCatalogNumber(catalogNumber , newFatherCN);
-						connect();
+						removeCatalogNumber(catalogNumber , fatherCN);
+						return;
 					}
 				}
 			}
+			
+			stmt = c.prepareStatement("UPDATE Tree SET fatherCN = ? WHERE CN = ? AND fatherCN = ?");
+			stmt.setString(1, newFatherCN);
+			stmt.setString(2, catalogNumber);
+			stmt.setString(3, fatherCN);
+			stmt.executeUpdate();
+			
+			c.commit();
 			
 			closeConnection();
 		
@@ -4119,23 +4124,28 @@ public class DataBase {
 		}
 	}
 	
-	public java.util.Date getLastUpdateDate(UpdateType type) 
+	public LocalDateTime getLastUpdateDate(UpdateType type) 
 	{
-		DateTimeFormatter df = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+		DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
 		
 		try{
 			
 			connect();	
-			stmt =  c.prepareStatement("SELECT MAX(strftime('%Y-%m-%dT%H:%M:%S',date)) AS date FROM UpdateDates where updateType = ?");
+			stmt =  c.prepareStatement("SELECT MAX(strftime('%Y-%m-%dT%H:%M:%f',date)) AS date FROM UpdateDates where updateType = ?");
 			stmt.setString(1, type.toString());
 			ResultSet rs = stmt.executeQuery();
-
-			java.util.Date out = null;
+			
+			LocalDateTime out = null;
 			
 			if(rs.next() && rs.getString("date") != null)
 			{
-				LocalDateTime ldt = LocalDateTime.from(df.parse(rs.getString("date")));
-				out = java.util.Date.from(ldt.atZone(ZoneId.systemDefault()).toInstant());
+				String date = rs.getString("date");
+				out = LocalDateTime.from(df.parse(date));
+				
+				
+				/*LocalDateTime ldt = LocalDateTime.from(df.parse(rs.getString("date")));
+				out = java.util.Date.from(ldt.atZone(ZoneId.systemDefault()).toInstant());*/
+								
 			}
 			
 			closeConnection();
@@ -4152,6 +4162,337 @@ public class DataBase {
 		
 	}
 	
+	public double getPriceOfProduct(String cn)
+	{
+		try{
+			
+			connect();	
+			stmt =  c.prepareStatement("select CN , price , MAX(orderDate) as orderDate from CustomerOrders where CN = ? Group by CN");
+			stmt.setString(1, cn);
+			ResultSet rs = stmt.executeQuery();
+			
+			double price = 0;
+			
+			while(rs.next())
+			{
+				String priceString = rs.getString("price");
+				if(NumberUtils.isCreatable(priceString))
+				{
+					price = Double.parseDouble(priceString);
+					break;
+				}
+			}
+			
+			closeConnection();
+			
+			return price;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return -1;
+		}
+		
+	}
 	
+	public double getCustomerDeposit(String customer) 
+	{
+		try
+		{
+		
+			connect();
+			stmt = c.prepareStatement("SELECT deposit FROM Projects where projectName = ?");
+			stmt.setString(1, customer);
+			ResultSet rs = stmt.executeQuery();
+			
+			double deposit = 0;
+			
+			if(rs.next())
+				deposit =  rs.getDouble("deposit");
+			
+			closeConnection();
+			return deposit;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return 0;
+		}
+	}
+	
+	public double getCustomerObligation(String customer) 
+	{
+		try
+		{
+		
+			connect();
+			stmt = c.prepareStatement("SELECT obligation FROM Projects where projectName = ?");
+			stmt.setString(1, customer);
+			ResultSet rs = stmt.executeQuery();
+			
+			double obligation = 0;
+			
+			if(rs.next())
+				obligation =  rs.getDouble("obligation");
+			
+			closeConnection();
+			return obligation;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return 0;
+		}
+	}
 
+	public boolean setCustomerDeposit(String customer , double deposit) 
+	{
+		try
+		{
+			connect();
+			stmt = c.prepareStatement("UPDATE Projects SET deposit = ? WHERE projectName = ?");
+			
+			stmt.setDouble(1, deposit);
+			stmt.setString(2, customer);
+			stmt.executeUpdate();
+			
+			c.commit();
+			
+			closeConnection();
+			
+			return true;
+		
+		}
+		catch(Exception e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			
+			e.printStackTrace();
+			closeConnection();
+			return false;
+		}
+	}
+	
+	public boolean setCustomerObligation(String customer , double obligation) 
+	{
+		try
+		{
+			connect();
+			stmt = c.prepareStatement("UPDATE Projects SET obligation = ? WHERE projectName = ?");
+			
+			stmt.setDouble(1, obligation);
+			stmt.setString(2, customer);
+			stmt.executeUpdate();
+			
+			c.commit();
+			
+			closeConnection();
+			
+			return true;
+		
+		}
+		catch(Exception e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			
+			e.printStackTrace();
+			closeConnection();
+			return false;
+		}
+	}
+	public String getFullCatalogNumber(String shortCatalogNumber , String customer) 
+	{
+		String catalogNumber = "";
+		try{
+			
+			connect();
+			stmt = c.prepareStatement("SELECT CN FROM Tree where CN LIKE ? AND customer = ? COLLATE NOCASE");
+			stmt.setString(1, "%" + shortCatalogNumber);
+			stmt.setString(2, customer);
+			ResultSet rs = stmt.executeQuery();
+			
+			if(rs.next())
+				catalogNumber = rs.getString("CN");
+			
+			closeConnection();
+			return catalogNumber;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return catalogNumber;
+		}
+	}
+	public List<ForecastAttachment> getAllForecastAttachments(int id) 
+	{
+		List<ForecastAttachment> attachments = new ArrayList<>();
+		
+		try
+		{
+		
+			connect();
+			stmt = c.prepareStatement("SELECT filePath,fileName FROM ForecastAttachments where forecastId = ?");
+			stmt.setInt(1, id);
+			ResultSet rs = stmt.executeQuery();
+			
+			while(rs.next())
+			{
+				String filePath =  rs.getString("filePath");
+				String fileName =  rs.getString("fileName");
+				ForecastAttachment attachment = new ForecastAttachment(id, fileName, filePath);
+				attachments.add(attachment);
+			}
+			
+			closeConnection();
+			return attachments;
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			closeConnection();
+			return attachments;
+		}
+	}
+	public boolean addForecastAttachment(int id, String fileName, String filePath) 
+	{
+		try
+		{
+			connect();		
+			
+			stmt = c.prepareStatement("INSERT INTO forecastAttachments (forecastId , filePath , fileName) VALUES(?,?,?)");
+			stmt.setInt(1, id);
+			stmt.setString(2, filePath);
+			stmt.setString(3, fileName);
+			stmt.executeUpdate();
+			
+			c.commit();
+			
+			closeConnection();
+			
+			return true;
+			
+		}
+		catch(SQLException e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			closeConnection();
+			
+			return false;
+		}
+	
+		
+	}
+	
+	public boolean deleteForecastAttachment(int forecastId, String filePath) 
+	{
+		try
+		{
+			connect();
+			stmt = c.prepareStatement("DELETE FROM ForecastAttachments where forecastId = ? AND filePath = ?");
+			stmt.setInt(1, forecastId);
+			stmt.setString(2, filePath);
+			int rowsNumber = stmt.executeUpdate();
+			
+			c.commit();
+			closeConnection();
+			
+			return rowsNumber > 0;
+			
+		}
+		catch(SQLException e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			closeConnection();
+			e.printStackTrace();
+			return false;
+		}
+	}
+	public boolean updateForecastAttachment(int forecastId, String oldFilePath, String filePath, String fileName) 
+	{
+		try
+		{
+			connect();
+			stmt = c.prepareStatement("UPDATE ForecastAttachments SET filePath = ? , fileName = ? WHERE forecastId = ? AND filePath = ?");
+			
+			stmt.setString(1, filePath);
+			stmt.setString(2, fileName);
+			stmt.setInt(3, forecastId);
+			stmt.setString(4, oldFilePath);
+			stmt.executeUpdate();
+			
+			c.commit();
+			
+			closeConnection();
+			
+			return true;
+		
+		}
+		catch(Exception e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			
+			e.printStackTrace();
+			closeConnection();
+			return false;
+		}
+		
+	}
+	public void addForecastAttachment(String fileName, String filePath) 
+	{
+		try
+		{
+			connect();		
+			
+			stmt = c.prepareStatement("INSERT INTO forecastAttachments (forecastId , filePath , fileName) VALUES((select MAX(Forecast.id) from Forecast),?,?)");
+			stmt.setString(1, filePath);
+			stmt.setString(2, fileName);
+			stmt.executeUpdate();
+			
+			c.commit();
+			
+			closeConnection();
+			
+		}
+		catch(SQLException e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			closeConnection();
+		}
+	
+		
+	}
+	
 }
