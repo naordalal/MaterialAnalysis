@@ -496,7 +496,10 @@ public class Analyzer
 						//materialAvailabilityFix += quantityToAssociate * fatherWorkOrder.getQuantity();
 						
 						parentWorkOrder += quantityToAssociate * fatherWorkOrder.getQuantity();
-						parentWorkOrderSupplied += quantityToAssociate * fatherSupplied.getQuantity(); 
+						
+						double fatherParentsSupplied = helpedMap.get(monthDate).get(fatherCatalogNumber).getParentWorkOrderSupplied();
+						//TODO: + quantityToAssociate * fatherParentsSupplied
+						parentWorkOrderSupplied += quantityToAssociate * fatherSupplied.getQuantity();
 					}
 				}
 				
@@ -575,7 +578,7 @@ public class Analyzer
 		for (MonthDate monthDate : monthToCalculate) 
 			map.put(monthDate, db.getLastMap(userName, catalogNumbers , monthDate));
 				
-		
+		// TODO: sort CatalogNumber topology
 		for (String catalogNumber : map.get(monthToCalculate.get(0)).keySet()) 
 		{
 			String descendantCatalogNumber = db.getDescendantCatalogNumber(catalogNumber);
@@ -646,6 +649,9 @@ public class Analyzer
 						int quantityToAssociate = fatherCatalogNumberAndQuantityToAssociate.getRight();
 						
 						parentWorkOrder += quantityToAssociate * fatherWorkOrder.getQuantity();
+						
+						double fatherParentsSupplied = map.get(monthDate).get(fatherCatalogNumber).getParentWorkOrderSupplied();
+						//TODO: + quantityToAssociate * fatherParentsSupplied
 						parentWorkOrderSupplied += quantityToAssociate * fatherSupplied.getQuantity(); 
 					}
 				}
