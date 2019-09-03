@@ -1,4 +1,4 @@
-﻿package AnalyzerTools;
+package AnalyzerTools;
 
 public class QuantityPerDate 
 {

@@ -1,4 +1,4 @@
-﻿package FollowUpAndExpediteFrames;
+package FollowUpAndExpediteFrames;
 import javax.mail.Authenticator;
 import javax.swing.AbstractAction;
 import javax.swing.DefaultComboBoxModel;

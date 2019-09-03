@@ -1,4 +1,4 @@
-﻿package MapFrames;
+package MapFrames;
 
 import java.awt.Component;
 import java.awt.Cursor;

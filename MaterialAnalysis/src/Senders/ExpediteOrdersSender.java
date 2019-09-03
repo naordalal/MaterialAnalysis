@@ -1,4 +1,4 @@
-﻿package Senders;
+package Senders;
 
 import java.awt.Point;
 import java.io.File;

@@ -1,4 +1,4 @@
-﻿package MapFrames;
+package MapFrames;
 
 import java.awt.Cursor;
 import java.awt.event.ActionEvent;

@@ -1,4 +1,4 @@
-﻿package Frames;
+package Frames;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;

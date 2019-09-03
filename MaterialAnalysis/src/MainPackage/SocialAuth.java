@@ -1,4 +1,4 @@
-﻿package MainPackage;
+package MainPackage;
 import javax.mail.Authenticator;
 import javax.mail.PasswordAuthentication;
 

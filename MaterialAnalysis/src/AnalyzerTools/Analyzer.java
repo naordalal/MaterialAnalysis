@@ -1,4 +1,4 @@
-﻿package AnalyzerTools;
+package AnalyzerTools;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

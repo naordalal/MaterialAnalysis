@@ -1,4 +1,4 @@
-﻿package Reports;
+package Reports;
 
 import java.util.ArrayList;
 import java.util.List;
