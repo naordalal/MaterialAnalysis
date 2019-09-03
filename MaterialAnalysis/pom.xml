@@ -4,6 +4,14 @@
   <artifactId>Map</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <build>
+	<resources>
+		<resource>
+			<directory>Images</directory>
+		</resource>
+		<resource>
+			<directory>resources</directory>
+		</resource>
+	</resources>
     <sourceDirectory>src</sourceDirectory>
     <plugins>
       <plugin>
@@ -17,6 +25,20 @@
     </plugins>
   </build>
   <dependencies>
+    <dependency>
+	    <groupId>javax.activation</groupId>
+	    <artifactId>activation</artifactId>
+	    <version>1.0</version>
+	    <scope>system</scope>
+	    <systemPath>${basedir}/resources/activation.jar</systemPath>
+    </dependency>
+	<dependency>
+		<groupId>javax.mail</groupId>
+		<artifactId>mail</artifactId>
+		<version>1.4.7</version>
+		<scope>system</scope>
+		<systemPath>${basedir}/resources/mail.jar</systemPath>
+	</dependency>
   	<dependency>
   		<groupId>org.apache.poi</groupId>
   		<artifactId>poi</artifactId>
