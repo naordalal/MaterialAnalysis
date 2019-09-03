@@ -1,4 +1,4 @@
-
-MaterialAnalysis/target/classes/Senders/SimSender.class
-*.class
-*.class
+.classpath
+.project
+.settings/
+target/
