@@ -257,7 +257,7 @@ public class Forecast extends Form
 				TableCellListener tcl = (TableCellListener)objects[0];
 				int row = tcl.getRow();
 				int col = tcl.getColumn();
-				Forecast forecast = forecasts.get(row);
+				Forecast forecast = forecasts.get(forecastFrame.convertIndexToModelIndex(row));
 				if(col != 8)
 					return null;
 				
@@ -377,7 +377,7 @@ public class Forecast extends Form
 				int column = tcl.getColumn();
 				String newValue = (String) tcl.getNewValue();
 				String oldValue = (String) tcl.getOldValue();
-				ForecastAttachment forecastAttachment = forecastAttachments.get(row);
+				ForecastAttachment forecastAttachment = forecastAttachments.get(forecastAttachmentsFrame.convertIndexToModelIndex(row));
 				
 				try
 				{

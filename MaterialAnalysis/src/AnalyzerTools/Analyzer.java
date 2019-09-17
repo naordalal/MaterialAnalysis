@@ -1086,7 +1086,7 @@ public class Analyzer
 						int column = tcl.getColumn();
 						String newValue = (String) tcl.getNewValue();
 						String oldValue = (String) tcl.getOldValue();
-						Form updateForm = forms.get(row);
+						Form updateForm = forms.get(mapFrame.convertIndexToModelIndex(row));
 						
 						try 
 						{
@@ -1312,7 +1312,7 @@ public class Analyzer
 		return rows.stream().map(row -> row.toArray(new String[0])).toArray(String[][]::new);
 	}
 	
-	public CallBack<Object> getDoubleLeftClickActionOfMapPrice()
+	public CallBack<Object> getDoubleLeftClickActionOfMapPrice(ReportViewFrame frame)
 	{
 		return new CallBack<Object>()
 		{
@@ -1429,7 +1429,7 @@ public class Analyzer
 		return rows.stream().map(row -> row.toArray(new String[0])).toArray(String[][]::new);
 	}
 	
-	public CallBack<Object> getDoubleLeftClickActionOfDeviationReport()
+	public CallBack<Object> getDoubleLeftClickActionOfDeviationReport(ReportViewFrame frame)
 	{
 		return new CallBack<Object>()
 		{

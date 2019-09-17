@@ -411,7 +411,7 @@ public class MainMapFrame implements ActionListener
 				List<String> filterNames = new ArrayList<>();
 				filterColumns.stream().forEach(col -> filterNames.add(columns[col] + ": "));
 				mapPriceFrame.setFilters(filterColumns, filterNames);
-				mapPriceFrame.setCallBacks(null, analyzer.getDoubleLeftClickActionOfMapPrice(), null);
+				mapPriceFrame.setCallBacks(null, analyzer.getDoubleLeftClickActionOfMapPrice(mapPriceFrame), null);
 				
 				mapPriceFrame.show();
 			}
@@ -589,7 +589,7 @@ public class MainMapFrame implements ActionListener
 				List<String> filterNames = new ArrayList<>();
 				filterColumns.stream().forEach(col -> filterNames.add(columns[col] + ": "));
 				customersDeviationFrame.setFilters(filterColumns, filterNames);
-				customersDeviationFrame.setCallBacks(null, analyzer.getDoubleLeftClickActionOfDeviationReport(), null);
+				customersDeviationFrame.setCallBacks(null, analyzer.getDoubleLeftClickActionOfDeviationReport(customersDeviationFrame), null);
 				
 				customersDeviationFrame.show();
 			}

@@ -22,25 +22,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.mail.Authenticator;
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.InputMap;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.KeyStroke;
-import javax.swing.ListSelectionModel;
-import javax.swing.RowFilter;
-import javax.swing.ScrollPaneConstants;
+import javax.swing.*;
 import javax.swing.border.AbstractBorder;
+import javax.swing.event.RowSorterEvent;
+import javax.swing.event.RowSorterListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.DefaultTableModel;
@@ -65,8 +50,7 @@ import MainPackage.Globals;
 import MainPackage.noValidEmailException;
 import Senders.SendEmail;
 
-public class ReportViewFrame implements ActionListener 
-{
+public class ReportViewFrame implements ActionListener {
 	private static final int maximumFilters = 4;
 	
 	private JFrame frame;
@@ -630,7 +614,7 @@ public class ReportViewFrame implements ActionListener
 			
 			TableRowSorter<TableModel> sorter = new TableRowSorter<TableModel>(((DefaultTableModel) table.getModel())); 
 		    sorter.setRowFilter(RowFilter.andFilter(rowsFilters));
-		    
+
 		    table.setRowSorter(sorter);
 		}
 		else if(event.getSource() == searchButton)
@@ -707,7 +691,10 @@ public class ReportViewFrame implements ActionListener
 	{
 		this.customComponent = component;
 	}
-    
 
+	public int convertIndexToModelIndex(int rowViewIndex)
+	{
+		return table.getRowSorter().convertRowIndexToModel(rowViewIndex);
+	}
 }
 

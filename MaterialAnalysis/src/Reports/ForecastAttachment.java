@@ -147,7 +147,7 @@ public class ForecastAttachment extends Report
 				TableCellListener tcl = (TableCellListener)objects[0];
 				int row = tcl.getRow();
 				int col = tcl.getColumn();
-				ForecastAttachment forecastAttachment = forecastAttachments.get(row);
+				ForecastAttachment forecastAttachment = forecastAttachments.get(frame.convertIndexToModelIndex(row));
 				
 				if(col == 1)
 				{
@@ -195,7 +195,7 @@ public class ForecastAttachment extends Report
 			{
 				TableCellListener tcl = (TableCellListener)objects[0];
 				int row = tcl.getRow();
-				ForecastAttachment forecastAttachment = forecastAttachments.get(row);
+				ForecastAttachment forecastAttachment = forecastAttachments.get(frame.convertIndexToModelIndex(row));
 				
 				String path = forecastAttachment.getFilePath();
 				try {

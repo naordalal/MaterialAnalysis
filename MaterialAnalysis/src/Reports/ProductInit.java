@@ -194,7 +194,8 @@ public class ProductInit extends Report
 				int column = tcl.getColumn();
 				String newValue = (String) tcl.getNewValue();
 				String oldValue = (String) tcl.getOldValue();
-				ProductInit productInit = productsInit.get(row);
+
+				ProductInit productInit = productsInit.get(frame.convertIndexToModelIndex(row));
 				
 				try
 				{
@@ -234,7 +235,7 @@ public class ProductInit extends Report
 				TableCellListener tcl = (TableCellListener)objects[0];
 				int row = tcl.getRow();
 				int col = tcl.getColumn();
-				ProductInit productInit = productsInit.get(row);
+				ProductInit productInit = productsInit.get(frame.convertIndexToModelIndex(row));
 				if(col != 0)
 					return null;
 				
