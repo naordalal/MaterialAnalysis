@@ -82,7 +82,7 @@ public class Analyzer
 		for (String line : Files.readAllLines(getFilePath(fileDir , filePrefix),Charset.forName(globals.charsetName)))
 		{
 			List<String> columns = Arrays.asList(line.split("\\|" , -1)).stream().map(s -> s.trim()).collect(Collectors.toList());
-			if(woNumberColumn == -1) 
+			if(woNumberColumn == -1)
 				woNumberColumn = columns.indexOf(globals.woNumberColumn);
 			if(catalogNumberColumn == -1) 
 				catalogNumberColumn = columns.indexOf(globals.catalogNumberColumn);
@@ -385,7 +385,7 @@ public class Analyzer
 				supplied.addQuantity(initShipment);
 				
 				double materialAvailability = 0 ,workOrderAfterSupplied = 0 , openCustomerOrder = 0 , workOrderAfterCustomerOrderAndParentWorkOrder= 0 ,
-						parentWorkOrder = 0 , parentWorkOrderSupplied = 0;
+						parentWorkOrder = 0;
 				
 				double previousOpenCustomerOrder = 0 , previousWorkOrderAfterSupplied = 0 , previousMaterialAvailability = 0 ,
 						previousWorkOrderAfterCustomerOrderAndParentWorkOrder = 0;
@@ -416,6 +416,7 @@ public class Analyzer
 				List<String> descendantsFathersOfDescendantsCatalogNumbers = fathersOfDescendantsCatalogNumbers.stream().map(el ->{ List<String> desCN = db.getAllDescendantCatalogNumber(el); desCN.add(el); return desCN;}).reduce((a,b) -> {a.addAll(b) ; return a;}).orElse(new ArrayList<>());
 				
 				double materialAvailabilityFix = calculateMaterialAvailabilityFix(catalogNumber , monthDate);
+				double parentWorkOrderSupplied = calculateParentsWorkOrderSupplied(catalogNumber, monthDate);
 				double initFatherWO = 0;
 				
 				for (Pair<String, Integer> fatherCatalogNumberAndQuantityToAssociate : fathersCatalogNumberAndQuantityToAssociate) 
@@ -443,7 +444,6 @@ public class Analyzer
 						//materialAvailabilityFix += quantityToAssociate * fatherWorkOrder.getQuantity();
 						
 						parentWorkOrder += quantityToAssociate * fatherWorkOrder.getQuantity();
-						parentWorkOrderSupplied += quantityToAssociate * fatherSupplied.getQuantity();
 					}
 					
 				}
@@ -526,6 +526,39 @@ public class Analyzer
 		}
 		
 		return materialAvailabilityFix;
+	}
+
+	private double calculateParentsWorkOrderSupplied(String catalogNumber , MonthDate monthDate)
+	{
+		List<Pair<String, Integer>> fathersCatalogNumberAndQuantityToAssociate = db.getFathers(catalogNumber);
+		List<String> descendantsCatalogNumbers = db.getAllDescendantCatalogNumber(catalogNumber);
+		List<String> fathersOfDescendantsCatalogNumbers = descendantsCatalogNumbers.stream().map(cn -> db.getFathers(cn).stream().map(pair -> pair.getLeft())
+				.collect(Collectors.toList())).reduce((a,b) -> {a.addAll(b) ; return a;}).orElse(new ArrayList<>());
+		List<String> descendantsFathersOfDescendantsCatalogNumbers = fathersOfDescendantsCatalogNumbers.stream().map(el -> { List<String> desCN = db.getAllDescendantCatalogNumber(el); desCN.add(el); return desCN;}).reduce((a,b) -> {a.addAll(b) ; return a;}).orElse(new ArrayList<>());
+
+		double parentsWorkOrderSupplied = 0;
+
+		for (Pair<String, Integer> fatherCatalogNumberAndQuantityToAssociate : fathersCatalogNumberAndQuantityToAssociate)
+		{
+			List<String> descendantsFatherCatalogNumbers = db.getAllDescendantCatalogNumber(fatherCatalogNumberAndQuantityToAssociate.getLeft());
+			descendantsFatherCatalogNumbers.add(fatherCatalogNumberAndQuantityToAssociate.getLeft());
+
+			for (String fatherCatalogNumber : descendantsFatherCatalogNumbers)
+			{
+				if(descendantsFathersOfDescendantsCatalogNumbers.contains(fatherCatalogNumber))
+					continue;
+
+				int quantityToAssociate = fatherCatalogNumberAndQuantityToAssociate.getRight();
+
+				QuantityPerDate fatherWorkOrderSupplied = db.getProductShipmentQuantityOnDate(fatherCatalogNumber , monthDate);
+				parentsWorkOrderSupplied += fatherWorkOrderSupplied.getQuantity() * quantityToAssociate;
+
+				if(isSon(fatherCatalogNumber))
+					parentsWorkOrderSupplied += calculateParentsWorkOrderSupplied(fatherCatalogNumber, monthDate) * quantityToAssociate;
+			}
+		}
+
+		return parentsWorkOrderSupplied;
 	}
 	
 	private boolean isSon(String catalogNumber) 
@@ -615,7 +648,7 @@ public class Analyzer
 				supplied.addQuantity(initShipment);
 				
 				double materialAvailability = 0 ,workOrderAfterSupplied = 0 , openCustomerOrder = 0 , workOrderAfterCustomerOrderAndParentWorkOrder= 0 ,
-						parentWorkOrder = 0 , parentWorkOrderSupplied = 0;
+						parentWorkOrder = 0;
 				
 				double previousOpenCustomerOrder = 0 , previousWorkOrderAfterSupplied = 0 , previousMaterialAvailability = 0 ,
 						previousWorkOrderAfterCustomerOrderAndParentWorkOrder = 0;
@@ -646,6 +679,7 @@ public class Analyzer
 				List<String> descendantsFathersOfDescendantsCatalogNumbers = fathersOfDescendantsCatalogNumbers.stream().map(el -> { List<String> desCN = db.getAllDescendantCatalogNumber(el); desCN.add(el); return desCN;}).reduce((a,b) -> {a.addAll(b) ; return a;}).orElse(new ArrayList<>());
 				
 				double materialAvailabilityFix = calculateMaterialAvailabilityFix(catalogNumber , monthDate);
+				double parentWorkOrderSupplied = calculateParentsWorkOrderSupplied(catalogNumber, monthDate);
 				double initFatherWO = 0;
 				for (Pair<String, Integer> fatherCatalogNumberAndQuantityToAssociate : fathersCatalogNumberAndQuantityToAssociate) 
 				{
@@ -671,7 +705,6 @@ public class Analyzer
 						//materialAvailabilityFix += quantityToAssociate * fatherWorkOrder.getQuantity();
 						
 						parentWorkOrder += quantityToAssociate * fatherWorkOrder.getQuantity();
-						parentWorkOrderSupplied += quantityToAssociate * fatherSupplied.getQuantity(); 
 					}
 				}
 				
