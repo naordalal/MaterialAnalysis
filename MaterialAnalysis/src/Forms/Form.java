@@ -2,6 +2,8 @@ package Forms;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.mail.Authenticator;
 
@@ -87,6 +89,11 @@ public abstract class Form
 	public abstract void updateValue(int column, String newValue , String userName) throws Exception;
 	
 	public abstract List<Integer> getInvalidEditableColumns();
+
+	public static Map<Integer, List<Integer>> getInvalidFormColumnsPerRow(List<? extends Form> forms)
+	{
+		return forms.stream().collect(Collectors.toMap((form) -> forms.indexOf(form), (form) -> form.getInvalidEditableColumns()));
+	}
 
 	public static boolean isNeedRequireDate(String className) 
 	{

@@ -13,6 +13,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -1124,9 +1125,11 @@ public class Analyzer
 			rows[index] = form.getRow();
 			index++;
 		}
-		
-		boolean canEdit = forms.get(0).canEdit();
-		ReportViewFrame reportViewFrame = new ReportViewFrame(email , auth , "Reports View" , columns, rows, canEdit , forms.get(0).getInvalidEditableColumns());
+
+		Map<Integer,List<Integer>> invalidEditableColumns = Form.getInvalidFormColumnsPerRow(forms);
+		boolean canEdit = invalidEditableColumns.values().stream().map((invalid_editable_columns) -> invalid_editable_columns.size() < columns.length).reduce(false,(a,b)-> a||b);
+
+		ReportViewFrame reportViewFrame = new ReportViewFrame(email , auth , "Reports View" , columns, rows, canEdit , invalidEditableColumns);
 		
 		List<Integer> filterColumns = forms.get(0).getFilterColumns();
 		List<String> filterNames = new ArrayList<>();
@@ -1148,9 +1151,10 @@ public class Analyzer
 		return null;
 	}
 
-	public List<Integer> getInvalidEditableCoulmns(String[] columns) 
+	public Map<Integer,List<Integer>> getInvalidEditableColumns(int rowsNumber, int columnsNumber)
 	{
-		return IntStream.rangeClosed(0, columns.length - 1).boxed().collect(Collectors.toList());
+		return IntStream.range(0, rowsNumber).boxed().collect(Collectors.toMap(Function.identity(),
+				(i) -> IntStream.range(0, columnsNumber).boxed().collect(Collectors.toList())));
 	}
 	
 	public List<MrpHeader> getMrpHeaders(String userName , List<String> customers)

@@ -65,7 +65,7 @@ public class ReportViewFrame implements ActionListener {
 	private CallBack<Object> doubleLeftClickAction;
 	private CallBack<Object> rightClickAction;
 	private boolean canEdit;
-	private List<Integer> invalidEditableColumns;
+	private Map<Integer,List<Integer>> invalidEditableColumns;
 	private JLabel copyRight;
 	private List<Integer> filterColumns;
 	private List<String> filterNames;
@@ -84,7 +84,7 @@ public class ReportViewFrame implements ActionListener {
 	private JLabel filterLabel;
 
 
-	public ReportViewFrame(String email , Authenticator auth , String frameName , String [] columns , String [][] content ,  boolean canEdit , List<Integer> invalidEditableColumns) 
+	public ReportViewFrame(String email , Authenticator auth , String frameName , String [] columns , String [][] content ,  boolean canEdit , Map<Integer,List<Integer>> invalidEditableColumns)
 	{
 		this.email = email;
 		this.auth = auth;
@@ -158,10 +158,7 @@ public class ReportViewFrame implements ActionListener {
 		frame.add(panel);
 		
 		DefaultTableModel model = new DefaultTableModel();
-				
-		table = new MyJTable(model , canEdit);
-		if(canEdit)
-			invalidEditableColumns.stream().forEach(column -> table.addInvalidEditableColumn(column));
+		table = new MyJTable(model , canEdit, invalidEditableColumns);
 		createTable(model);
 		table.setShowGrid(true);
 		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
@@ -645,6 +642,7 @@ public class ReportViewFrame implements ActionListener {
 	public void setEditable(boolean editable)
 	{
 		this.canEdit = editable;
+		table.setEditable(editable);
 	}
 	
 	public void setFrameName(String frameName)
@@ -694,6 +692,11 @@ public class ReportViewFrame implements ActionListener {
 
 	public int convertIndexToModelIndex(int rowViewIndex)
 	{
+		if(table.getRowSorter() == null)
+		{
+			return rowViewIndex;
+		}
+
 		return table.getRowSorter().convertRowIndexToModel(rowViewIndex);
 	}
 }

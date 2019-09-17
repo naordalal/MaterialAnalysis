@@ -2,6 +2,7 @@ package Components;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
@@ -10,35 +11,28 @@ public class MyJTable extends JTable
 {
 	private static final long serialVersionUID = 1L;
 	
-	private List<Integer> invalidEditableColumns;
+	private Map<Integer,List<Integer>> invalidEditableColumns;
 	int selectedRow = -1 , selectedColumn = -1 , popUpRow = -1 ,  popUpColumn= -1;
 	boolean canEdit;
 
-	public MyJTable(DefaultTableModel model , boolean canEdit) 
+	public MyJTable(DefaultTableModel model , boolean canEdit, Map<Integer,List<Integer>> invalidEditableColumns)
 	{
 		super(model);
-		invalidEditableColumns = new ArrayList<Integer>();
+		this.invalidEditableColumns = invalidEditableColumns;
 		this.canEdit = canEdit;
 	}
 
 	@Override
 	public boolean isCellEditable(int row, int column) 
 	{
-		if(canEdit)
-			return !invalidEditableColumns.contains(column);
-		return !invalidEditableColumns.contains(column) && this.selectedRow == row && this.selectedColumn == column;  
+		return canEdit && !invalidEditableColumns.get(row).contains(column);
 	}
-	
-	public void addInvalidEditableColumn(Integer column)
+
+	public void setEditable(boolean canEdit)
 	{
-		invalidEditableColumns.add(column);
+		this.canEdit = canEdit;
 	}
-	
-	public void removeInvalidEditableColumn(Integer column)
-	{
-		invalidEditableColumns.remove(column);
-	}
-	
+
 	public void setCellEditable(int row, int column)
 	{
 		this.selectedRow = row;

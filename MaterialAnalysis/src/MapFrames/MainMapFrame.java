@@ -7,11 +7,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -361,10 +358,10 @@ public class MainMapFrame implements ActionListener
 				Map<MonthDate, Map<String, ProductColumn>> map = analyzer.calculateMap(userName , true , customerChoosen.getSelectedItems() , null);
 				String [] columns = analyzer.getColumns(map);
 				String [][] rows = analyzer.getRows(map);
-				List<Integer> invalidEditableCoulmns = analyzer.getInvalidEditableCoulmns(columns);
+				Map<Integer,List<Integer>> invalidEditableColumns = analyzer.getInvalidEditableColumns(rows.length, columns.length);
 				
-				boolean canEdit = invalidEditableCoulmns.size() < columns.length;
-				ReportViewFrame mapFrame = new ReportViewFrame(email , auth , "Map View" , columns, rows, canEdit ,invalidEditableCoulmns);
+				boolean canEdit = invalidEditableColumns.values().stream().map((invalid_editable_columns) -> invalid_editable_columns.size() < columns.length).reduce(false,(a,b)-> a||b);
+				ReportViewFrame mapFrame = new ReportViewFrame(email , auth , "Map View" , columns, rows, canEdit ,invalidEditableColumns);
 				
 				List<Integer> filterColumns = analyzer.getFilterColumns();
 				List<String> filterNames = new ArrayList<>();
@@ -402,10 +399,10 @@ public class MainMapFrame implements ActionListener
 				Map<MonthDate, Map<String, MapPrice>> mapPrice = analyzer.calculateMapPrice(userName, customerChoosen.getSelectedItems());
 				String [] columns = analyzer.getColumnsOfMapPrice(mapPrice);
 				String [][] rows = analyzer.getRowsOfMapPrice(mapPrice);
-				List<Integer> invalidEditableCoulmns = IntStream.range(0, columns.length).boxed().collect(Collectors.toList());
-				
-				boolean canEdit = invalidEditableCoulmns.size() < columns.length;
-				ReportViewFrame mapPriceFrame = new ReportViewFrame(email , auth , "Map Price View" , columns, rows, canEdit ,invalidEditableCoulmns);
+				Map<Integer,List<Integer>> invalidEditableColumns = IntStream.range(0, rows.length).boxed().collect(Collectors.toMap(Function.identity(),
+						(i) -> IntStream.range(0, columns.length).boxed().collect(Collectors.toList())));
+
+				ReportViewFrame mapPriceFrame = new ReportViewFrame(email , auth , "Map Price View" , columns, rows, false ,invalidEditableColumns);
 				
 				List<Integer> filterColumns = analyzer.getFilterColumnsOfMapPrice();
 				List<String> filterNames = new ArrayList<>();
@@ -580,10 +577,10 @@ public class MainMapFrame implements ActionListener
 				
 				String [] columns = analyzer.getColumnsOfDeviationFromObligo(deviationFromObligo);
 				String [][] rows = analyzer.getRowsOfDeviationFromObligo(deviationFromObligo);
-				List<Integer> invalidEditableCoulmns = IntStream.range(0, columns.length).boxed().collect(Collectors.toList());
-				
-				boolean canEdit = invalidEditableCoulmns.size() < columns.length;
-				ReportViewFrame customersDeviationFrame = new ReportViewFrame(email , auth , "Deviation From Obligo View" , columns, rows, canEdit ,invalidEditableCoulmns);
+				Map<Integer,List<Integer>> invalidEditableColumns = IntStream.range(0, rows.length).boxed().collect(Collectors.toMap(Function.identity(),
+						(i) -> IntStream.range(0, columns.length).boxed().collect(Collectors.toList())));
+
+				ReportViewFrame customersDeviationFrame = new ReportViewFrame(email , auth , "Deviation From Obligo View" , columns, rows, false , invalidEditableColumns);
 				
 				List<Integer> filterColumns = IntStream.range(0, 1).boxed().collect(Collectors.toList());
 				List<String> filterNames = new ArrayList<>();
@@ -603,11 +600,11 @@ public class MainMapFrame implements ActionListener
 		String [] columns;
 		String [][] rows;
 		
-		List<Integer> invalidEditableColumns = new ArrayList<Integer>();
+		Map<Integer,List<Integer>> invalidEditableColumns = new HashMap<>();
 		if(data.size() > 0)
 		{
 			columns = data.get(0).getColumns();
-			invalidEditableColumns = data.get(0).getInvalidEditableColumns();
+			invalidEditableColumns = Report.getInvalidReportColumnsPerRow(data);
 			rows = data.stream().map(t -> t.getRow()).toArray(String[][]::new);
 		}
 		else
@@ -615,8 +612,8 @@ public class MainMapFrame implements ActionListener
 			columns = new String [0];
 			rows = new String[0][0];
 		}
-		
-		boolean canEdit = invalidEditableColumns.size() < columns.length;
+
+		boolean canEdit = invalidEditableColumns.values().stream().map((invalid_editable_columns) -> invalid_editable_columns.size() < columns.length).reduce(false,(a,b)-> a||b);
 		ReportViewFrame reportFrame = new ReportViewFrame(email , auth , frameName , columns, rows, canEdit, invalidEditableColumns);
 		
 		CallBack<Object> valueCellChangeAction = null;

@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -319,10 +320,10 @@ public class AddForecastFrame extends KeyAdapter implements ActionListener
 		
 		String [] columns = forecasts[0];
 		String [][] rows = ArrayUtils.subarray(forecasts, 1, forecasts.length);
-		List<Integer> invalidEditableCoulmns = IntStream.range(0, columns.length).boxed().collect(Collectors.toList());
-		
-		boolean canEdit = invalidEditableCoulmns.size() < columns.length;
-		ReportViewFrame forecastFrame = new ReportViewFrame(email , auth , "Balance Forecast View" , columns, rows, canEdit ,invalidEditableCoulmns);
+		Map<Integer,List<Integer>> invalidEditableColumns = IntStream.range(0, rows.length).boxed().collect(Collectors.toMap(Function.identity(),
+				(i) -> IntStream.range(0, columns.length).boxed().collect(Collectors.toList())));
+
+		ReportViewFrame forecastFrame = new ReportViewFrame(email , auth , "Balance Forecast View" , columns, rows, false, invalidEditableColumns);
 		
 		List<Integer> filterColumns = IntStream.range(0, 1).boxed().collect(Collectors.toList());
 		List<String> filterNames = new ArrayList<>();
