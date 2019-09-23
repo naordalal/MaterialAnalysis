@@ -377,7 +377,7 @@ public class Forecast extends Form
 				int column = tcl.getColumn();
 				String newValue = (String) tcl.getNewValue();
 				String oldValue = (String) tcl.getOldValue();
-				ForecastAttachment forecastAttachment = forecastAttachments.get(forecastAttachmentsFrame.convertIndexToModelIndex(row));
+				ForecastAttachment forecastAttachment = forecastAttachments.get(row);
 				
 				try
 				{

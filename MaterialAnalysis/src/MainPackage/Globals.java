@@ -72,10 +72,10 @@ public class Globals {
 	    SHIPMENT,WO,PO,FC
 	};
 	
-	public static String con = "C:\\Projects\\DB.db";
-	//public static final String con = "O:\\Purchasing\\PO_FollowUp\\Material Analysis\\DB.db";
-	public static String MapAnalyzerPath = "C:\\Users\\naordalal\\Desktop\\Map Analyzer.jar";
-	//public static final String MapAnalyzerPath = "O:\\Purchasing\\PO_FollowUp\\Material Analysis\\MAP system\\Map Analyzer.jar";
+	//public static String con = "C:\\Projects\\DB.db";
+	public static final String con = "O:\\Purchasing\\PO_FollowUp\\Material Analysis\\DB.db";
+	//public static String MapAnalyzerPath = "C:\\Users\\naordalal\\Desktop\\Map Analyzer.jar";
+	public static final String MapAnalyzerPath = "O:\\Purchasing\\PO_FollowUp\\Material Analysis\\MAP system\\Map Analyzer.jar";
 	public static final String ALGO = "AES";
 	public static final byte[] keyValue = {'T' , 'h' , 'e' , 'B' , 'e' ,'s' ,'t' , 'S' , 'e' , 'c' ,'r' ,'e' ,'t'
 		 ,'K' ,'e' ,'y'

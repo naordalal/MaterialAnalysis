@@ -1087,7 +1087,7 @@ public class Analyzer
 						int column = tcl.getColumn();
 						String newValue = (String) tcl.getNewValue();
 						String oldValue = (String) tcl.getOldValue();
-						Form updateForm = forms.get(mapFrame.convertIndexToModelIndex(row));
+						Form updateForm = forms.get(row);
 						
 						try 
 						{

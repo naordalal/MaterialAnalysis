@@ -236,7 +236,7 @@ public class Tree extends Report
 				int column = tcl.getColumn();
 				String newValue = (String) tcl.getNewValue();
 				String oldValue = (String) tcl.getOldValue();
-				Tree tree = trees.get(frame.convertIndexToModelIndex(row));
+				Tree tree = trees.get(row);
 				Message message;
 				try
 				{

@@ -195,7 +195,7 @@ public class ProductInit extends Report
 				String newValue = (String) tcl.getNewValue();
 				String oldValue = (String) tcl.getOldValue();
 
-				ProductInit productInit = productsInit.get(frame.convertIndexToModelIndex(row));
+				ProductInit productInit = productsInit.get(row);
 				
 				try
 				{
