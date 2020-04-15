@@ -6,7 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -488,11 +488,11 @@ public class MainMapFrame implements ActionListener
 				Runtime runTime = Runtime.getRuntime();
 				try 
 				{
-					runTime.exec("java -jar \"" + Globals.MapAnalyzerPath + "\" true");
+					runTime.exec("cmd /c \"" + Globals.MapAnalyzerPath + "\" true");
 				}
-				catch (IOException e1) 
+				catch (IOException e)
 				{
-					e1.printStackTrace();
+					e.printStackTrace();
 				}
 			}
 			else if(event.getSource() == deleteProductButton)
