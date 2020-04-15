@@ -3465,7 +3465,6 @@ public class DataBase {
 				
 				if(rs.next())
 				{
-					
 					stmt =  c.prepareStatement("UPDATE MaterialAvailability SET quantity = ? where date = ? AND CN = ?");
 					stmt.setDouble(1, materialAvailability);
 					stmt.setString(2, Globals.dateToSqlFormatString(newCalculateMapDate));
@@ -4491,8 +4490,38 @@ public class DataBase {
 			}
 			closeConnection();
 		}
-	
-		
+	}
+
+	public double getMaterialAvailability(String catalogNumber, MonthDate date)
+	{
+		try
+		{
+			connect();
+
+			stmt = c.prepareStatement("SELECT quantity from MaterialAvailability where CN = ? AND date = ?");
+			stmt.setString(1, catalogNumber);
+			stmt.setString(2, Globals.dateToSqlFormatString(date));
+			ResultSet rs = stmt.executeQuery();
+
+			double materialAvailability = 0;
+			if(rs.next())
+			{
+				materialAvailability = rs.getDouble("quantity");
+			}
+
+			closeConnection();
+			return materialAvailability;
+		}
+		catch(SQLException e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			closeConnection();
+			return 0;
+		}
 	}
 	
 }

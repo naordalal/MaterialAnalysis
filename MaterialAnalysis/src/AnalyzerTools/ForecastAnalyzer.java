@@ -128,7 +128,12 @@ public class ForecastAnalyzer
 					newForecastQuantity = quantityCell.getNumericCellValue();
 				
 				double differenceForecast = newForecastQuantity - currentForecastQuantity;
-				
+				if(dateIndex == 1)
+				{
+					// Subtract previous MaterialAvailability
+					differenceForecast -= db.getMaterialAvailability(catalogNumber, new MonthDate(Globals.addMonths(forecastDate, -1)));
+				}
+
 				currentItemRow.add(differenceForecast + "");
 	    	}
 	    	

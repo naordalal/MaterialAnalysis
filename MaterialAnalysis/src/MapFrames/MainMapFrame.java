@@ -489,7 +489,7 @@ public class MainMapFrame implements ActionListener
 				try 
 				{
 					runTime.exec("java -jar \"" + Globals.MapAnalyzerPath + "\" true");
-				} 
+				}
 				catch (IOException e1) 
 				{
 					e1.printStackTrace();
