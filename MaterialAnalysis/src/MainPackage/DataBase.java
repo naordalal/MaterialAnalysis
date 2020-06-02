@@ -4523,5 +4523,69 @@ public class DataBase {
 			return 0;
 		}
 	}
+
+	public double getWOAfterSupply(String catalogNumber, MonthDate date)
+	{
+		try
+		{
+			connect();
+
+			stmt = c.prepareStatement("SELECT quantity from WorkOrderAfterSupplied where CN = ? AND date = ?");
+			stmt.setString(1, catalogNumber);
+			stmt.setString(2, Globals.dateToSqlFormatString(date));
+			ResultSet rs = stmt.executeQuery();
+
+			double woAfterSupply = 0;
+			if(rs.next())
+			{
+				woAfterSupply = rs.getDouble("quantity");
+			}
+
+			closeConnection();
+			return woAfterSupply;
+		}
+		catch(SQLException e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			closeConnection();
+			return 0;
+		}
+	}
+
+	public double getOpenCustomerOrder(String catalogNumber, MonthDate date)
+	{
+		try
+		{
+			connect();
+
+			stmt = c.prepareStatement("SELECT quantity from OpenCustomerOrder where CN = ? AND date = ?");
+			stmt.setString(1, catalogNumber);
+			stmt.setString(2, Globals.dateToSqlFormatString(date));
+			ResultSet rs = stmt.executeQuery();
+
+			double openCustomerOrder = 0;
+			if(rs.next())
+			{
+				openCustomerOrder = rs.getDouble("quantity");
+			}
+
+			closeConnection();
+			return openCustomerOrder;
+		}
+		catch(SQLException e)
+		{
+			try {
+				c.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			closeConnection();
+			return 0;
+		}
+	}
 	
 }

@@ -126,12 +126,14 @@ public class ForecastAnalyzer
 				}
 				else
 					newForecastQuantity = quantityCell.getNumericCellValue();
-				
+
+				// Formula: NewForecast - MaterialAvailability - WorkOrder ==> NewForecast - CurrentForecast + PreviousMaterialAvailability
 				double differenceForecast = newForecastQuantity - currentForecastQuantity;
 				if(dateIndex == 1)
 				{
 					// Subtract previous MaterialAvailability
 					differenceForecast -= db.getMaterialAvailability(catalogNumber, new MonthDate(Globals.addMonths(forecastDate, -1)));
+					//differenceForecast += db.getOpenCustomerOrder(catalogNumber, new MonthDate(forecastDate)); // Only for Novocure
 				}
 
 				currentItemRow.add(differenceForecast + "");
