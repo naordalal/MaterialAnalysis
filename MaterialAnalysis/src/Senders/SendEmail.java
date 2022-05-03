@@ -44,7 +44,7 @@ public class SendEmail {
 	      // Sender's email ID needs to be mentioned
 	      String from = source;
 
-	      String SMTP_HOST = "10.10.4.16";
+	      String SMTP_HOST = "al-co-il0c.mail.eo.outlook.com";
 	      //String SMTP_HOST = "smtp.gmail.com";
 	      
 	      //IP = 10.10.4.16
@@ -55,17 +55,18 @@ public class SendEmail {
 
 	      // Setup mail server
 	      properties.setProperty("mail.smtp.host", SMTP_HOST);
-	      properties.setProperty("mail.smtp.auth", "true");
+	      properties.setProperty("mail.smtp.auth", "false");
 	      properties.setProperty("mail.smtp.port", "25");
-	      properties.setProperty("mail.smtp.starttls.enable", "true");
+	      //properties.setProperty("mail.smtp.starttls.enable", "true");
 	      properties.setProperty("mail.debug", "false");
-	      properties.setProperty("mail.smtp.ssl.enable", "false");
+	      //properties.setProperty("mail.smtp.ssl.enable", "false");
 	      //properties.setProperty("mail.smtp.ssl.enable", "true");
+	      //properties.setProperty("mail.smtp.ssl.protocols", "TLSv1.2");
 	      
 	      
 	      // Get the default Session object.
 	      //While connect to computer with user name and password there is no need for authenticator
-	      Session session = Session.getDefaultInstance(properties , auth); 
+	      Session session = Session.getDefaultInstance(properties);
 	      
 
 	      try{
